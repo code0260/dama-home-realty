@@ -57,11 +57,11 @@ export interface Booking {
   user_id: number;
   check_in: string;
   check_out: string;
-  nights: number;
   total_price: number;
   amount_paid: number;
   payment_status: 'pending' | 'paid' | 'partial' | 'refunded';
   booking_status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  stripe_checkout_session_id?: string | null;
   notes?: string | null;
   property?: Property & {
     tenant_details?: {
@@ -69,24 +69,13 @@ export interface Booking {
       door_code?: string | null;
       house_rules?: string | null;
       full_address?: string | null;
-    } | null;
-  };
-  user?: {
-    id: number;
-    name: string;
-    email: string;
+    };
   };
   created_at: string;
   updated_at: string;
 }
 
-export interface PropertyAvailability {
-  property_id: number;
-  blocked_dates: string[];
-  available: boolean;
-}
-
-// User Type
+// User Types
 export interface User {
   id: number;
   name: string;
@@ -96,27 +85,27 @@ export interface User {
   updated_at?: string;
 }
 
-// Agent Type
+// Agent Types
 export interface Agent {
   id: number;
   name: string;
   photo?: string | null;
-  role: string;
-  phone: string;
-  languages?: string[];
+  role?: string | null;
+  phone?: string | null;
+  languages?: string[] | null;
   license_no?: string | null;
 }
 
-// Service Type
+// Service Types
 export interface Service {
   id: number;
   title: string;
-  description?: string | null;
+  description: string;
   icon?: string | null;
-  sort_order: number;
+  sort_order?: number | null;
 }
 
-// Testimonial Type
+// Testimonial Types
 export interface Testimonial {
   id: number;
   client_name: string;
@@ -127,35 +116,36 @@ export interface Testimonial {
   is_featured: boolean;
 }
 
-// API Response Types
+// Article Types
+export interface Article {
+  id: number;
+  slug: string;
+  title: string;
+  content: string;
+  image: string | null;
+  author: {
+    id: number;
+    name: string;
+  };
+  published_at: string | null;
+  is_featured: boolean;
+  views: number;
+  excerpt: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Utility Types
 export interface PaginatedResponse<T> {
   data: T[];
   current_page: number;
   last_page: number;
   per_page: number;
   total: number;
-  from: number;
-  to: number;
 }
 
-export interface ApiError {
-  message: string;
-  errors?: Record<string, string[]>;
-}
-
-// Filter Types
-export interface PropertyFilters {
-  type?: 'rent' | 'sale' | 'hotel' | 'all';
-  min_price?: number;
-  max_price?: number;
-  neighborhood_id?: number | string; // Can be 'all' or number
-  bedrooms?: number | string; // Can be 'all' or number
-  bathrooms?: number | string; // Can be 'all' or number
-  amenities?: string[];
-  featured?: boolean;
-  status?: 'active' | 'sold' | 'rented';
-  per_page?: number;
-  page?: number;
-  locale?: 'en' | 'ar';
-  sort_by?: 'newest' | 'price_asc' | 'price_desc';
+export interface PropertyAvailability {
+  property_id: number;
+  blocked_dates: string[];
+  available: boolean;
 }

@@ -1,25 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Service } from '@/types';
 import { getServices, submitServiceRequest } from '@/lib/api';
 import { Navbar } from '@/components/ui-custom/Navbar';
 import { Footer } from '@/components/ui-custom/Footer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, CheckCircle2, Briefcase, Scale, Car } from 'lucide-react';
-
-const serviceIcons: Record<string, any> = {
-  'heroicon-o-briefcase': Briefcase,
-  'heroicon-o-scale': Scale,
-  'heroicon-o-car': Car,
-};
+import { AlertCircle, CheckCircle2, Settings } from 'lucide-react';
+import { ServiceCard } from '@/components/services/ServiceCard';
+import { ServiceBenefits } from '@/components/services/ServiceBenefits';
+import { ServiceProcess } from '@/components/services/ServiceProcess';
+import { EmptyState } from '@/components/empty/EmptyState';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -74,67 +72,181 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Abstract Background Shapes */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        {/* Blob 1 - Top Left */}
+        <motion.div
+          className="absolute -top-40 -left-40 w-96 h-96 bg-[#B49162]/10 rounded-full blur-3xl"
+          animate={{
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        
+        {/* Blob 2 - Top Right */}
+        <motion.div
+          className="absolute -top-20 -right-20 w-80 h-80 bg-[#B49162]/10 rounded-full blur-3xl"
+          animate={{
+            x: [0, -30, 0],
+            y: [0, 40, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 0.5,
+          }}
+        />
+
+        {/* Blob 3 - Bottom Left */}
+        <motion.div
+          className="absolute bottom-0 left-0 w-72 h-72 bg-[#B49162]/10 rounded-full blur-3xl"
+          animate={{
+            x: [0, 40, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1,
+          }}
+        />
+
+        {/* Geometric Lines */}
+        <svg className="absolute top-0 left-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#B49162" />
+              <stop offset="100%" stopColor="#0F172A" />
+            </linearGradient>
+          </defs>
+          <line x1="0" y1="200" x2="200" y2="0" stroke="url(#lineGradient)" strokeWidth="2" />
+          <line x1="200" y1="0" x2="400" y2="200" stroke="url(#lineGradient)" strokeWidth="2" />
+          <line x1="100%" y1="300" x2="calc(100% - 200)" y2="100" stroke="url(#lineGradient)" strokeWidth="2" />
+          <line x1="calc(100% - 200)" y1="100" x2="calc(100% - 400)" y2="300" stroke="url(#lineGradient)" strokeWidth="2" />
+        </svg>
+      </div>
+
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary via-primary/95 to-secondary/20 text-white py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Services</h1>
-            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+        <section className="bg-linear-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white py-24 relative overflow-hidden">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-5xl md:text-6xl font-bold mb-6 bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent"
+            >
+              Our Services
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-xl text-gray-300 max-w-2xl mx-auto"
+            >
               Comprehensive real estate services for expats in Damascus
-            </p>
+            </motion.p>
           </div>
         </section>
 
-        {/* Services Grid */}
-        <section className="py-16 bg-white">
+        {/* Services Section with Zig-Zag Layout */}
+        <section className="py-20 bg-white relative">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-64" />
+                  <Skeleton key={i} className="h-[300px] rounded-2xl" />
                 ))}
               </div>
             ) : services.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-gray-500 text-lg">No services available at the moment.</p>
-              </div>
+              <EmptyState
+                icon={Settings}
+                title="No Services Available"
+                description="Services will be available soon. Please check back later."
+              />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {services.map((service) => {
-                  const IconComponent = service.icon && serviceIcons[service.icon]
-                    ? serviceIcons[service.icon]
-                    : Briefcase;
-
+              <div className="space-y-16">
+                {services.map((service, index) => {
+                  const isEven = index % 2 === 0;
+                  
                   return (
-                    <Card key={service.id} className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
-                      <CardHeader>
-                        <div className="flex items-center gap-4 mb-2">
-                          <div className="p-3 bg-primary/10 rounded-lg">
-                            <IconComponent className="w-8 h-8 text-primary" />
-                          </div>
-                          <CardTitle className="text-xl">{service.title}</CardTitle>
-                        </div>
-                        {service.description && (
-                          <CardDescription>{service.description}</CardDescription>
-                        )}
-                      </CardHeader>
-                      <CardContent>
-                        <Button
-                          onClick={() => handleServiceClick(service)}
-                          className="w-full"
+                    <motion.div
+                      key={service.id}
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-100px' }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      className={`flex flex-col lg:flex-row gap-12 items-center ${
+                        isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'
+                      }`}
+                    >
+                      {/* Text Content */}
+                      <div className={`flex-1 ${isEven ? 'lg:text-left' : 'lg:text-right'} text-center lg:text-left`}>
+                        <motion.h2
+                          initial={{ opacity: 0, x: isEven ? -30 : 30 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6 }}
+                          className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-6"
                         >
-                          Request Service
-                        </Button>
-                      </CardContent>
-                    </Card>
+                          {service.title}
+                        </motion.h2>
+                        {service.description && (
+                          <motion.p
+                            initial={{ opacity: 0, x: isEven ? -30 : 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="text-lg text-gray-600 leading-relaxed mb-8"
+                          >
+                            {service.description}
+                          </motion.p>
+                        )}
+                        <motion.div
+                          initial={{ opacity: 0, x: isEven ? -30 : 30 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, delay: 0.4 }}
+                        >
+                          <Button
+                            onClick={() => handleServiceClick(service)}
+                            className="bg-[#B49162] hover:bg-[#9A7A4F] text-white shadow-lg px-8 py-6 text-lg"
+                            size="lg"
+                          >
+                            Request Service
+                          </Button>
+                        </motion.div>
+                      </div>
+
+                      {/* Card Visual */}
+                      <div className="flex-1 w-full max-w-md">
+                        <ServiceCard service={service} onRequest={handleServiceClick} />
+                      </div>
+                    </motion.div>
                   );
                 })}
               </div>
             )}
           </div>
         </section>
+
+        {/* Service Benefits */}
+        <ServiceBenefits />
+
+        {/* Service Process */}
+        <ServiceProcess />
       </main>
       <Footer />
 

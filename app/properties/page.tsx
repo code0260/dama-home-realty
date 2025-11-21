@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sheet';
 import { Navbar } from '@/components/ui-custom/Navbar';
 import { Footer } from '@/components/ui-custom/Footer';
+import { NoResults } from '@/components/empty/NoResults';
 import { Filter, Grid, List, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function PropertiesContent() {
@@ -228,17 +229,11 @@ function PropertiesContent() {
                   ))}
                 </div>
               ) : properties.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="max-w-md mx-auto">
-                    <h3 className="text-2xl font-bold text-primary mb-2">No Properties Found</h3>
-                    <p className="text-gray-600 mb-6">
-                      Try adjusting your filters to see more results.
-                    </p>
-                    <Button onClick={handleReset} variant="outline">
-                      Reset Filters
-                    </Button>
-                  </div>
-                </div>
+                <NoResults
+                  title="No Properties Found"
+                  description="Try adjusting your filters or search terms to find what you're looking for."
+                  onReset={handleReset}
+                />
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

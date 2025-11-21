@@ -106,7 +106,7 @@ export default function TenantPortalPage() {
 
   if (!isAuthenticated || loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-white to-secondary/5">
+      <div className="min-h-screen flex flex-col bg-linear-to-br from-primary/5 via-white to-secondary/5">
         <Navbar />
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Skeleton className="h-96 w-full" />
@@ -132,11 +132,11 @@ export default function TenantPortalPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-white to-secondary/5">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-primary/5 via-white to-secondary/5">
       <Navbar />
       <main className="flex-1">
         {/* Premium Header */}
-        <div className="bg-gradient-to-r from-primary via-primary/95 to-secondary/20 text-white py-12">
+        <div className="bg-linear-to-r from-primary via-primary/95 to-secondary/20 text-white py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-2">
               <Sparkles className="w-6 h-6 text-secondary" />
@@ -243,7 +243,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
   return (
     <Card className="border-2 border-secondary shadow-2xl overflow-hidden">
       {/* Header with Property Image */}
-      <div className="relative h-48 bg-gradient-to-br from-primary to-secondary">
+      <div className="relative h-48 bg-linear-to-br from-primary to-secondary">
         {booking.property?.images && booking.property.images.length > 0 ? (
           <Image
             src={booking.property.images[0]}
@@ -252,7 +252,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
             className="object-cover opacity-80"
           />
         ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -272,7 +272,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
 
       <CardContent className="p-6 space-y-6">
         {/* Countdown & Timeline */}
-        <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-xl p-6 border border-secondary/20">
+        <div className="bg-linear-to-r from-secondary/10 to-primary/10 rounded-xl p-6 border border-secondary/20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="bg-secondary/20 rounded-full p-3">
@@ -300,7 +300,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
             </div>
             <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="absolute left-0 top-0 h-full bg-gradient-to-r from-secondary to-primary transition-all duration-500"
+                className="absolute left-0 top-0 h-full bg-linear-to-r from-secondary to-primary transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
               <div
@@ -325,7 +325,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {booking.property.tenant_details.wifi_password && (
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
+                <Card className="bg-linear-to-br from-blue-50 to-blue-100/50 border-blue-200">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className="bg-blue-500 rounded-lg p-2">
@@ -343,7 +343,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
               )}
               
               {booking.property.tenant_details.door_code && (
-                <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
+                <Card className="bg-linear-to-br from-green-50 to-green-100/50 border-green-200">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className="bg-green-500 rounded-lg p-2">
@@ -362,7 +362,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
             </div>
 
             {booking.property.tenant_details.full_address && (
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200">
+              <Card className="bg-linear-to-br from-purple-50 to-purple-100/50 border-purple-200">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="bg-purple-500 rounded-lg p-2">
@@ -395,7 +395,7 @@ function ActiveStayCard({ booking }: { booking: Booking }) {
             )}
 
             {booking.property.tenant_details.house_rules && (
-              <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 border-amber-200">
+              <Card className="bg-linear-to-br from-amber-50 to-amber-100/50 border-amber-200">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="bg-amber-500 rounded-lg p-2">

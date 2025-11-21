@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,10 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Neighborhood } from '@/types';
 import axiosInstance from '@/lib/axios';
+import { AiSearchDialog } from '@/components/ai/AiSearchDialog';
 
 export function HeroSection() {
   const router = useRouter();
@@ -20,6 +22,25 @@ export function HeroSection() {
   const [type, setType] = useState('all');
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  // Parallax scroll effect
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 600], [0, 150]);
+  const opacity = useTransform(scrollY, [0, 600], [1, 0]);
+
+  // Ken Burns effect (slow zoom)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScale((prev) => {
+        if (prev >= 1.1) return 1;
+        return prev + 0.001;
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchNeighborhoods = async () => {
@@ -50,35 +71,81 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative w-full h-[600px] flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-gradient-to-br from-primary via-primary/90 to-secondary/20">
-          {/* Placeholder for Damascus skyline image */}
-          <div className="absolute inset-0 bg-[url('/damascus-skyline.jpg')] bg-cover bg-center opacity-30" />
+    <section className="relative w-full h-[700px] flex items-center justify-center overflow-hidden">
+      {/* Background Image with Parallax & Ken Burns Effect */}
+      <motion.div
+        className="absolute inset-0 z-0"
+        style={{ y, opacity }}
+      >
+        <div className="w-full h-full bg-linear-to-br from-primary via-primary/90 to-secondary/20">
+          {/* Background image with Ken Burns effect */}
+          <motion.div
+            className="absolute inset-0 bg-[url('/damascus-skyline.jpg')] bg-cover bg-center"
+            style={{
+              scale,
+              backgroundImage: "url('/damascus-skyline.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+            transition={{ duration: 20, repeat: Infinity, repeatType: 'reverse' }}
+          />
         </div>
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
+        <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/60" />
+      </motion.div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-          Find Your Safe Haven in Damascus
+      <motion.div
+        className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        {/* Main Heading with Gradient Text */}
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 drop-shadow-2xl">
+          <span className="bg-linear-to-r from-[#B49162] via-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+            Find Your Safe Haven
+          </span>
+          <br />
+          <span className="text-white">in Damascus</span>
         </h1>
-        <p className="text-xl md:text-2xl text-gray-200 mb-8 drop-shadow-md">
+        
+        <p className="text-xl md:text-2xl text-gray-100 mb-10 drop-shadow-lg max-w-2xl mx-auto">
           Discover premium properties in Syria's historic capital
         </p>
 
-        {/* Search Box */}
-        <div className="max-w-4xl mx-auto bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-4 md:p-6">
+        {/* Magic Search Button */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <Button
+            onClick={() => setAiSearchOpen(true)}
+            variant="outline"
+            className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 backdrop-blur-md shadow-xl"
+            size="lg"
+          >
+            <Sparkles className="w-5 h-5 mr-2" />
+            Try AI Magic Search
+          </Button>
+        </motion.div>
+
+        {/* Glassmorphism Search Box (Airbnb Style) */}
+        <motion.div
+          className="max-w-5xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-8 border border-white/20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
           <div className="flex flex-col md:flex-row gap-4">
             {/* Location Select */}
             <div className="flex-1">
               <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger className="w-full">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder="Select Location" />
+                <SelectTrigger className="w-full bg-white/90 hover:bg-white border-white/30 h-14 text-left">
+                  <MapPin className="w-5 h-5 mr-2 text-gray-500" />
+                  <SelectValue placeholder="Where?" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Locations</SelectItem>
@@ -94,7 +161,7 @@ export function HeroSection() {
             {/* Type Select */}
             <div className="flex-1">
               <Select value={type} onValueChange={setType}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white/90 hover:bg-white border-white/30 h-14 text-left">
                   <SelectValue placeholder="Property Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -109,15 +176,18 @@ export function HeroSection() {
             {/* Search Button */}
             <Button
               onClick={handleSearch}
-              className="bg-secondary hover:bg-secondary/90 text-white px-8 md:px-12"
+              className="bg-[#B49162] hover:bg-[#9A7A4F] text-white px-8 md:px-12 h-14 shadow-lg hover:shadow-xl transition-all duration-300"
               size="lg"
             >
               <Search className="w-5 h-5 mr-2" />
               Search
             </Button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+
+      {/* AI Search Dialog */}
+      <AiSearchDialog open={aiSearchOpen} onOpenChange={setAiSearchOpen} />
     </section>
   );
 }

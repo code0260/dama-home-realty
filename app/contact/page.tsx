@@ -46,7 +46,7 @@ export default function ContactPage() {
       <Navbar />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary via-primary/95 to-secondary/20 text-white py-16">
+        <section className="bg-linear-to-br from-primary via-primary/95 to-secondary/20 text-white py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Get In Touch</h1>
             <p className="text-xl text-gray-200 max-w-2xl mx-auto">

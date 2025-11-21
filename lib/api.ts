@@ -1,6 +1,6 @@
 import axios from 'axios';
 import axiosInstance from './axios';
-import { Property, PaginatedResponse, Booking, PropertyAvailability, Neighborhood, User, Service, Testimonial } from '@/types';
+import { Property, PaginatedResponse, Booking, PropertyAvailability, Neighborhood, User, Service, Testimonial, Agent } from '@/types';
 
 /**
  * Get a property by slug
@@ -202,6 +202,14 @@ export async function getServices(locale: string = 'en'): Promise<Service[]> {
 }
 
 /**
+ * Get all agents
+ */
+export async function getAgents(): Promise<Agent[]> {
+  const response = await axiosInstance.get<{ data: Agent[] }>('/agents');
+  return response.data?.data || [];
+}
+
+/**
  * Get testimonials
  */
 export async function getTestimonials(featured: boolean = false, locale: string = 'en'): Promise<Testimonial[]> {
@@ -249,5 +257,46 @@ export async function submitServiceRequest(data: {
  */
 export async function getMyServices(): Promise<any[]> {
   const response = await axiosInstance.get('/my-services');
+  return response.data;
+}
+
+/**
+ * Get articles (blog posts)
+ */
+export async function getArticles(filters?: {
+  featured?: boolean;
+  per_page?: number;
+  page?: number;
+  locale?: string;
+}): Promise<PaginatedResponse<Article>> {
+  const response = await axiosInstance.get<PaginatedResponse<Article>>('/articles', {
+    params: filters,
+  });
+  return response.data;
+}
+
+/**
+ * Get a single article by slug
+ */
+export async function getArticleBySlug(slug: string, locale: string = 'en'): Promise<Article> {
+  const response = await axiosInstance.get<Article>(`/articles/${slug}`, {
+    params: { locale },
+  });
+  return response.data;
+}
+
+/**
+ * AI Concierge Chat
+ */
+export async function chatWithConcierge(data: {
+  message: string;
+  conversation_history?: Array<{ role: string; content: string }>;
+  current_page?: string;
+  property_slug?: string | null;
+}): Promise<{ message: string; tool_calls?: boolean }> {
+  const response = await axiosInstance.post<{ message: string; tool_calls?: boolean }>(
+    '/ai-concierge/chat',
+    data
+  );
   return response.data;
 }

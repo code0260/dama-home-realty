@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Globe, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,12 +26,14 @@ export function Navbar() {
     { href: '/', label: 'Home' },
     { href: '/properties?type=sale', label: 'Buy' },
     { href: '/properties?type=rent', label: 'Rent' },
+    { href: '/map-search', label: 'Map Search' },
+    { href: '/blog', label: 'Blog' },
     { href: '/services', label: 'Services' },
     { href: '/about', label: 'About' },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80">
+    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur supports-backdrop-filter:bg-white/80 dark:supports-backdrop-filter:bg-[#0F172A]/80 border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -46,7 +49,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-secondary transition-colors"
               >
                 {link.label}
               </Link>
@@ -55,6 +58,9 @@ export function Navbar() {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-4">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Language Switcher (Placeholder) */}
             <Button
               variant="ghost"

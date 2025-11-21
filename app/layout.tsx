@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { DamaGenie } from "@/components/ai/DamaGenie";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -76,13 +78,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0F172A" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Dama Realty" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+      </head>
       <body
-        className={`${inter.variable} ${cairo.variable} font-sans antialiased`}
+        className={`${inter.variable} ${cairo.variable} font-sans antialiased bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-white transition-colors`}
       >
-        <Providers>
-          {children}
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            {children}
+            <DamaGenie />
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

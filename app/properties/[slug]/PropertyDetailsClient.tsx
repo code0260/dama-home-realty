@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Property } from '@/types';
@@ -35,6 +36,9 @@ import { Footer } from '@/components/ui-custom/Footer';
 import { BookingForm } from '@/components/property/BookingForm';
 import { AgentCard } from '@/components/property/AgentCard';
 import { ScheduleLiveTourDialog } from '@/components/property/ScheduleLiveTourDialog';
+import { ShareModal } from '@/components/property/ShareModal';
+import { AmenityIcon } from '@/components/property/AmenityIcon';
+import { PropertyMap } from '@/components/property/PropertyMap';
 
 interface PropertyDetailsClientProps {
   slug: string;
@@ -46,6 +50,8 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -91,23 +97,33 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
     return cleanPhone ? `https://t.me/${cleanPhone}` : '#';
   };
 
-  const handleShare = async () => {
-    if (navigator.share && property) {
-      try {
-        await navigator.share({
-          title: property.title,
-          text: property.description,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.error('Error sharing:', err);
+  const handleShare = () => {
+    setShareModalOpen(true);
+  };
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    // TODO: Save to favorites (localStorage or API)
+    if (!isSaved) {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (!favorites.includes(property?.uuid)) {
+        favorites.push(property?.uuid);
+        localStorage.setItem('favorites', JSON.stringify(favorites));
       }
     } else {
-      // Fallback: Copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const filtered = favorites.filter((id: string) => id !== property?.uuid);
+      localStorage.setItem('favorites', JSON.stringify(filtered));
     }
   };
+
+  // Check if property is saved on mount
+  useEffect(() => {
+    if (property?.uuid) {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      setIsSaved(favorites.includes(property.uuid));
+    }
+  }, [property?.uuid]);
 
   if (loading) {
     return (
@@ -147,8 +163,53 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
     );
   }
 
+  // Generate JSON-LD structured data for SEO
+  const jsonLd = property ? {
+    '@context': 'https://schema.org',
+    '@type': property.type === 'hotel' ? 'Hotel' : 'RealEstateAgent',
+    name: property.title,
+    description: property.description,
+    image: property.images && property.images.length > 0 
+      ? property.images.map((img: string) => 
+          img.startsWith('http') 
+            ? img 
+            : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000'}/storage/${img}`
+        )
+      : [],
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: property.neighborhood?.name || 'Damascus',
+      addressCountry: 'SY',
+    },
+    ...(property.type === 'hotel' ? {
+      priceRange: property.price ? `${property.currency || 'USD'} ${property.price}` : undefined,
+      numberOfRooms: property.bedrooms,
+    } : property.price ? {
+      offers: {
+        '@type': 'Offer',
+        price: property.price,
+        priceCurrency: property.currency || 'USD',
+        availability: property.status === 'active' 
+          ? 'https://schema.org/InStock' 
+          : 'https://schema.org/OutOfStock',
+      },
+    } : {}),
+    aggregateRating: property.is_verified ? {
+      '@type': 'AggregateRating',
+      ratingValue: '4.5',
+      reviewCount: '10',
+    } : undefined,
+  } : null;
+
   return (
     <div className="min-h-screen flex flex-col">
+      {/* JSON-LD Structured Data for SEO */}
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <Navbar />
       <main className="flex-1">
         {/* Breadcrumbs */}
@@ -216,12 +277,55 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={handleShare}>
-                  <Share2 className="w-5 h-5" />
-                </Button>
-                <Button variant="outline" size="icon">
-                  <Heart className="w-5 h-5" />
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleShare}
+                    className="border-[#B49162] text-[#B49162] hover:bg-[#B49162] hover:text-white"
+                  >
+                    <Share2 className="w-5 h-5" />
+                  </Button>
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.05 }} 
+                  whileTap={{ scale: 0.95 }}
+                  animate={isSaved ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleSave}
+                    className={`border-[#B49162] hover:bg-[#B49162] hover:text-white ${
+                      isSaved ? 'bg-[#B49162] text-white' : 'text-[#B49162]'
+                    }`}
+                  >
+                    <AnimatePresence mode="wait">
+                      {isSaved ? (
+                        <motion.div
+                          key="filled"
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0, rotate: 180 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Heart className="w-5 h-5 fill-current" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="outline"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Heart className="w-5 h-5" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -275,12 +379,25 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
               {/* Amenities */}
               {property.amenities && property.amenities.length > 0 && (
                 <section>
-                  <h2 className="text-2xl font-bold text-primary mb-4">Amenities</h2>
-                  <div className="flex flex-wrap gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">Amenities</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {property.amenities.map((amenity, index) => (
-                      <Badge key={index} variant="outline" className="px-4 py-2 text-sm">
-                        {amenity}
-                      </Badge>
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                        className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-[#B49162]/10 transition-colors group"
+                      >
+                        <div className="mb-3 p-3 bg-white rounded-full group-hover:scale-110 transition-transform duration-300">
+                          <AmenityIcon 
+                            amenity={amenity} 
+                            size={32} 
+                            className="text-[#B49162] group-hover:text-[#0F172A] transition-colors" 
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-[#0F172A] text-center">{amenity}</span>
+                      </motion.div>
                     ))}
                   </div>
                 </section>
@@ -289,8 +406,8 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
               {/* Video Tour */}
               {property.video_url && (
                 <section>
-                  <h2 className="text-2xl font-bold text-primary mb-4">Video Tour</h2>
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">Video Tour</h2>
+                  <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100 shadow-xl">
                     <iframe
                       src={property.video_url}
                       className="absolute inset-0 w-full h-full"
@@ -301,87 +418,115 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                   </div>
                 </section>
               )}
+
+              {/* Map Section */}
+              <section>
+                <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">Location</h2>
+                <PropertyMap property={property} />
+              </section>
             </div>
 
             {/* Sidebar - Booking Form / Contact Agent */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 space-y-4">
-                {/* Booking Form (for hotel/rent properties) */}
-                {['hotel', 'rent'].includes(property.type) && (
-                  <BookingForm property={property} />
-                )}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="border-2 border-[#B49162]/30 rounded-2xl shadow-xl bg-white/95 backdrop-blur-sm p-6"
+                >
+                  {/* Booking Form (for hotel/rent properties) */}
+                  {['hotel', 'rent'].includes(property.type) && (
+                    <BookingForm property={property} />
+                  )}
 
-                {/* Agent Card (if agent assigned) */}
-                {property.agent ? (
-                  <AgentCard agent={property.agent} property={property} />
-                ) : (
-                  /* Fallback Contact Card */
-                  <div className="bg-white border rounded-lg p-6 shadow-sm">
-                    <h3 className="text-xl font-bold text-primary mb-4">Contact Agent</h3>
-                    <div className="space-y-4">
-                      {property.owner_contact && (
-                        <>
-                          <div>
-                            <p className="text-sm text-gray-600 mb-1">Phone</p>
-                            <p className="font-semibold">{property.owner_contact}</p>
-                          </div>
+                  {/* Agent Card (if agent assigned) */}
+                  {property.agent ? (
+                    <AgentCard agent={property.agent} property={property} />
+                  ) : (
+                    /* Fallback Contact Card */
+                    <div>
+                      <h3 className="text-xl font-bold text-[#0F172A] mb-4">Contact Agent</h3>
+                      <div className="space-y-4">
+                        {property.owner_contact && (
+                          <>
+                            <div>
+                              <p className="text-sm text-gray-600 mb-1">Phone</p>
+                              <p className="font-semibold text-[#0F172A]">{property.owner_contact}</p>
+                            </div>
 
-                          {/* WhatsApp Button */}
-                          <Button
-                            asChild
-                            className="w-full bg-[#25D366] hover:bg-[#25D366]/90 text-white"
-                            size="lg"
-                            disabled={!property.owner_contact}
-                          >
-                            <a
-                              href={getWhatsAppLink(property.owner_contact)}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            {/* WhatsApp Button with Pulse Animation */}
+                            <motion.div
+                              animate={{
+                                boxShadow: [
+                                  '0 0 0 0 rgba(37, 211, 102, 0.7)',
+                                  '0 0 0 10px rgba(37, 211, 102, 0)',
+                                  '0 0 0 0 rgba(37, 211, 102, 0)',
+                                ],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
                             >
-                              <MessageCircle className="w-5 h-5 mr-2" />
-                              WhatsApp
-                            </a>
-                          </Button>
+                              <Button
+                                asChild
+                                className="w-full bg-[#25D366] hover:bg-[#25D366]/90 text-white shadow-lg"
+                                size="lg"
+                                disabled={!property.owner_contact}
+                              >
+                                <a
+                                  href={getWhatsAppLink(property.owner_contact)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <MessageCircle className="w-5 h-5 mr-2" />
+                                  WhatsApp
+                                </a>
+                              </Button>
+                            </motion.div>
 
-                          {/* Telegram Button */}
-                          <Button
-                            asChild
-                            variant="outline"
-                            className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
-                            size="lg"
-                            disabled={!property.owner_contact}
-                          >
-                            <a
-                              href={getTelegramLink(property.owner_contact)}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            {/* Telegram Button */}
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
+                              size="lg"
+                              disabled={!property.owner_contact}
                             >
-                              <MessageCircle className="w-5 h-5 mr-2" />
-                              Telegram
-                            </a>
-                          </Button>
+                              <a
+                                href={getTelegramLink(property.owner_contact)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <MessageCircle className="w-5 h-5 mr-2" />
+                                Telegram
+                              </a>
+                            </Button>
 
-                          {/* Call Button */}
-                          <Button
-                            asChild
-                            variant="outline"
-                            className="w-full"
-                            size="lg"
-                            disabled={!property.owner_contact}
-                          >
-                            <a href={`tel:${property.owner_contact}`}>
-                              <Phone className="w-5 h-5 mr-2" />
-                              Call Now
-                            </a>
-                          </Button>
-                        </>
-                      )}
-                      {!property.owner_contact && (
-                        <p className="text-sm text-gray-500 text-center">Contact information not available</p>
-                      )}
+                            {/* Call Button */}
+                            <Button
+                              asChild
+                              variant="outline"
+                              className="w-full border-[#0F172A] text-[#0F172A] hover:bg-[#0F172A] hover:text-white"
+                              size="lg"
+                              disabled={!property.owner_contact}
+                            >
+                              <a href={`tel:${property.owner_contact}`}>
+                                <Phone className="w-5 h-5 mr-2" />
+                                Call Now
+                              </a>
+                            </Button>
+                          </>
+                        )}
+                        {!property.owner_contact && (
+                          <p className="text-sm text-gray-500 text-center">Contact information not available</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </motion.div>
 
                 {/* Schedule Live Video Tour */}
                 <ScheduleLiveTourDialog property={property} />
@@ -421,6 +566,15 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
         </div>
       </main>
       <Footer />
+
+      {/* Share Modal */}
+      {property && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          property={property}
+        />
+      )}
     </div>
   );
 }

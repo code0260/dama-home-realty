@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
@@ -18,12 +19,13 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
   // Get full image URL
   const getImageUrl = (image: string) => {
     if (image.startsWith('http')) return image;
-    return `http://localhost:8000/storage/${image}`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+    return `${apiUrl}/storage/${image}`;
   };
 
   // Main image (first one or placeholder)
   const mainImage = images && images.length > 0 ? images[0] : null;
-  // Thumbnail images (next 4)
+  // Thumbnail images (next 4) - Bento Grid style
   const thumbnails = images && images.length > 1 ? images.slice(1, 5) : [];
 
   const openLightbox = (image: string) => {
@@ -38,7 +40,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
 
   if (!mainImage) {
     return (
-      <div className="w-full h-96 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center rounded-lg">
+      <div className="w-full h-[600px] bg-linear-to-br from-[#0F172A]/20 to-[#B49162]/20 flex items-center justify-center rounded-2xl">
         <p className="text-gray-500">No images available</p>
       </div>
     );
@@ -46,52 +48,59 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Main Image */}
-        <div className="md:col-span-2">
-          <div
-            className="relative w-full h-96 rounded-lg overflow-hidden cursor-pointer group"
-            onClick={() => openLightbox(mainImage)}
-          >
-            <Image
-              src={getImageUrl(mainImage)}
-              alt={title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="(max-width: 768px) 100vw, 66vw"
-              unoptimized
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-          </div>
-        </div>
+      {/* Bento Grid Layout: 1 large + 4 small */}
+      <div className="grid grid-cols-4 gap-4 h-[600px]">
+        {/* Large Main Image - Takes 2 columns and 2 rows */}
+        <motion.div
+          className="col-span-4 md:col-span-2 row-span-2 rounded-2xl overflow-hidden cursor-pointer group relative"
+          onClick={() => openLightbox(mainImage)}
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Image
+            src={getImageUrl(mainImage)}
+            alt={title}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+            quality={90}
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </motion.div>
 
-        {/* Thumbnails Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Small Thumbnails - 4 images in 2x2 grid */}
+        <div className="col-span-4 md:col-span-2 grid grid-cols-2 gap-4">
           {thumbnails.map((image, index) => (
-            <div
+            <motion.div
               key={index}
-              className="relative w-full h-44 rounded-lg overflow-hidden cursor-pointer group"
+              className="relative rounded-2xl overflow-hidden cursor-pointer group"
               onClick={() => openLightbox(image)}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
             >
               <Image
                 src={getImageUrl(image)}
                 alt={`${title} - Image ${index + 2}`}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 768px) 50vw, 33vw"
-                unoptimized
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                sizes="(max-width: 768px) 50vw, 25vw"
+                loading="lazy"
+                quality={85}
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-2xl" />
+            </motion.div>
           ))}
+          
           {/* Placeholder for empty slots */}
           {thumbnails.length < 4 &&
             Array.from({ length: 4 - thumbnails.length }).map((_, index) => (
               <div
                 key={`placeholder-${index}`}
-                className="w-full h-44 bg-gray-100 rounded-lg flex items-center justify-center"
+                className="relative rounded-2xl bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden"
               >
-                <span className="text-gray-400 text-sm">No image</span>
+                <div className="absolute inset-0 bg-linear-to-br from-[#0F172A]/5 to-[#B49162]/5" />
+                <span className="text-gray-400 text-sm relative z-10">No image</span>
               </div>
             ))}
         </div>
@@ -102,19 +111,26 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
         <DialogContent className="max-w-7xl w-full p-0 bg-black/95 border-none">
           <div className="relative w-full h-[90vh] flex items-center justify-center">
             {selectedImage && (
-              <Image
-                src={getImageUrl(selectedImage)}
-                alt={title}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                unoptimized
-              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                className="relative w-full h-full"
+              >
+                <Image
+                  src={getImageUrl(selectedImage)}
+                  alt={title}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  quality={95}
+                />
+              </motion.div>
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-4 text-white hover:bg-white/20"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full"
               onClick={closeLightbox}
             >
               <X className="w-6 h-6" />

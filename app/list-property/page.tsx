@@ -61,7 +61,7 @@ export default function ListPropertyPage() {
       <Navbar />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary via-primary/95 to-secondary/20 text-white py-20">
+        <section className="bg-linear-to-br from-primary via-primary/95 to-secondary/20 text-white py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
               Want to Rent or Sell Your Property to Trusted Expats?
