@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /portal/
+Disallow: /bookings/
+Disallow: /admin/
+
+Sitemap: https://dama-home.com/sitemap.xml
+
