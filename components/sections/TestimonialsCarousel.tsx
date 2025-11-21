@@ -25,9 +25,11 @@ export function TestimonialsCarousel({ featured = false, locale = 'en' }: Testim
       try {
         setLoading(true);
         const data = await getTestimonials(featured, locale);
-        setTestimonials(data);
+        // Ensure data is an array
+        setTestimonials(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching testimonials:', error);
+        setTestimonials([]); // Set empty array on error
       } finally {
         setLoading(false);
       }

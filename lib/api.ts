@@ -213,10 +213,14 @@ export async function getAgents(): Promise<Agent[]> {
  * Get testimonials
  */
 export async function getTestimonials(featured: boolean = false, locale: string = 'en'): Promise<Testimonial[]> {
-  const response = await axiosInstance.get<Testimonial[]>('/testimonials', {
+  const response = await axiosInstance.get<{ data: Testimonial[]; message?: string }>('/testimonials', {
     params: { featured, locale },
   });
-  return response.data;
+  // Handle both response formats: direct array or wrapped in data
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+  return response.data?.data || [];
 }
 
 /**

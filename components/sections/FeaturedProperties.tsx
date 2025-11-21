@@ -26,10 +26,17 @@ export function FeaturedProperties() {
             locale: 'en', // You can make this dynamic based on user preference
           },
         });
-        setProperties(response.data.data || []);
+        // Handle both response formats
+        const properties = response.data?.data || (Array.isArray(response.data) ? response.data : []);
+        setProperties(properties);
       } catch (err: any) {
         console.error('Error fetching featured properties:', err);
-        setError(err.response?.data?.message || 'Failed to load featured properties');
+        // Handle network errors gracefully
+        if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+          setError('Unable to connect to server. Please check your connection.');
+        } else {
+          setError(err.response?.data?.message || 'Failed to load featured properties');
+        }
       } finally {
         setLoading(false);
       }
