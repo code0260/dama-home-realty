@@ -70,7 +70,11 @@ class WebhookController extends Controller
             return;
         }
 
-        $booking = Booking::find($bookingId);
+        // Optimize query with eager loading
+        $booking = Booking::with([
+            'property:id,title',
+            'user:id,email,name',
+        ])->find($bookingId);
 
         if (!$booking) {
             Log::warning('Stripe webhook: Booking not found', ['booking_id' => $bookingId]);

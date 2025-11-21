@@ -23,7 +23,11 @@ class PaymentController extends Controller
      */
     public function createCheckoutSession(Request $request, int $bookingId)
     {
-        $booking = Booking::with('property')->findOrFail($bookingId);
+        // Optimize query with eager loading
+        $booking = Booking::with([
+            'property:id,title,currency,price',
+            'user:id,email',
+        ])->findOrFail($bookingId);
 
         // Verify user owns this booking
         if (Auth::id() !== $booking->user_id) {
@@ -87,7 +91,11 @@ class PaymentController extends Controller
      */
     public function verifyPayment(Request $request, int $bookingId)
     {
-        $booking = Booking::findOrFail($bookingId);
+        // Optimize query with eager loading
+        $booking = Booking::with([
+            'property:id,title',
+            'user:id,email',
+        ])->findOrFail($bookingId);
 
         // Verify user owns this booking
         if (Auth::id() !== $booking->user_id) {

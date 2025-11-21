@@ -20,12 +20,16 @@ class DatabaseSeeder extends Seeder
         $this->call(RolePermissionSeeder::class);
 
         // Create Admin User
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@dama-home.com',
-            'password' => Hash::make('password'),
-        ]);
-        $admin->assignRole('Super Admin');
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@dama-home.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
+        if (!$admin->hasRole('Super Admin')) {
+            $admin->assignRole('Super Admin');
+        }
 
         // Create Neighborhoods first (required for properties)
         $neighborhoods = Neighborhood::factory(14)->create();

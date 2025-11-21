@@ -4,10 +4,12 @@ namespace App\Filament\Resources\BookingResource\Pages;
 
 use App\Filament\Resources\BookingResource;
 use App\Mail\BookingConfirmed;
+use App\Notifications\NewBookingNotification;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class CreateBooking extends CreateRecord
 {
@@ -19,6 +21,10 @@ class CreateBooking extends CreateRecord
         
         // Load relationships
         $booking->load(['property', 'user']);
+
+        // Notify Super Admins
+        $admins = \App\Models\User::role('Super Admin')->get();
+        Notification::send($admins, new NewBookingNotification($booking));
 
         // Send booking confirmation email if booking is confirmed
         if ($booking->booking_status === 'confirmed' && $booking->user) {

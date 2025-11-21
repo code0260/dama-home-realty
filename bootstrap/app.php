@@ -13,6 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
+        
+        // Exclude CSRF protection for specific API routes
+        $middleware->validateCsrfTokens(except: [
+            'api/ai-concierge/chat',
+            'api/ai-search',
+            'api/webhooks/stripe',
+        ]);
+
+        // Add security headers
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

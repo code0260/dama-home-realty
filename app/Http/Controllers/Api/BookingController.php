@@ -3,157 +3,264 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBookingRequest;
+use App\Http\Requests\UpdateBookingRequest;
 use App\Http\Resources\BookingResource;
+use App\Http\Traits\HasApiResponse;
 use App\Models\Booking;
 use App\Models\Property;
+use App\Events\BookingCreated;
+use App\Notifications\NewBookingNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon;
 
 class BookingController extends Controller
 {
+    use HasApiResponse;
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Booking::with(['property.neighborhood', 'user']);
+        try {
+            // Optimize query with eager loading
+            $query = Booking::with([
+                'property:id,uuid,slug,title,type,price,currency',
+                'property.neighborhood:id,name',
+                'user:id,name,email',
+            ]);
 
-        // Filter by user (for tenants to see their own bookings)
-        if ($request->user() && $request->user()->hasRole('Tenant')) {
-            $query->where('user_id', $request->user()->id);
-    }
+            // Filter by user (for tenants to see their own bookings)
+            if ($request->user() && $request->user()->hasRole('Tenant')) {
+                $query->where('user_id', $request->user()->id);
+            }
 
-        // Filter by property
-        if ($request->has('property_id')) {
-            $query->where('property_id', $request->property_id);
+            // Filter by property
+            if ($request->filled('property_id')) {
+                $query->where('property_id', (int) $request->property_id);
+            }
+
+            // Filter by status
+            if ($request->filled('booking_status')) {
+                $query->where('booking_status', $request->booking_status);
+            }
+
+            // Filter by payment status
+            if ($request->filled('payment_status')) {
+                $query->where('payment_status', $request->payment_status);
+            }
+
+            // Order by check_in desc
+            $query->orderBy('check_in', 'desc');
+
+            // Paginate results
+            $perPage = min((int) $request->get('per_page', 15), 100);
+            $bookings = $query->paginate($perPage);
+
+            return BookingResource::collection($bookings)->response();
+        } catch (\Exception $e) {
+            Log::error('BookingController@index error: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to fetch bookings. Please try again later.',
+                500
+            );
         }
-
-        // Filter by status
-        if ($request->has('booking_status')) {
-            $query->where('booking_status', $request->booking_status);
-        }
-
-        $bookings = $query->orderBy('check_in', 'desc')->paginate(15);
-
-        return BookingResource::collection($bookings);
     }
 
     /**
      * Store a newly created booking.
      */
-    public function store(Request $request)
+    public function store(StoreBookingRequest $request)
     {
-        $validated = $request->validate([
-            'property_id' => 'required|exists:properties,id',
-            'check_in' => 'required|date|after:today',
-            'check_out' => 'required|date|after:check_in',
-            'notes' => 'nullable|string',
-        ]);
+        try {
+            $validated = $request->validated();
 
-        $property = Property::findOrFail($validated['property_id']);
+            // Get user (tenant) - require authentication
+            $user = Auth::user();
+            if (!$user) {
+                return $this->unauthorizedResponse('You must be logged in to make a booking.');
+            }
 
-        // Only hotel/rent type properties can be booked
-        if (!in_array($property->type, ['hotel', 'rent'])) {
-            throw ValidationException::withMessages([
-                'property_id' => 'This property type cannot be booked.',
+            $property = Property::findOrFail($validated['property_id']);
+
+            // Only hotel/rent type properties can be booked
+            if (!in_array($property->type, ['hotel', 'rent'])) {
+                return $this->validationErrorResponse([
+                    'property_id' => ['This property type cannot be booked.'],
+                ], 'Invalid property type for booking.');
+            }
+
+            $checkIn = Carbon::parse($validated['check_in']);
+            $checkOut = Carbon::parse($validated['check_out']);
+
+            // Check for date overlaps
+            if (Booking::hasOverlap($property->id, $checkIn, $checkOut)) {
+                return $this->validationErrorResponse([
+                    'check_in' => ['These dates are already booked. Please select different dates.'],
+                ], 'Date conflict detected.');
+            }
+
+            // Calculate total price (price per night * number of nights)
+            $nights = $checkIn->diffInDays($checkOut);
+            $totalPrice = $property->price * $nights;
+
+            // Ensure user has Tenant role
+            if (!$user->hasRole('Tenant')) {
+                $user->assignRole('Tenant');
+            }
+
+            $booking = Booking::create([
+                'property_id' => $property->id,
+                'user_id' => $user->id,
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'total_price' => $totalPrice,
+                'amount_paid' => 0,
+                'payment_status' => 'pending',
+                'booking_status' => 'pending',
+                'notes' => $validated['notes'] ?? null,
             ]);
-        }
 
-        $checkIn = Carbon::parse($validated['check_in']);
-        $checkOut = Carbon::parse($validated['check_out']);
+            // Load relationships
+            $booking->load(['property', 'user']);
 
-        // Check for date overlaps
-        if (Booking::hasOverlap($property->id, $checkIn, $checkOut)) {
-            throw ValidationException::withMessages([
-                'check_in' => 'These dates are already booked. Please select different dates.',
+            // Broadcast real-time notification
+            event(new BookingCreated($booking));
+
+            // Notify Super Admins (Database + Email)
+            $admins = \App\Models\User::role('Super Admin')->get();
+            if ($admins->isNotEmpty()) {
+                Notification::send($admins, new NewBookingNotification($booking));
+            }
+
+            $resource = new BookingResource($booking);
+            return $resource->response();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse(
+                $e->errors(),
+                'Validation failed'
+            );
+        } catch (\Exception $e) {
+            Log::error('BookingController@store error: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString(),
             ]);
+
+            return $this->errorResponse(
+                'Failed to create booking. Please try again later.',
+                500
+            );
         }
-
-        // Calculate total price (price per night * number of nights)
-        $nights = $checkIn->diffInDays($checkOut);
-        $totalPrice = $property->price * $nights;
-
-        // Get user (tenant) - require authentication
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
-
-        // Ensure user has Tenant role
-        if (!$user->hasRole('Tenant')) {
-            $user->assignRole('Tenant');
-        }
-
-        $booking = Booking::create([
-            'property_id' => $property->id,
-            'user_id' => $user->id,
-            'check_in' => $checkIn,
-            'check_out' => $checkOut,
-            'total_price' => $totalPrice,
-            'amount_paid' => 0,
-            'payment_status' => 'pending',
-            'booking_status' => 'pending',
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        return new BookingResource($booking->load(['property', 'user']));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $booking = Booking::with(['property', 'user'])->findOrFail($id);
+        try {
+            $booking = Booking::with([
+                'property:id,uuid,slug,title,type,price,currency',
+                'property.neighborhood:id,name',
+                'user:id,name,email',
+            ])->find($id);
 
-        // Tenants can only see their own bookings
-        if (Auth::user() && Auth::user()->hasRole('Tenant') && $booking->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            if (!$booking) {
+                return $this->notFoundResponse('Booking not found');
+            }
+
+            // Tenants can only see their own bookings
+            if (Auth::user() && Auth::user()->hasRole('Tenant') && $booking->user_id !== Auth::id()) {
+                return $this->forbiddenResponse('You can only view your own bookings.');
+            }
+
+            $resource = new BookingResource($booking);
+            return $resource->response();
+        } catch (\Exception $e) {
+            Log::error('BookingController@show error: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to fetch booking. Please try again later.',
+                500
+            );
         }
-
-        return new BookingResource($booking);
     }
 
     /**
      * Update the specified resource.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateBookingRequest $request, string $id)
     {
-        $booking = Booking::findOrFail($id);
+        try {
+            $booking = Booking::with([
+                'property:id,uuid,slug,title,type,price,currency',
+                'property.neighborhood:id,name',
+                'user:id,name,email',
+            ])->find($id);
 
-        // Only admins can update bookings
-        if (!Auth::user() || !Auth::user()->hasRole('Super Admin')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            if (!$booking) {
+                return $this->notFoundResponse('Booking not found');
+            }
+
+            $validated = $request->validated();
+            $booking->update($validated);
+
+            $resource = new BookingResource($booking->load(['property', 'user']));
+            return $resource->response();
+        } catch (\Exception $e) {
+            Log::error('BookingController@update error: ' . $e->getMessage(), [
+                'id' => $id,
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to update booking. Please try again later.',
+                500
+            );
         }
-
-        $validated = $request->validate([
-            'booking_status' => 'sometimes|in:confirmed,cancelled,completed,pending',
-            'payment_status' => 'sometimes|in:pending,paid,partial,refunded',
-            'amount_paid' => 'sometimes|numeric|min:0',
-            'notes' => 'nullable|string',
-        ]);
-
-        $booking->update($validated);
-
-        return new BookingResource($booking->load(['property', 'user']));
     }
 
     /**
      * Remove the specified resource.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $booking = Booking::findOrFail($id);
+        try {
+            // Only admins can delete bookings
+            if (!Auth::user() || !Auth::user()->hasRole('Super Admin')) {
+                return $this->forbiddenResponse('Only administrators can delete bookings.');
+            }
 
-        // Only admins can delete bookings
-        if (!Auth::user() || !Auth::user()->hasRole('Super Admin')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            $booking = Booking::find($id);
+
+            if (!$booking) {
+                return $this->notFoundResponse('Booking not found');
+            }
+
+            $booking->delete();
+
+            return $this->successResponse(null, 'Booking deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('BookingController@destroy error: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to delete booking. Please try again later.',
+                500
+            );
         }
-
-        $booking->delete();
-
-        return response()->json(['message' => 'Booking deleted successfully']);
     }
 }
