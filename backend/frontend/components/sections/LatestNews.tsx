@@ -7,8 +7,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Calendar, ArrowRight, Clock, User } from 'lucide-react';
 import { format } from 'date-fns';
+
+// Calculate reading time based on content length
+function calculateReadingTime(content: string): number {
+  const wordsPerMinute = 200; // Average reading speed
+  const words = content.split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return minutes;
+}
 
 export function LatestNews() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -55,8 +63,12 @@ export function LatestNews() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {articles.map((article) => (
-        <Link key={article.id} href={`/blog/${article.slug}`}>
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+        <Link 
+          key={article.id} 
+          href={`/blog/${article.slug}`}
+          className="group"
+        >
+          <Card className="h-full hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-secondary/30">
             <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
               {article.image ? (
                 <Image
@@ -72,20 +84,51 @@ export function LatestNews() {
               )}
             </div>
             <CardContent className="p-6">
-              <h3 className="text-lg font-bold text-primary mb-2 line-clamp-2">
+              <h3 className="text-lg font-bold text-primary mb-2 line-clamp-2 hover:text-secondary transition-colors">
                 {article.title}
               </h3>
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                 {article.excerpt}
               </p>
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {article.published_at
-                    ? format(new Date(article.published_at), 'MMM dd, yyyy')
-                    : 'Draft'}
+              
+              {/* Author & Meta Info */}
+              <div className="space-y-2 mb-4">
+                {article.author && (
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <User className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="font-medium">{article.author.name}</span>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  {article.published_at && (
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {format(new Date(article.published_at), 'MMM dd, yyyy')}
+                    </span>
+                  )}
+                  
+                  {/* Reading Time */}
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    {calculateReadingTime(article.content || article.excerpt)} min read
+                  </span>
+                  
+                  {/* Views */}
+                  {article.views > 0 && (
+                    <span className="text-gray-400">
+                      {article.views} views
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Read More Arrow */}
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <span className="text-xs font-semibold text-secondary">
+                  Read More
                 </span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-secondary group-hover:translate-x-1 transition-transform" />
               </div>
             </CardContent>
           </Card>

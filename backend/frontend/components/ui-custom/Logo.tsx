@@ -43,7 +43,7 @@ export function Logo({ className, showText = true, size = 'md', href = '/', text
     >
       <div className={cn('relative shrink-0 transition-transform group-hover:scale-105', sizeClasses[size])}>
         <Image
-          src="/logo.png"
+          src="/icon-192x192.png"
           alt="Dama Home Realty Logo"
           fill
           className="object-contain drop-shadow-sm"

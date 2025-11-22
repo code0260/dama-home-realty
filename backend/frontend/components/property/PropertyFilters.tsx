@@ -14,9 +14,17 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { X, Filter } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { X, Filter, Search } from 'lucide-react';
 import { Neighborhood } from '@/types';
 import axiosInstance from '@/lib/axios';
+import { SearchAutocomplete } from './SearchAutocomplete';
+import { cn } from '@/lib/utils';
 
 interface PropertyFiltersProps {
   searchParams: URLSearchParams;
@@ -106,12 +114,10 @@ export function PropertyFilters({
   const handleMinPriceChange = useCallback((value: string) => {
     setLocalMinPrice(value);
     
-    // Clear existing timer
     if (minPriceTimerRef.current) {
       clearTimeout(minPriceTimerRef.current);
     }
     
-    // Set new timer to update URL after 800ms of no typing
     minPriceTimerRef.current = setTimeout(() => {
       onFilterChange('min_price', value || null);
     }, 800);
@@ -120,12 +126,10 @@ export function PropertyFilters({
   const handleMaxPriceChange = useCallback((value: string) => {
     setLocalMaxPrice(value);
     
-    // Clear existing timer
     if (maxPriceTimerRef.current) {
       clearTimeout(maxPriceTimerRef.current);
     }
     
-    // Set new timer to update URL after 800ms of no typing
     maxPriceTimerRef.current = setTimeout(() => {
       onFilterChange('max_price', value || null);
     }, 800);
@@ -135,12 +139,10 @@ export function PropertyFilters({
   const handleSearchChange = useCallback((value: string) => {
     setLocalSearch(value);
     
-    // Clear existing timer
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
     }
     
-    // Set new timer to update URL after 500ms of no typing
     searchTimerRef.current = setTimeout(() => {
       onFilterChange('search', value || null);
     }, 500);
@@ -183,7 +185,7 @@ export function PropertyFilters({
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-primary">Filters</h3>
         {isMobile && onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
             <X className="w-5 h-5" />
           </Button>
         )}
@@ -191,36 +193,50 @@ export function PropertyFilters({
 
       <Separator />
 
-      {/* Search Keyword */}
+      {/* Search Keyword with Autocomplete */}
       <div className="space-y-2">
-        <Label htmlFor="search">Search</Label>
-        <Input
-          id="search"
-          placeholder="Search properties..."
+        <Label htmlFor="search" className="text-sm font-medium text-gray-700">
+          Search
+        </Label>
+        <SearchAutocomplete
           value={localSearch}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={(value) => handleSearchChange(value)}
+          onSelect={(value) => {
+            handleSearchChange(value);
+            onFilterChange('search', value || null);
+          }}
+          placeholder="Search properties..."
+          className="w-full"
         />
       </div>
 
       {/* Property Type */}
       <div className="space-y-3">
-        <Label>Property Type</Label>
+        <Label className="text-sm font-medium text-gray-700">Property Type</Label>
         <RadioGroup value={currentType} onValueChange={handleTypeChange}>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="all" id="type-all" />
-            <Label htmlFor="type-all" className="font-normal cursor-pointer">All Types</Label>
+            <Label htmlFor="type-all" className="font-normal cursor-pointer text-sm">
+              All Types
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="sale" id="type-sale" />
-            <Label htmlFor="type-sale" className="font-normal cursor-pointer">Buy</Label>
+            <Label htmlFor="type-sale" className="font-normal cursor-pointer text-sm">
+              Buy
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="rent" id="type-rent" />
-            <Label htmlFor="type-rent" className="font-normal cursor-pointer">Rent</Label>
+            <Label htmlFor="type-rent" className="font-normal cursor-pointer text-sm">
+              Rent
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="hotel" id="type-hotel" />
-            <Label htmlFor="type-hotel" className="font-normal cursor-pointer">Hotel</Label>
+            <Label htmlFor="type-hotel" className="font-normal cursor-pointer text-sm">
+              Hotel
+            </Label>
           </div>
         </RadioGroup>
       </div>
@@ -229,12 +245,14 @@ export function PropertyFilters({
 
       {/* Neighborhood */}
       <div className="space-y-2">
-        <Label htmlFor="neighborhood">Neighborhood</Label>
+        <Label htmlFor="neighborhood" className="text-sm font-medium text-gray-700">
+          Neighborhood
+        </Label>
         <Select
           value={currentNeighborhood || 'all'}
           onValueChange={(value) => onFilterChange('neighborhood_id', value === 'all' ? null : value)}
         >
-          <SelectTrigger id="neighborhood">
+          <SelectTrigger id="neighborhood" className="bg-white">
             <SelectValue placeholder="All Neighborhoods" />
           </SelectTrigger>
           <SelectContent>
@@ -248,28 +266,34 @@ export function PropertyFilters({
         </Select>
       </div>
 
-      {/* Price Range */}
+      {/* Price Range with Bronze Accent */}
       <div className="space-y-3">
-        <Label>Price Range</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <Label className="text-sm font-medium text-gray-700">Price Range</Label>
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <Label htmlFor="min_price" className="text-xs text-gray-500">Min</Label>
+            <Label htmlFor="min_price" className="text-xs text-gray-500">
+              Min Price
+            </Label>
             <Input
               id="min_price"
               type="number"
               placeholder="Min"
               value={localMinPrice}
               onChange={(e) => handleMinPriceChange(e.target.value)}
+              className="bg-white focus:border-secondary focus:ring-secondary/20"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="max_price" className="text-xs text-gray-500">Max</Label>
+            <Label htmlFor="max_price" className="text-xs text-gray-500">
+              Max Price
+            </Label>
             <Input
               id="max_price"
               type="number"
               placeholder="Max"
               value={localMaxPrice}
               onChange={(e) => handleMaxPriceChange(e.target.value)}
+              className="bg-white focus:border-secondary focus:ring-secondary/20"
             />
           </div>
         </div>
@@ -278,10 +302,10 @@ export function PropertyFilters({
       <Separator />
 
       {/* Bedrooms */}
-      <div className="space-y-3">
-        <Label>Bedrooms</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-gray-700">Bedrooms</Label>
         <Select value={currentBedrooms} onValueChange={handleBedroomsChange}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -295,10 +319,10 @@ export function PropertyFilters({
       </div>
 
       {/* Bathrooms */}
-      <div className="space-y-3">
-        <Label>Bathrooms</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-gray-700">Bathrooms</Label>
         <Select value={currentBathrooms} onValueChange={handleBathroomsChange}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -312,32 +336,57 @@ export function PropertyFilters({
 
       <Separator />
 
-      {/* Amenities */}
-      <div className="space-y-3">
-        <Label>Amenities</Label>
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {commonAmenities.map((amenity) => (
-            <div key={amenity} className="flex items-center space-x-2">
-              <Checkbox
-                id={`amenity-${amenity}`}
-                checked={currentAmenities.includes(amenity)}
-                onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
-              />
-              <Label htmlFor={`amenity-${amenity}`} className="font-normal cursor-pointer text-sm">
-                {amenity}
-              </Label>
+      {/* Amenities - Using Accordion */}
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="amenities" className="border-0">
+          <AccordionTrigger className="text-sm font-medium text-gray-700 py-2 hover:no-underline">
+            Amenities
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2 pt-2">
+              {commonAmenities.map((amenity) => (
+                <div key={amenity} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`amenity-${amenity}`}
+                    checked={currentAmenities.includes(amenity)}
+                    onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
+                    className="data-[state=checked]:bg-secondary data-[state=checked]:border-secondary"
+                  />
+                  <Label
+                    htmlFor={`amenity-${amenity}`}
+                    className="font-normal cursor-pointer text-sm text-gray-600"
+                  >
+                    {amenity}
+                  </Label>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <Separator />
 
+      {/* Search Button - Full Width, Bold, Bronze */}
+      <Button
+        onClick={() => {
+          // Apply all current filters
+          // Filters are already applied via onFilterChange, but this provides visual feedback
+        }}
+        className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold text-base h-11 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+      >
+        <Search className="w-4 h-4 mr-2" />
+        Apply Filters
+      </Button>
+
       {/* Reset Button */}
-      <Button variant="outline" className="w-full" onClick={onReset}>
+      <Button
+        variant="outline"
+        className="w-full border-gray-300 hover:bg-gray-50"
+        onClick={onReset}
+      >
         Reset Filters
       </Button>
     </div>
   );
 }
-

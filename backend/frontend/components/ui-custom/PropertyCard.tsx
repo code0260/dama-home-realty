@@ -1,21 +1,42 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Property } from '@/types';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Bed, Bath, Square, MapPin, ShieldCheck, Star, Eye, X } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  Bed,
+  Bath,
+  Square,
+  MapPin,
+  ShieldCheck,
+  Star,
+  Eye,
+  Heart,
+  Zap,
+  Droplets,
+  Wind,
+  Wifi,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { ShareProperty } from '@/components/property/ShareProperty';
+import { QuickViewDialog } from '@/components/property/QuickViewDialog';
+import { CompareButton } from '@/components/property/CompareButton';
 
 interface PropertyCardProps {
   property: Property;
+  viewMode?: 'grid' | 'list';
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps) {
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const router = useRouter();
 
   // Format price with currency
   const formatPrice = (price: number, currency: string) => {
@@ -23,222 +44,269 @@ export function PropertyCard({ property }: PropertyCardProps) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
-    
+
     return currency === 'USD' ? `$${formattedPrice}` : `${formattedPrice} ${currency}`;
   };
 
   // Get cover image or placeholder
-  const coverImage = property.images && property.images.length > 0 
-    ? (property.images[0].startsWith('http') ? property.images[0] : `http://localhost:8000/storage/${property.images[0]}`)
-    : null;
+  const coverImage =
+    property.images && property.images.length > 0
+      ? property.images[0].startsWith('http')
+        ? property.images[0]
+        : `http://localhost:8000/storage/${property.images[0]}`
+      : null;
 
-  // Type badge colors
-  const typeColors: Record<string, string> = {
-    rent: 'bg-blue-500',
-    sale: 'bg-green-500',
-    hotel: 'bg-purple-500',
+  // Handle favorite toggle
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsFavorite(!isFavorite);
+    // TODO: Implement actual favorite API call
   };
 
-  // Status badge colors
-  const statusColors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800',
-    sold: 'bg-gray-100 text-gray-800',
-    rented: 'bg-orange-100 text-orange-800',
+  // Check for special features/amenities for badges
+  const hasSolarPower =
+    property.amenities?.some((amenity) =>
+      amenity.toLowerCase().includes('solar')
+    ) || false;
+  const hasPool =
+    property.amenities?.some((amenity) =>
+      amenity.toLowerCase().includes('pool')
+    ) || false;
+  const hasWifi =
+    property.amenities?.some((amenity) =>
+      amenity.toLowerCase().includes('wifi') ||
+      amenity.toLowerCase().includes('internet')
+    ) || false;
+
+  const handleCardClick = () => {
+    router.push(`/properties/${property.slug}`);
   };
 
-  return (
-    <>
-      <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col border-0 shadow-md">
-        {/* Image Container - 60% of card height */}
-        <div className="relative w-full h-[60%] min-h-[240px] overflow-hidden bg-gray-200">
-          {coverImage ? (
-            <Image
-              src={coverImage}
-              alt={property.title}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-500"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full bg-linear-to-br from-[#0F172A]/20 to-[#B49162]/20 flex items-center justify-center">
-              <MapPin className="w-16 h-16 text-[#0F172A]/40" />
-            </div>
-          )}
-          
-          {/* Badges Overlay */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-            <Badge className={`${typeColors[property.type] || 'bg-gray-500'} text-white border-0 shadow-md`}>
-              {property.type.charAt(0).toUpperCase() + property.type.slice(1)}
-            </Badge>
-            {property.is_featured && (
-              <Badge className="bg-[#B49162] text-white flex items-center gap-1 border-0 shadow-md">
-                <Star className="w-3 h-3 fill-white" />
-                Featured
-              </Badge>
-            )}
-          </div>
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/properties/${property.slug}`);
+  };
 
-          {/* Verified Badge - Bronze */}
-          {property.is_verified && (
-            <div className="absolute top-3 right-3 z-10">
-              <Badge className="bg-[#B49162] text-white flex items-center gap-1 shadow-lg border-0">
-                <ShieldCheck className="w-3 h-3" />
-                Verified
-              </Badge>
-            </div>
-          )}
-
-          {/* Quick View Button - Appears on Hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <Button
-              onClick={() => setQuickViewOpen(true)}
-              className="bg-white/95 hover:bg-white text-[#0F172A] border-0 shadow-xl"
-              size="lg"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Quick View
-            </Button>
-          </div>
-
-          {/* Status Badge */}
-          {property.status !== 'active' && (
-            <div className="absolute bottom-3 right-3 z-10">
-              <Badge className={statusColors[property.status] || 'bg-gray-100 text-gray-800 border-0 shadow-md'}>
-                {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
-              </Badge>
-            </div>
-          )}
-        </div>
-
-        {/* Content - 40% of card height */}
-        <CardHeader className="flex-1 p-5">
-          <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-[#B49162] transition-colors text-[#0F172A]">
-            {property.title}
-          </h3>
-          <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
-            <MapPin className="w-4 h-4" />
-            <span>{property.neighborhood?.name || 'Damascus'}</span>
-          </div>
-          <div className="text-2xl font-bold text-[#B49162] mb-3">
-            {formatPrice(property.price, property.currency)}
-            {property.type === 'rent' && <span className="text-sm font-normal text-gray-500">/month</span>}
-          </div>
-        </CardHeader>
-
-        {/* Features Row */}
-        <CardContent className="pt-0 px-5 pb-3">
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-1">
-              <Bed className="w-4 h-4" />
-              <span>{property.bedrooms}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Bath className="w-4 h-4" />
-              <span>{property.bathrooms}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Square className="w-4 h-4" />
-              <span>{property.area_sqm} m²</span>
-            </div>
-          </div>
-        </CardContent>
-
-        {/* Footer */}
-        <CardFooter className="pt-0 px-5 pb-5">
-          <Button asChild className="w-full bg-[#0F172A] hover:bg-[#0F172A]/90 text-white border-0 shadow-md">
-            <Link href={`/properties/${property.slug}`}>
-              View Details
-            </Link>
-          </Button>
-        </CardFooter>
-      </Card>
-
-      {/* Quick View Dialog */}
-      <Dialog open={quickViewOpen} onOpenChange={setQuickViewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="space-y-6">
-            {/* Image */}
-            {coverImage && (
-              <div className="relative w-full h-64 rounded-lg overflow-hidden">
+  const cardContent = (
+    <motion.div
+      className={cn(
+        "bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300",
+        viewMode === 'grid' ? 'flex flex-col h-full' : 'flex flex-row h-48'
+      )}
+      whileHover={viewMode === 'grid' ? { scale: 1.02 } : {}}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+            {/* Image Area - Aspect Ratio 4:3 or fixed height for list */}
+            <div className={cn(
+              "relative overflow-hidden bg-gray-100",
+              viewMode === 'grid' 
+                ? 'w-full aspect-4/3 rounded-t-xl' 
+                : 'w-48 h-full rounded-l-xl shrink-0'
+            )}>
+              {coverImage ? (
                 <Image
                   src={coverImage}
                   alt={property.title}
                   fill
-                  className="object-cover"
-                  quality={90}
+                  className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={false}
+                  loading="lazy"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="w-full h-full bg-linear-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                  <MapPin className="w-16 h-16 text-primary/30" />
+                </div>
+              )}
 
-            {/* Title & Location */}
-            <div>
-              <h2 className="text-2xl font-bold text-[#0F172A] mb-2">{property.title}</h2>
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span>{property.neighborhood?.name || 'Damascus'}</span>
+              {/* Overlay gradient on hover */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+
+              {/* Badges - Top Left */}
+              <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                {property.is_verified && (
+                  <Badge className="bg-secondary text-white border-0 shadow-md backdrop-blur-sm bg-opacity-95 flex items-center gap-1 px-2 py-1">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span className="text-xs font-medium">Verified</span>
+                  </Badge>
+                )}
+                {hasSolarPower && (
+                  <Badge className="bg-amber-500 text-white border-0 shadow-md backdrop-blur-sm bg-opacity-95 flex items-center gap-1 px-2 py-1">
+                    <Zap className="w-3 h-3" />
+                    <span className="text-xs font-medium">Solar Power</span>
+                  </Badge>
+                )}
+                {property.is_featured && (
+                  <Badge className="bg-secondary text-white border-0 shadow-md backdrop-blur-sm bg-opacity-95 flex items-center gap-1 px-2 py-1">
+                    <Star className="w-3 h-3 fill-white" />
+                    <span className="text-xs font-medium">Featured</span>
+                  </Badge>
+                )}
               </div>
+
+              {/* Action Buttons - Top Right */}
+              <div className="absolute top-3 right-3 flex gap-2 z-10">
+                {/* Heart (Save/Wishlist) Button */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFavoriteToggle(e);
+                  }}
+                  className={cn(
+                    'w-10 h-10 rounded-full',
+                    'bg-white/90 hover:bg-white backdrop-blur-sm',
+                    'flex items-center justify-center',
+                    'shadow-md hover:shadow-lg',
+                    'transition-all duration-200',
+                    'hover:scale-110 active:scale-95',
+                    isFavorite && 'bg-red-50'
+                  )}
+                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Heart
+                    className={cn(
+                      'w-5 h-5 transition-all duration-200',
+                      isFavorite
+                        ? 'fill-red-500 text-red-500'
+                        : 'text-gray-700 group-hover:text-red-500'
+                    )}
+                  />
+                </button>
+                
+                {/* Share & Compare Buttons (Grid View Only) */}
+                {viewMode === 'grid' && (
+                  <>
+                    <ShareProperty property={property} />
+                    <CompareButton property={property} />
+                  </>
+                )}
+              </div>
+
+              {/* Quick View Button - Appears on Hover */}
+              {viewMode === 'grid' && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuickViewOpen(true);
+                    }}
+                    className="bg-white/95 hover:bg-white text-primary border-0 shadow-xl backdrop-blur-sm"
+                    size="lg"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Quick View
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {/* Price */}
-            <div className="text-3xl font-bold text-[#B49162]">
-              {formatPrice(property.price, property.currency)}
-              {property.type === 'rent' && <span className="text-lg font-normal text-gray-500">/month</span>}
-            </div>
-
-            {/* Features */}
-            <div className="grid grid-cols-3 gap-4 py-4 border-y">
-              <div className="flex items-center gap-2">
-                <Bed className="w-5 h-5 text-[#B49162]" />
-                <div>
-                  <div className="text-sm text-gray-600">Bedrooms</div>
-                  <div className="font-semibold">{property.bedrooms}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Bath className="w-5 h-5 text-[#B49162]" />
-                <div>
-                  <div className="text-sm text-gray-600">Bathrooms</div>
-                  <div className="font-semibold">{property.bathrooms}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Square className="w-5 h-5 text-[#B49162]" />
-                <div>
-                  <div className="text-sm text-gray-600">Area</div>
-                  <div className="font-semibold">{property.area_sqm} m²</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            {property.description && (
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Description</h3>
-                <p className="text-gray-600 line-clamp-4">{property.description}</p>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-4">
-              <Button asChild className="flex-1 bg-[#0F172A] hover:bg-[#0F172A]/90 text-white">
-                <Link href={`/properties/${property.slug}`} onClick={() => setQuickViewOpen(false)}>
-                  View Full Details
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setQuickViewOpen(false)}
-                className="border-[#0F172A] text-[#0F172A] hover:bg-[#0F172A]/10"
+            {/* Content Area */}
+            <div className="flex-1 p-5 flex flex-col">
+              {/* Title - Truncate after 1 line */}
+              <h3
+                className="font-bold text-lg text-primary line-clamp-1 mb-2 group-hover:text-secondary transition-colors"
+                title={property.title}
               >
-                Close
-              </Button>
+                {property.title}
+              </h3>
+
+              {/* Location - Map Pin + Neighborhood */}
+              <div className="flex items-center gap-1.5 text-gray-600 mb-4">
+                <MapPin className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-light truncate">
+                  {property.neighborhood?.name || 'Damascus'}
+                </span>
+              </div>
+
+              {/* Features Row - Bed, Bath, Square */}
+              <div className="flex items-center gap-4 text-gray-600 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <Bed className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium">
+                    {property.bedrooms || 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Bath className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium">
+                    {property.bathrooms || 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Square className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium">
+                    {property.area_sqm || 0} m²
+                  </span>
+                </div>
+              </div>
+
+              {/* Price - Prominently in Bronze */}
+              <div className={cn(
+                "mt-auto border-t border-gray-100",
+                viewMode === 'grid' ? 'pt-2' : 'pt-3 flex items-center justify-between'
+              )}>
+                <div className="flex items-baseline gap-2">
+                  <span className={cn(
+                    "font-bold text-secondary",
+                    viewMode === 'grid' ? 'text-2xl' : 'text-xl'
+                  )}>
+                    {formatPrice(property.price, property.currency)}
+                  </span>
+                  {property.type === 'rent' && (
+                    <span className="text-sm font-light text-gray-500">
+                      / month
+                    </span>
+                  )}
+                  {property.type === 'hotel' && (
+                    <span className="text-sm font-light text-gray-500">
+                      / night
+                    </span>
+                  )}
+                </div>
+                {viewMode === 'list' && (
+                  <Button
+                    onClick={handleButtonClick}
+                    size="sm"
+                    className="bg-secondary hover:bg-secondary/90 text-white"
+                  >
+                    View Details
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </motion.div>
+  );
+
+  return (
+    <>
+      <motion.div
+        className={cn(
+          "group property-card-transition",
+          viewMode === 'grid' ? 'cursor-pointer' : ''
+        )}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={viewMode === 'grid' ? { y: -4 } : {}}
+        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {viewMode === 'grid' ? (
+          <Link href={`/properties/${property.slug}`} className="block">
+            {cardContent}
+          </Link>
+        ) : (
+          cardContent
+        )}
+      </motion.div>
+
+      {/* Quick View Dialog */}
+      <QuickViewDialog
+        property={quickViewOpen ? property : null}
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+      />
     </>
   );
 }
-

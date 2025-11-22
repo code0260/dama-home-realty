@@ -103,6 +103,45 @@ export interface Service {
   description: string;
   icon?: string | null;
   sort_order?: number | null;
+  slug?: string | null;
+  category?: string | null;
+  price?: number | null;
+  currency?: 'USD' | 'SYP' | null;
+  duration?: string | null;
+  availability?: 'available' | 'limited' | 'unavailable' | null;
+  locations?: string[] | null;
+  packages?: ServicePackage[] | null;
+  faq?: FAQ[] | null;
+  image?: string | null;
+  is_featured?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ServicePackage {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  currency: 'USD' | 'SYP';
+  duration?: string | null;
+  features: string[];
+}
+
+export interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+export interface ServiceReview {
+  id: number;
+  service_id: number;
+  client_name: string;
+  rating: number;
+  comment: string;
+  photo?: string | null;
+  created_at: string;
 }
 
 // Testimonial Types

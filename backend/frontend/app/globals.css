@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -48,7 +49,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: #F8F9FA; /* Very light off-white/cream for softer look */
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -83,50 +84,93 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Luxury Dark Theme - Deep Navy instead of pure black */
+  /* Using Deep Navy #020617 for premium dark background */
+  --background: #020617; /* Deep Navy - Luxury Dark Background (darker than #0B1120) */
+  --foreground: #E2E8F0; /* Readable gray text (slate-200) */
+  --card: #1E293B; /* Dark slate for cards with subtle transparency */
+  --card-foreground: #E2E8F0; /* Light text on dark cards */
+  --popover: #1E293B;
+  --popover-foreground: #E2E8F0;
+  --primary: #E2E8F0; /* Light text for dark mode */
+  --primary-foreground: #020617; /* Dark bg for light text */
+  --secondary: #B49162; /* Bronze/Gold - same in dark mode */
+  --secondary-foreground: #FFFFFF; /* White text on bronze */
+  --muted: #334155; /* Muted dark gray */
+  --muted-foreground: #CBD5E1; /* Light muted text */
+  --accent: #1E293B; /* Accent dark */
+  --accent-foreground: #E2E8F0; /* Light accent text */
+  --destructive: #EF4444; /* Red for destructive actions */
+  --border: #334155; /* Border color - slate-700 */
+  --input: #1E293B; /* Input background - dark slate */
+  --ring: #64748B; /* Ring color - slate-500 */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #1E293B;
+  --sidebar-foreground: #E2E8F0;
+  --sidebar-primary: #E2E8F0;
+  --sidebar-primary-foreground: #020617;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: #334155;
+  --sidebar-ring: #64748B;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+  
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
   }
   
-  /* Arabic font support */
-  [dir="rtl"] {
-    font-family: var(--font-cairo), sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif; /* Default LTR font */
+    /* Improved text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* RTL (Arabic) font support */
+  [dir="rtl"],
+  [dir="rtl"] * {
+    font-family: 'Cairo', sans-serif;
+  }
+  
+  /* LTR font support */
+  [dir="ltr"],
+  [dir="ltr"] * {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Typography - Headings with Bold weight and Primary color */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-primary dark:text-slate-200;
+    font-weight: 700;
+  }
+  
+  /* Dark mode headings */
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: var(--foreground);
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
   }
   
   /* Custom brand colors */
@@ -144,5 +188,147 @@
   
   .bg-secondary {
     background-color: var(--secondary);
+  }
+}
+
+@layer utilities {
+  /* Glass effect utility class for premium UI elements */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  /* Dark mode glass effect */
+  .dark .glass-effect {
+    background: rgba(30, 41, 59, 0.7); /* slate-800/70 */
+    border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  /* Smooth transitions for all interactive elements */
+  .transition-smooth {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+  
+  /* Focus visible improvements */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Custom selection color */
+  ::selection {
+    background-color: var(--secondary);
+    color: white;
+  }
+  
+  ::-moz-selection {
+    background-color: var(--secondary);
+    color: white;
+  }
+  
+  /* Glow effect for bronze/primary buttons */
+  .btn-glow {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .btn-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--secondary), var(--secondary-light, #D4AF37));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+  
+  .btn-glow:hover::before {
+    opacity: 0.6;
+    filter: blur(8px);
+  }
+  
+  .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(180, 145, 98, 0.4),
+                0 0 40px rgba(180, 145, 98, 0.2),
+                0 0 60px rgba(180, 145, 98, 0.1);
+    transform: translateY(-1px);
+  }
+  
+  /* Enhanced glow for secondary/bronze buttons */
+  .btn-secondary-glow {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .btn-secondary-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--secondary), #D4AF37);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+  
+  .btn-secondary-glow:hover::before {
+    opacity: 0.6;
+    filter: blur(8px);
+  }
+  
+  .btn-secondary-glow:hover {
+    box-shadow: 0 0 25px rgba(180, 145, 98, 0.5),
+                0 0 50px rgba(180, 145, 98, 0.3),
+                0 0 75px rgba(180, 145, 98, 0.15);
+    transform: translateY(-1px);
+  }
+  
+  /* Smooth fade transition for page transitions */
+  .page-transition {
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Smooth layout transition for property cards */
+  .property-card-transition {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .property-card-transition:hover {
+    transform: translateY(-4px) scale(1.02);
   }
 }

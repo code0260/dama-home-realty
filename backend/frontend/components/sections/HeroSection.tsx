@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -10,16 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, MapPin, Sparkles } from 'lucide-react';
+import { Search, MapPin, Sparkles, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Neighborhood } from '@/types';
 import axiosInstance from '@/lib/axios';
 import { AiSearchDialog } from '@/components/ai/AiSearchDialog';
+import { TrustBadges } from './TrustBadges';
+import { SearchSuggestions } from './SearchSuggestions';
+import { cn } from '@/lib/utils';
 
 export function HeroSection() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'sale' | 'rent' | 'hotel'>('sale');
   const [location, setLocation] = useState('all');
-  const [type, setType] = useState('all');
+  const [locationSearch, setLocationSearch] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
@@ -32,7 +39,6 @@ export function HeroSection() {
 
   // Ken Burns effect (slow zoom)
   useEffect(() => {
-    // Only start interval after component is mounted
     const interval = setInterval(() => {
       setScale((prev) => {
         if (prev >= 1.1) return 1;
@@ -46,44 +52,65 @@ export function HeroSection() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchNeighborhoods = async () => {
       try {
-        const response = await axiosInstance.get<{ data: Neighborhood[] }>('/neighborhoods', {
-          params: { city: 'Damascus', locale: 'en' },
-        });
-        // Laravel Resource::collection returns { data: [...] }
+        const response = await axiosInstance.get<{ data: Neighborhood[] }>(
+          '/neighborhoods',
+          {
+            params: { city: 'Damascus', locale: 'en' },
+          }
+        );
+        
+        if (!isMounted) return;
+        
         const neighborhoodsData = response.data?.data || [];
-        setNeighborhoods(Array.isArray(neighborhoodsData) ? neighborhoodsData : []);
+        setNeighborhoods(
+          Array.isArray(neighborhoodsData) ? neighborhoodsData : []
+        );
       } catch (error: any) {
+        if (!isMounted) return;
+        
         console.error('Error fetching neighborhoods:', error);
-        // Log network errors with helpful message
-        if (error.isNetworkError || error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
-          console.warn('Backend server may not be running. Please start Laravel server with: php artisan serve');
+        if (
+          error.isNetworkError ||
+          error.code === 'ERR_NETWORK' ||
+          error.code === 'ECONNREFUSED'
+        ) {
+          console.warn(
+            'Backend server may not be running. Please start Laravel server with: php artisan serve'
+          );
         }
-        setNeighborhoods([]); // Set empty array on error
+        setNeighborhoods([]);
       } finally {
-        setLoadingNeighborhoods(false);
+        if (isMounted) {
+          setLoadingNeighborhoods(false);
+        }
       }
     };
 
     fetchNeighborhoods();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (type && type !== 'all') params.set('type', type);
+    if (activeTab) params.set('type', activeTab);
     if (location && location !== 'all') params.set('neighborhood_id', location);
-    
+    if (minPrice) params.set('min_price', minPrice);
+    if (maxPrice) params.set('max_price', maxPrice);
+
     router.push(`/properties?${params.toString()}`);
   };
 
   return (
-    <section className="relative w-full h-[700px] flex items-center justify-center overflow-hidden">
+    <section className="relative w-full min-h-[80vh] md:h-[90vh] lg:h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Parallax & Ken Burns Effect */}
-      <motion.div
-        className="absolute inset-0 z-0"
-        style={{ y, opacity }}
-      >
+      <motion.div className="absolute inset-0 z-0" style={{ y, opacity }}>
         <div className="w-full h-full bg-linear-to-br from-primary via-primary/90 to-secondary/20">
           {/* Background image with Ken Burns effect */}
           <motion.div
@@ -97,105 +124,185 @@ export function HeroSection() {
             transition={{ duration: 20, repeat: Infinity, repeatType: 'reverse' }}
           />
         </div>
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/60" />
+        {/* Dark Overlay - 40% opacity */}
+        <div className="absolute inset-0 bg-black/40" />
       </motion.div>
 
       {/* Content */}
-      <motion.div
-        className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        {/* Main Heading with Gradient Text */}
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 drop-shadow-2xl">
-          <span className="bg-linear-to-r from-[#B49162] via-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
-            Find Your Safe Haven
-          </span>
-          <br />
-          <span className="text-white">in Damascus</span>
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-gray-100 mb-10 drop-shadow-lg max-w-2xl mx-auto">
-          Discover premium properties in Syria's historic capital
-        </p>
-
-        {/* Magic Search Button */}
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          <Button
-            onClick={() => setAiSearchOpen(true)}
-            variant="outline"
-            className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 backdrop-blur-md shadow-xl"
-            size="lg"
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 w-full pt-20 md:pt-24">
+        <div className="max-w-5xl mx-auto">
+          {/* Typography Section */}
+          <motion.div
+            className="text-center mb-8 md:mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Try AI Magic Search
-          </Button>
-        </motion.div>
+            {/* Headline - Big, Bold, White */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-white drop-shadow-2xl leading-tight">
+              Find Your Safe Haven
+              <br />
+              <span className="text-secondary">in Damascus</span>
+            </h1>
 
-        {/* Glassmorphism Search Box (Airbnb Style) */}
-        <motion.div
-          className="max-w-5xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-8 border border-white/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Location Select */}
-            <div className="flex-1">
-              <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger className="w-full bg-white/90 hover:bg-white border-white/30 h-14 text-left">
-                  <MapPin className="w-5 h-5 mr-2 text-gray-500" />
-                  <SelectValue placeholder="Where?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  {Array.isArray(neighborhoods) && neighborhoods.map((neighborhood) => (
-                    <SelectItem key={neighborhood.id} value={neighborhood.id.toString()}>
-                      {neighborhood.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Sub-headline - Bronze */}
+            <p className="text-lg sm:text-xl md:text-2xl text-secondary font-semibold drop-shadow-lg mb-6">
+              Verified Listings. Secure Contracts. 24/7 Services.
+            </p>
+            
+            {/* Trust Badges */}
+            <TrustBadges />
+          </motion.div>
+
+          {/* Floating Search Box with Glassmorphism */}
+          <motion.div
+            className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            {/* Tabs - Buy, Rent, Hotel */}
+            <div className="flex border-b border-gray-200 bg-gray-50/50">
+              <button
+                onClick={() => setActiveTab('sale')}
+                className={cn(
+                  'flex-1 py-4 px-6 text-sm font-semibold transition-all duration-200',
+                  'hover:bg-white/50',
+                  activeTab === 'sale'
+                    ? 'bg-white text-secondary border-b-2 border-secondary'
+                    : 'text-gray-600 hover:text-secondary'
+                )}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => setActiveTab('rent')}
+                className={cn(
+                  'flex-1 py-4 px-6 text-sm font-semibold transition-all duration-200',
+                  'hover:bg-white/50',
+                  activeTab === 'rent'
+                    ? 'bg-white text-secondary border-b-2 border-secondary'
+                    : 'text-gray-600 hover:text-secondary'
+                )}
+              >
+                Rent
+              </button>
+              <button
+                onClick={() => setActiveTab('hotel')}
+                className={cn(
+                  'flex-1 py-4 px-6 text-sm font-semibold transition-all duration-200',
+                  'hover:bg-white/50',
+                  activeTab === 'hotel'
+                    ? 'bg-white text-secondary border-b-2 border-secondary'
+                    : 'text-gray-600 hover:text-secondary'
+                )}
+              >
+                Hotel
+              </button>
             </div>
 
-            {/* Type Select */}
-            <div className="flex-1">
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger className="w-full bg-white/90 hover:bg-white border-white/30 h-14 text-left">
-                  <SelectValue placeholder="Property Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="sale">Buy</SelectItem>
-                  <SelectItem value="rent">Rent</SelectItem>
-                  <SelectItem value="hotel">Hotel</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Search Inputs */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Location Input with Search Suggestions */}
+                <div className="lg:col-span-1 relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Location
+                  </label>
+                  <Select 
+                    value={location} 
+                    onValueChange={(value) => {
+                      setLocation(value);
+                    }}
+                  >
+                    <SelectTrigger className="w-full bg-white border-gray-300 h-12 text-left">
+                      <MapPin className="w-4 h-4 mr-2 text-gray-500 shrink-0" />
+                      <SelectValue placeholder="Where?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Locations</SelectItem>
+                      {loadingNeighborhoods ? (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                      ) : (
+                        Array.isArray(neighborhoods) &&
+                        neighborhoods.map((neighborhood) => (
+                          <SelectItem
+                            key={neighborhood.id}
+                            value={neighborhood.id.toString()}
+                          >
+                            {neighborhood.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Search Button */}
-            <Button
-              onClick={handleSearch}
-              className="bg-[#B49162] hover:bg-[#9A7A4F] text-white px-8 md:px-12 h-14 shadow-lg hover:shadow-xl transition-all duration-300"
-              size="lg"
-            >
-              <Search className="w-5 h-5 mr-2" />
-              Search
-            </Button>
-          </div>
-        </motion.div>
-      </motion.div>
+                {/* Min Price Input */}
+                <div className="lg:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Min Price
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      className="w-full pl-9 h-12 bg-white border-gray-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Max Price Input */}
+                <div className="lg:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Max Price
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      className="w-full pl-9 h-12 bg-white border-gray-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Search Button - Large, Bronze */}
+                <div className="lg:col-span-1 flex items-end">
+                  <Button
+                    onClick={handleSearch}
+                    className="w-full h-12 bg-secondary hover:bg-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 font-semibold text-base"
+                    size="lg"
+                  >
+                    <Search className="w-5 h-5 mr-2" />
+                    Search
+                  </Button>
+                </div>
+              </div>
+
+              {/* AI Search Option */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={() => setAiSearchOpen(true)}
+                  variant="ghost"
+                  className="w-full text-secondary hover:text-secondary/80 hover:bg-secondary/10 text-sm font-medium"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Try AI Magic Search
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
       {/* AI Search Dialog */}
       <AiSearchDialog open={aiSearchOpen} onOpenChange={setAiSearchOpen} />
     </section>
   );
 }
-

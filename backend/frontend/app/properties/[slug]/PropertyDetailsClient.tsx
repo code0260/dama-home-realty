@@ -6,7 +6,19 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Property } from '@/types';
 import { getPropertyBySlug, getFeaturedProperties } from '@/lib/api';
-import { ImageGallery } from '@/components/property/ImageGallery';
+import { EnhancedImageGallery } from '@/components/property/EnhancedImageGallery';
+import { ExpandableSection } from '@/components/property/ExpandableSection';
+import { PropertyTimeline } from '@/components/property/PropertyTimeline';
+import { PriceHistory } from '@/components/property/PriceHistory';
+import { SimilarProperties } from '@/components/property/SimilarProperties';
+import { NearbyProperties } from '@/components/property/NearbyProperties';
+import { NeighborhoodInfo } from '@/components/property/NeighborhoodInfo';
+import { LiveChat } from '@/components/property/LiveChat';
+import { VideoCallButton } from '@/components/property/VideoCallButton';
+import { PriceCalculator } from '@/components/property/PriceCalculator';
+import { BookingTerms } from '@/components/property/BookingTerms';
+import { PropertyShare } from '@/components/property/PropertyShare';
+import { SocialProof } from '@/components/property/SocialProof';
 import { PropertyCard } from '@/components/ui-custom/PropertyCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -206,9 +218,9 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <div>
+      <div className="min-h-screen">
         {/* Breadcrumbs */}
-        <div className="bg-gray-50 border-b">
+        <div className="bg-gray-50 dark:bg-slate-800/50 border-b dark:border-slate-700">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Breadcrumb>
               <BreadcrumbList>
@@ -233,13 +245,25 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header Section */}
+          {/* Enhanced Image Gallery */}
           <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+            <EnhancedImageGallery 
+              images={property.images || []} 
+              title={property.title}
+              floorPlans={[]}
+              videoUrl={property.video_url || undefined}
+              virtualTourUrl={property.video_url || undefined}
+            />
+          </div>
+
+          {/* Header Section - Below Images */}
+          <div className="mb-12 pb-8 border-b border-gray-200">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                {/* Title and Badges */}
+                <div className="flex items-center gap-2 mb-3">
                   {property.is_verified && (
-                    <Badge className="bg-[#B49162] text-white flex items-center gap-1">
+                    <Badge className="bg-secondary text-white flex items-center gap-1 border-0">
                       <ShieldCheck className="w-3 h-3" />
                       Verified
                     </Badge>
@@ -248,38 +272,58 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                     <Badge
                       className={
                         property.type === 'sale'
-                          ? 'bg-green-500'
+                          ? 'bg-green-500 text-white border-0'
                           : property.type === 'rent'
-                          ? 'bg-blue-500'
-                          : 'bg-purple-500'
+                          ? 'bg-blue-500 text-white border-0'
+                          : 'bg-purple-500 text-white border-0'
                       }
                     >
                       {property.type.charAt(0).toUpperCase() + property.type.slice(1)}
                     </Badge>
                   )}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">{property.title}</h1>
-                {property.reference_id && (
-                  <p className="text-sm text-gray-500 mb-2">Reference: <span className="font-semibold text-primary">{property.reference_id}</span></p>
-                )}
+                
+                {/* Title */}
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-3">
+                  {property.title}
+                </h1>
+                
+                {/* Location */}
                 <div className="flex items-center gap-2 text-gray-600 mb-4">
-                  <MapPin className="w-5 h-5" />
-                  <span>{property.neighborhood?.name || 'Damascus'}</span>
+                  <MapPin className="w-5 h-5 text-secondary" />
+                  <span className="text-lg">{property.neighborhood?.name || 'Damascus'}</span>
                 </div>
-                <div className="text-3xl font-bold text-primary">
-                  {formatPrice(property.price, property.currency)}
-                  {property.type === 'rent' && <span className="text-lg font-normal text-gray-500">/month</span>}
+                
+                {/* Price - Large, Bold, Bronze */}
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl md:text-5xl font-bold text-secondary">
+                    {formatPrice(property.price, property.currency)}
+                  </span>
+                  {property.type === 'rent' && (
+                    <span className="text-xl font-normal text-gray-500">/month</span>
+                  )}
+                  {property.type === 'hotel' && (
+                    <span className="text-xl font-normal text-gray-500">/night</span>
+                  )}
                 </div>
+                
+                {property.reference_id && (
+                  <p className="text-sm text-gray-500 mt-3">
+                    Reference: <span className="font-semibold text-primary">{property.reference_id}</span>
+                  </p>
+                )}
               </div>
-              <div className="flex gap-2">
+              
+              {/* Action Buttons - Share & Save */}
+              <div className="flex gap-3">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
                     variant="outline" 
                     size="icon" 
                     onClick={handleShare}
-                    className="border-[#B49162] text-[#B49162] hover:bg-[#B49162] hover:text-white"
+                    className="w-12 h-12 rounded-full border-gray-300 hover:border-secondary hover:bg-secondary/10 transition-colors"
                   >
-                    <Share2 className="w-5 h-5" />
+                    <Share2 className="w-5 h-5 text-gray-700" />
                   </Button>
                 </motion.div>
                 <motion.div 
@@ -292,8 +336,10 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                     variant="outline" 
                     size="icon" 
                     onClick={handleSave}
-                    className={`border-[#B49162] hover:bg-[#B49162] hover:text-white ${
-                      isSaved ? 'bg-[#B49162] text-white' : 'text-[#B49162]'
+                    className={`w-12 h-12 rounded-full transition-colors ${
+                      isSaved
+                        ? 'bg-secondary hover:bg-secondary/90 text-white border-secondary'
+                        : 'border-gray-300 hover:border-secondary hover:bg-secondary/10'
                     }`}
                   >
                     <AnimatePresence mode="wait">
@@ -325,22 +371,39 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
             </div>
           </div>
 
-          {/* Image Gallery */}
-          <div className="mb-12">
-            <ImageGallery images={property.images || []} title={property.title} />
-          </div>
-
           {/* Main Content & Sidebar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Description */}
+              {/* Description - Expandable */}
               <section>
-                <h2 className="text-2xl font-bold text-primary mb-4">Description</h2>
-                <div className="prose max-w-none">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">{property.description}</p>
-                </div>
+                <ExpandableSection
+                  title="Description"
+                  defaultExpanded={true}
+                  className="prose max-w-none"
+                >
+                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-base md:text-lg whitespace-pre-line">
+                    {property.description}
+                  </p>
+                </ExpandableSection>
               </section>
+
+              {/* Property Timeline */}
+              <section>
+                <PropertyTimeline property={property} />
+              </section>
+
+              {/* Price History */}
+              <section>
+                <PriceHistory property={property} />
+              </section>
+
+              {/* Neighborhood Info */}
+              {property.neighborhood && (
+                <section>
+                  <NeighborhoodInfo property={property} />
+                </section>
+              )}
 
               {/* Key Features */}
               <section>
@@ -371,10 +434,15 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                 </div>
               </section>
 
-              {/* Amenities */}
+              {/* Social Proof */}
+              <section>
+                <SocialProof property={property} />
+              </section>
+
+              {/* Amenities - Grid of Cards */}
               {property.amenities && property.amenities.length > 0 && (
                 <section>
-                  <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">Amenities</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-white mb-6">Amenities</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {property.amenities.map((amenity, index) => (
                       <motion.div
@@ -382,16 +450,16 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05, duration: 0.3 }}
-                        className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-[#B49162]/10 transition-colors group"
+                        className="flex flex-col items-center justify-center p-5 bg-white dark:bg-primary-800 border border-gray-200 dark:border-primary-700 rounded-xl hover:border-secondary hover:shadow-md transition-all duration-300 group cursor-pointer"
                       >
-                        <div className="mb-3 p-3 bg-white rounded-full group-hover:scale-110 transition-transform duration-300">
+                        <div className="mb-3 p-3 bg-secondary/10 rounded-full group-hover:bg-secondary/20 group-hover:scale-110 transition-all duration-300">
                           <AmenityIcon 
                             amenity={amenity} 
-                            size={32} 
-                            className="text-[#B49162] group-hover:text-[#0F172A] transition-colors" 
+                            size={28} 
+                            className="text-secondary group-hover:scale-110 transition-transform" 
                           />
                         </div>
-                        <span className="text-sm font-medium text-[#0F172A] text-center">{amenity}</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">{amenity}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -414,32 +482,48 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                 </section>
               )}
 
-              {/* Map Section */}
+              {/* Map Section - Custom Styled Container */}
               <section>
-                <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">Location</h2>
-                <PropertyMap property={property} />
+                <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">Location</h2>
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+                  <PropertyMap property={property} />
+                </div>
               </section>
             </div>
 
-            {/* Sidebar - Booking Form / Contact Agent */}
+            {/* Sidebar - Booking Form / Contact Agent - Sticky with Glass Effect */}
             <div className="lg:col-span-1">
-              <div className="sticky top-24 space-y-4">
+              <div className="sticky top-24 space-y-6">
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="border-2 border-[#B49162]/30 rounded-2xl shadow-xl bg-white/95 backdrop-blur-sm p-6"
+                  className="rounded-2xl shadow-xl bg-white/95 backdrop-blur-md border border-gray-200/50 p-6 glass-effect"
                 >
                   {/* Booking Form (for hotel/rent properties) */}
                   {['hotel', 'rent'].includes(property.type) && (
-                    <BookingForm property={property} />
+                    <>
+                      <PriceCalculator property={property} />
+                      <div className="mt-4">
+                        <BookingForm property={property} />
+                      </div>
+                      <div className="mt-4">
+                        <BookingTerms property={property} />
+                      </div>
+                    </>
                   )}
 
                   {/* Agent Card (if agent assigned) */}
-                  {property.agent ? (
-                    <AgentCard agent={property.agent} property={property} />
-                  ) : (
-                    /* Fallback Contact Card */
+                  {property.agent && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6 space-y-4">
+                      <AgentCard agent={property.agent} property={property} />
+                      <LiveChat property={property} agentPhone={property.agent.phone || undefined} />
+                      <VideoCallButton property={property} agentPhone={property.agent.phone || undefined} />
+                    </div>
+                  )}
+
+                  {/* Fallback Contact Card (if no agent) */}
+                  {!property.agent && (
                     <div>
                       <h3 className="text-xl font-bold text-[#0F172A] mb-4">Contact Agent</h3>
                       <div className="space-y-4">
@@ -547,10 +631,20 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
             </div>
           </div>
 
-          {/* Related Properties */}
+          {/* Similar Properties */}
+          <section className="mt-16">
+            <SimilarProperties currentProperty={property} />
+          </section>
+
+          {/* Nearby Properties */}
+          <section className="mt-16">
+            <NearbyProperties currentProperty={property} />
+          </section>
+
+          {/* Related Properties - Fallback */}
           {relatedProperties.length > 0 && (
             <section className="mt-16">
-              <h2 className="text-3xl font-bold text-primary mb-8">Related Properties</h2>
+              <h2 className="text-3xl font-bold text-primary dark:text-white mb-8">Related Properties</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {relatedProperties.map((relatedProperty) => (
                   <PropertyCard key={relatedProperty.uuid} property={relatedProperty} />
@@ -561,9 +655,9 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
         </div>
       </div>
 
-      {/* Share Modal */}
+      {/* Property Share Modal */}
       {property && (
-        <ShareModal
+        <PropertyShare
           open={shareModalOpen}
           onOpenChange={setShareModalOpen}
           property={property}

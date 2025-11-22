@@ -37,38 +37,74 @@ function FeaturedPropertiesLoader() {
 function FeaturedPropertiesContent() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [pagination, setPagination] = useState<PaginatedResponse<Property> | null>(null);
+
+  const fetchFeaturedProperties = async (page: number = 1, append: boolean = false) => {
+    try {
+      if (page === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+      setError(null);
+      
+      const response = await axiosInstance.get<PaginatedResponse<Property>>('/properties', {
+        params: {
+          featured: true,
+          status: 'active',
+          per_page: 6,
+          page,
+          locale: 'en',
+        },
+      });
+      
+      const data = response.data;
+      const newProperties = data?.data || [];
+      
+      if (append) {
+        setProperties((prev) => [...prev, ...newProperties]);
+      } else {
+        setProperties(newProperties);
+      }
+      
+      setPagination(data);
+      setHasMore(page < (data?.last_page || 1));
+      setCurrentPage(page);
+    } catch (err: any) {
+      console.error('Error fetching featured properties:', err);
+      if (err.isNetworkError || err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.message === 'Network Error') {
+        setError('Unable to connect to backend server. Please ensure the Laravel server is running at http://localhost:8000');
+      } else if (err.isTimeoutError) {
+        setError('Request timed out. The server may be slow or unreachable.');
+      } else {
+        setError(err.response?.data?.message || err.message || 'Failed to load featured properties');
+      }
+      if (!append) {
+        setProperties([]);
+      }
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchFeaturedProperties = async () => {
-      try {
-        setError(null);
-        const response = await axiosInstance.get<PaginatedResponse<Property>>('/properties', {
-          params: {
-            featured: true,
-            status: 'active',
-            per_page: 6,
-            locale: 'en',
-          },
-        });
-        // Handle both response formats
-        const properties = response.data?.data || (Array.isArray(response.data) ? response.data : []);
-        setProperties(properties);
-      } catch (err: any) {
-        console.error('Error fetching featured properties:', err);
-        // Handle network errors gracefully
-        if (err.isNetworkError || err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.message === 'Network Error') {
-          setError('Unable to connect to backend server. Please ensure the Laravel server is running at http://localhost:8000');
-        } else if (err.isTimeoutError) {
-          setError('Request timed out. The server may be slow or unreachable.');
-        } else {
-          setError(err.response?.data?.message || err.message || 'Failed to load featured properties');
-        }
-        setProperties([]); // Set empty array on error
-      }
-    };
-
-    fetchFeaturedProperties();
+    fetchFeaturedProperties(1, false);
   }, []);
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchFeaturedProperties(currentPage + 1, true);
+    }
+  };
+
+  if (loading) {
+    return <FeaturedPropertiesLoader />;
+  }
 
   if (error) {
     return (
@@ -83,7 +119,14 @@ function FeaturedPropertiesContent() {
     );
   }
 
-  return <FeaturedPropertiesClient properties={properties} />;
+  return (
+    <FeaturedPropertiesClient 
+      properties={properties} 
+      hasMore={hasMore}
+      loadingMore={loadingMore}
+      onLoadMore={loadMore}
+    />
+  );
 }
 
 export function FeaturedProperties() {

@@ -225,6 +225,9 @@ export async function getCurrentUser(): Promise<User> {
 /**
  * Get all active services
  */
+/**
+ * Get all services
+ */
 export async function getServices(locale: string = 'en'): Promise<Service[]> {
   const response = await axiosInstance.get<{ data: Service[] }>('/services', {
     params: { locale },
@@ -282,18 +285,43 @@ export async function submitLiveTourRequest(data: {
 }
 
 /**
+ * Get a service by slug
+ */
+export async function getServiceBySlug(slug: string, locale: string = 'en'): Promise<Service> {
+  const response = await axiosInstance.get<Service>(`/services/${slug}`, {
+    params: { locale },
+  });
+  return response.data;
+}
+
+/**
  * Submit service request
  */
-export async function submitServiceRequest(data: {
+export async function submitServiceRequest(
+  data: FormData | {
   name: string;
   phone: string;
   message: string;
 }): Promise<{ message: string; success: boolean }> {
-  const response = await axiosInstance.post('/leads', {
-    ...data,
-    type: 'service_request',
-  });
-  return response.data;
+  // Check if data is FormData (has append method) or plain object
+  const isFormData = data instanceof FormData;
+  
+  if (isFormData) {
+    // Append type for FormData
+    data.append('type', 'service_request');
+    const response = await axiosInstance.post('/leads', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } else {
+    const response = await axiosInstance.post('/leads', {
+      ...data,
+      type: 'service_request',
+    });
+    return response.data;
+  }
 }
 
 /**

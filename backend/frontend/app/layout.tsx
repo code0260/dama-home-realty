@@ -6,6 +6,8 @@ import { DamaGenie } from "@/components/ai/DamaGenie";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { Navbar } from "@/components/ui-custom/Navbar";
 import { Footer } from "@/components/ui-custom/Footer";
+import { ScrollProgressBar } from "@/components/layout/ScrollProgressBar";
+import { NavbarSpacer } from "@/components/layout/NavbarSpacer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -39,6 +41,16 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Dama Home Realty' }],
   creator: 'Dama Home Realty',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192x192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/icon-192x192.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -48,9 +60,9 @@ export const metadata: Metadata = {
     description: "Find your perfect home in Damascus. Rent, buy, or book properties in Syria's capital.",
     images: [
       {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
+        url: '/icon-192x192.png',
+        width: 192,
+        height: 192,
         alt: 'Dama Home Realty - Properties in Damascus',
       },
     ],
@@ -59,7 +71,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Dama Home Realty - Properties in Damascus',
     description: "Find your perfect home in Damascus. Rent, buy, or book properties in Syria's capital.",
-    images: ['/og-image.jpg'],
+    images: ['/icon-192x192.png'],
   },
   robots: {
     index: true,
@@ -83,27 +95,36 @@ export default function RootLayout({
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" href="/icon-192x192.png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" sizes="180x180" />
         <meta name="theme-color" content="#0F172A" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Dama Realty" />
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-title" content="Dama Home Realty" />
       </head>
       <body
-        className={`${inter.variable} ${cairo.variable} font-sans antialiased bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-white transition-colors`}
+        className={`${inter.variable} ${cairo.variable} font-sans antialiased bg-background dark:bg-[#020617] text-foreground dark:text-slate-200 transition-colors`}
       >
         <ErrorBoundary>
           <Providers>
             <div className="min-h-screen flex flex-col">
+              {/* Scroll Progress Bar at Top */}
+              <ScrollProgressBar />
+              
+              {/* Navbar */}
               <Navbar />
-              <main className="flex-1">
+              
+              {/* Smart Spacer - Only for non-home pages */}
+              <NavbarSpacer />
+              
+              {/* Main Content - Add padding-top for all pages except Home */}
+              <main className="flex-1 pt-0">
                 {children}
               </main>
+              
+              {/* Footer */}
               <Footer />
             </div>
             <DamaGenie />

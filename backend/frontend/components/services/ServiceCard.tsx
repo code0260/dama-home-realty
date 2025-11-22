@@ -4,12 +4,31 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Service } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Scale, Car, Home, Wrench, FileText, Building2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Briefcase,
+  Scale,
+  Car,
+  Home,
+  Wrench,
+  FileText,
+  Building2,
+  ArrowRight,
+  Clock,
+  DollarSign,
+  MapPin,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface ServiceCardProps {
   service: Service;
   onRequest: (service: Service) => void;
+  viewMode?: 'grid' | 'list';
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -22,103 +41,303 @@ const iconMap: Record<string, LucideIcon> = {
   'heroicon-o-building': Building2,
 };
 
-export function ServiceCard({ service, onRequest }: ServiceCardProps) {
+const formatPrice = (price: number | null | undefined, currency: 'USD' | 'SYP' | null | undefined) => {
+  if (!price) return null;
+  const formattedPrice = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(price);
+  return currency === 'USD' ? `$${formattedPrice}` : `${formattedPrice} ${currency}`;
+};
+
+const getAvailabilityBadge = (availability: Service['availability']) => {
+  switch (availability) {
+    case 'available':
+      return { icon: CheckCircle2, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', text: 'Available' };
+    case 'limited':
+      return { icon: AlertCircle, color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', text: 'Limited' };
+    case 'unavailable':
+      return { icon: XCircle, color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', text: 'Unavailable' };
+    default:
+      return null;
+  }
+};
+
+export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+
+  const IconComponent =
+    service.icon && iconMap[service.icon] ? iconMap[service.icon] : Briefcase;
   
-  const IconComponent = service.icon && iconMap[service.icon] 
-    ? iconMap[service.icon] 
-    : Briefcase;
+  const price = formatPrice(service.price, service.currency);
+  const availabilityBadge = getAvailabilityBadge(service.availability);
+
+  // List view layout
+  if (viewMode === 'list') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="group cursor-pointer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className={cn(
+          'flex items-center gap-6 p-6',
+          'bg-white dark:bg-primary-800 border border-gray-200 dark:border-primary-700',
+          'rounded-xl transition-all duration-300',
+          isHovered ? 'shadow-lg border-secondary/30' : 'shadow-sm'
+        )}>
+          {/* Icon */}
+          <div className="shrink-0">
+            <div className={cn(
+              'p-4 rounded-full bg-secondary/10 transition-all duration-300',
+              isHovered && 'bg-secondary/20 scale-110'
+            )}>
+              <IconComponent className="w-8 h-8 text-secondary" />
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-bold text-primary dark:text-white">
+                    {service.title}
+                  </h3>
+                  {service.category && (
+                    <Badge variant="outline" className="text-xs">
+                      {service.category}
+                    </Badge>
+                  )}
+                  {availabilityBadge && (
+                    <Badge className={cn('text-xs', availabilityBadge.color)}>
+                      <availabilityBadge.icon className="w-3 h-3 mr-1" />
+                      {availabilityBadge.text}
+                    </Badge>
+                  )}
+                </div>
+                {service.description && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {service.description}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Meta Info */}
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              {price && (
+                <div className="flex items-center gap-1">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="font-semibold text-secondary">{price}</span>
+                </div>
+              )}
+              {service.duration && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{service.duration}</span>
+                </div>
+              )}
+              {service.locations && service.locations.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{service.locations.length} locations</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="shrink-0 flex gap-2">
+            {service.slug && (
+              <Button variant="outline" asChild size="sm">
+                <Link href={`/services/${service.slug}`}>
+                  View Details
+                </Link>
+              </Button>
+            )}
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRequest(service);
+              }}
+              className="bg-secondary hover:bg-secondary/90"
+              size="sm"
+            >
+              Request
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
-      className="relative w-full h-[300px] group cursor-pointer"
+      className="relative group cursor-pointer h-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.3 }}
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      {/* Card Container */}
+      {/* Card Container - White Background with Subtle Border */}
       <motion.div
-        className="relative w-full h-full bg-[#0F172A] rounded-2xl overflow-hidden shadow-xl"
-        animate={{
-          height: isHovered ? 'auto' : '300px',
-        }}
-        transition={{ duration: 0.4, ease: 'easeInOut' }}
+        className={cn(
+          'relative w-full h-full min-h-[280px]',
+          'bg-white border border-gray-200',
+          'rounded-xl overflow-hidden',
+          'transition-all duration-300',
+          'flex flex-col',
+          // Hover state: increased shadow
+          isHovered
+            ? 'shadow-xl border-secondary/20'
+            : 'shadow-sm hover:shadow-md'
+        )}
       >
-        {/* Default State: Icon + Title (Minimalist) */}
+        {/* Normal State: Minimalist Icon + Title */}
         <AnimatePresence mode="wait">
           {!isHovered ? (
             <motion.div
               key="default"
               initial={{ opacity: 1 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex flex-col items-center justify-center p-8"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col items-center justify-center h-full p-8"
             >
+              {/* Icon - Bronze */}
               <motion.div
-                className="p-6 bg-[#B49162]/20 rounded-full mb-6"
+                className="mb-6 p-4 rounded-full bg-secondary/10 group-hover:bg-secondary/20 transition-colors duration-300"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 transition={{ duration: 0.3 }}
               >
-                <IconComponent className="w-16 h-16 text-[#B49162]" />
+                <IconComponent className="w-12 h-12 text-secondary" />
               </motion.div>
-              <h3 className="text-2xl font-bold text-white text-center">
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-primary dark:text-white text-center mb-2">
                 {service.title}
               </h3>
+              
+              {/* Category Badge */}
+              {service.category && (
+                <Badge variant="outline" className="text-xs mb-2">
+                  {service.category}
+                </Badge>
+              )}
+              
+              {/* Price & Duration */}
+              {(price || service.duration) && (
+                <div className="flex items-center justify-center gap-3 text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  {price && (
+                    <div className="flex items-center gap-1 font-semibold text-secondary">
+                      <DollarSign className="w-4 h-4" />
+                      {price}
+                    </div>
+                  )}
+                  {service.duration && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {service.duration}
+                    </div>
+                  )}
+                </div>
+              )}
             </motion.div>
           ) : (
             <motion.div
-              key="expanded"
-              initial={{ opacity: 0, y: 20 }}
+              key="hovered"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex flex-col p-8 justify-between"
+              className="flex flex-col h-full p-6"
             >
               {/* Icon at top */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-4 bg-[#B49162]/20 rounded-full">
-                  <IconComponent className="w-12 h-12 text-[#B49162]" />
+              <div className="mb-4 flex items-center justify-between">
+                <div className="p-3 rounded-full bg-secondary/10 w-fit">
+                  <IconComponent className="w-8 h-8 text-secondary" />
                 </div>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 flex flex-col justify-center mb-6">
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  {service.title}
-                </h3>
-                {service.description && (
-                  <p className="text-gray-300 leading-relaxed line-clamp-4">
-                    {service.description}
-                  </p>
+                {availabilityBadge && (
+                  <Badge className={cn('text-xs', availabilityBadge.color)}>
+                    <availabilityBadge.icon className="w-3 h-3 mr-1" />
+                    {availabilityBadge.text}
+                  </Badge>
                 )}
               </div>
 
-              {/* Request Button */}
+              {/* Content */}
+              <div className="flex-1 mb-6">
+                <div className="flex items-start gap-2 mb-2">
+                  <h3 className="text-xl font-bold text-primary dark:text-white">
+                    {service.title}
+                  </h3>
+                  {service.category && (
+                    <Badge variant="outline" className="text-xs">
+                      {service.category}
+                    </Badge>
+                  )}
+                </div>
+                {service.description && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 mb-3">
+                    {service.description}
+                  </p>
+                )}
+                
+                {/* Meta Info */}
+                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  {price && (
+                    <div className="flex items-center gap-1 font-semibold text-secondary">
+                      <DollarSign className="w-4 h-4" />
+                      {price}
+                    </div>
+                  )}
+                  {service.duration && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {service.duration}
+                    </div>
+                  )}
+                  {service.locations && service.locations.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {service.locations.length}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Learn More / Request Button - Appears on Hover */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
               >
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     onRequest(service);
                   }}
-                  className="w-full bg-[#B49162] hover:bg-[#9A7A4F] text-white shadow-lg"
+                  className={cn(
+                    'w-full bg-secondary hover:bg-secondary/90 text-white',
+                    'shadow-md hover:shadow-lg',
+                    'transition-all duration-200',
+                    'font-semibold',
+                    'flex items-center justify-center gap-2'
+                  )}
                   size="lg"
                 >
                   Request Service
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-linear-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </motion.div>
     </motion.div>
   );
 }
-

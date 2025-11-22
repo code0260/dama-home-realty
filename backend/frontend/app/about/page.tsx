@@ -9,7 +9,7 @@ import { TestimonialsCarousel } from '@/components/sections/TestimonialsCarousel
 import { Timeline } from '@/components/about/Timeline';
 import { TeamMemberCard } from '@/components/about/TeamMemberCard';
 import { StatsCounter } from '@/components/about/StatsCounter';
-import { FounderQuote } from '@/components/about/FounderQuote';
+import { StorySection } from '@/components/about/StorySection';
 import { getAgents } from '@/lib/api';
 import { Agent } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,46 +49,23 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Founder Quote */}
-        <FounderQuote />
+        {/* Story Section - Large Typography with Signature */}
+        <StorySection />
 
         {/* Our Journey Timeline */}
         <section className="py-20 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] text-center mb-16">
-                Our <span className="text-[#B49162]">Journey</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-primary text-center mb-16">
+                Our <span className="text-secondary">Journey</span>
               </h2>
               <Timeline />
             </div>
           </div>
         </section>
 
-        {/* Stats Counter */}
+        {/* Stats Counter - Navy Blue Background */}
         <StatsCounter />
-
-        {/* Our Mission */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-8">
-                Our <span className="text-[#B49162]">Mission</span>
-              </h2>
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
-                At Dama Home Realty, we understand the unique challenges faced by Syrian expats
-                seeking to reconnect with their homeland. Whether you're looking to rent, buy, or
-                invest in property in Damascus, we're here to make the process seamless, secure, and
-                trustworthy.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed">
-                Our mission is to bridge the distance between you and your dream home in Syria,
-                providing verified listings, expert guidance, and a secure platform that you can
-                trust. We believe that everyone deserves a safe haven, and we're committed to
-                making that a reality for the Syrian diaspora.
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* Why Us Grid */}
         <section className="py-20 bg-linear-to-br from-gray-50 to-white relative overflow-hidden">

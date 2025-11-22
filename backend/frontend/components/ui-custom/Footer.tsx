@@ -1,142 +1,287 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Mail,
+  Phone,
+  MapPin,
+  ArrowUp,
+  Linkedin,
+  Youtube,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui-custom/Logo';
+import { cn } from '@/lib/utils';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
+  // Show/hide Back to Top button based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial scroll position
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  // Quick Links
   const quickLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/properties', label: 'Properties' },
-    { href: '/about', label: 'About Us' },
+    { href: '/properties?type=sale', label: 'Buy' },
+    { href: '/properties?type=rent', label: 'Rent' },
+    { href: '/list-property', label: 'Sell' },
+    { href: '/blog', label: 'Blog' },
     { href: '/contact', label: 'Contact' },
   ];
 
-  const services = [
-    { href: '/properties?type=sale', label: 'Buy Property' },
-    { href: '/properties?type=rent', label: 'Rent Property' },
-    { href: '/properties?type=hotel', label: 'Hotels' },
-    { href: '/list-property', label: 'List Your Property' },
+  // Legal Links
+  const legalLinks = [
+    { href: '/privacy-policy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms of Service' },
+    { href: '/refund-policy', label: 'Refund Policy' },
   ];
 
+  // Social Media Links
   const socialLinks = [
-    { href: '#', icon: Facebook, label: 'Facebook' },
-    { href: '#', icon: Instagram, label: 'Instagram' },
-    { href: '#', icon: Twitter, label: 'Twitter' },
+    {
+      href: '#',
+      icon: Facebook,
+      label: 'Facebook',
+      color: 'hover:text-[#1877F2]',
+    },
+    {
+      href: '#',
+      icon: Instagram,
+      label: 'Instagram',
+      color: 'hover:text-[#E4405F]',
+    },
+    {
+      href: '#',
+      icon: Twitter,
+      label: 'Twitter',
+      color: 'hover:text-[#1DA1F2]',
+    },
+    {
+      href: '#',
+      icon: Linkedin,
+      label: 'LinkedIn',
+      color: 'hover:text-[#0A66C2]',
+    },
+    {
+      href: '#',
+      icon: Youtube,
+      label: 'YouTube',
+      color: 'hover:text-[#FF0000]',
+    },
   ];
+
+  // Contact Information
+  const contactInfo = {
+    address: 'Damascus, Syria',
+    phone: '+963 123 456 789',
+    email: 'info@dama-home.com',
+  };
 
   return (
-    <footer className="bg-primary text-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="space-y-4">
-            <Logo size="lg" showText={true} className="text-white" />
-            <p className="text-gray-300 text-sm">
-              Your trusted partner in finding the perfect home in Damascus. 
-              Connecting Syrian expats with their dream properties.
-            </p>
-            <div className="flex space-x-4">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <Link
-                    key={social.label}
-                    href={social.href}
-                    className="text-gray-300 hover:text-secondary transition-colors"
-                    aria-label={social.label}
+    <>
+      <footer className="bg-primary text-white relative overflow-hidden">
+        {/* Decorative Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQkQ5MTYyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMEYxNzJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] repeat" />
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+          {/* Main Footer Content - 4 Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+            {/* Column 1: Brand */}
+            <div className="space-y-6">
+              {/* Logo */}
+              <Link
+                href="/"
+                className="flex items-center gap-3 group transition-opacity hover:opacity-90"
+              >
+                <div className="relative w-12 h-12 shrink-0 transition-transform group-hover:scale-105">
+                  <Image
+                    src="/icon-192x192.png"
+                    alt="Dama Home Logo"
+                    fill
+                    className="object-contain drop-shadow-sm"
+                    priority
+                    sizes="48px"
+                  />
+                </div>
+                <span className="font-bold tracking-wide text-xl text-white">
+                  Dama Home
+                </span>
+              </Link>
+
+              {/* Description */}
+              <p className="text-gray-300 text-sm leading-relaxed font-light max-w-xs">
+                Your trusted partner in finding the perfect home in Damascus.
+                Connecting Syrian expats with their dream properties.
+              </p>
+
+              {/* Social Media Icons */}
+              <div className="flex items-center gap-3">
+                {socialLinks.map((social) => {
+                  const Icon = social.icon;
+                  return (
+                    <Link
+                      key={social.label}
+                      href={social.href}
+                      className={cn(
+                        'w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300 group',
+                        'text-gray-300 hover:text-secondary hover:scale-110',
+                        social.color
+                      )}
+                      aria-label={social.label}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Column 2: Quick Links */}
+            <div>
+              <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
+                Quick Links
+              </h4>
+              <ul className="space-y-3">
+                {quickLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-300 hover:text-secondary transition-colors text-sm font-light group flex items-center gap-2"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Column 3: Legal */}
+            <div>
+              <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
+                Legal
+              </h4>
+              <ul className="space-y-3">
+                {legalLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-300 hover:text-secondary transition-colors text-sm font-light group flex items-center gap-2"
+                    >
+                      <span className="w-1 h-1 rounded-full bg-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Column 4: Contact */}
+            <div>
+              <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
+                Contact Us
+              </h4>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
+                  <span className="text-gray-300 text-sm font-light leading-relaxed">
+                    {contactInfo.address}
+                  </span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-secondary shrink-0" />
+                  <a
+                    href={`tel:${contactInfo.phone.replace(/\s/g, '')}`}
+                    className="text-gray-300 hover:text-secondary transition-colors text-lg font-medium"
                   >
-                    <Icon className="w-5 h-5" />
-                  </Link>
-                );
-              })}
+                    {contactInfo.phone}
+                  </a>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-secondary shrink-0" />
+                  <a
+                    href={`mailto:${contactInfo.email}`}
+                    className="text-gray-300 hover:text-secondary transition-colors text-sm font-light break-all"
+                  >
+                    {contactInfo.email}
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-300 hover:text-secondary transition-colors text-sm"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Services */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Services</h4>
-            <ul className="space-y-2">
-              {services.map((service) => (
-                <li key={service.href}>
-                  <Link
-                    href={service.href}
-                    className="text-gray-300 hover:text-secondary transition-colors text-sm"
-                  >
-                    {service.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-gray-300 text-sm">
-                <MapPin className="w-5 h-5 mt-0.5 shrink-0" />
-                <span>Damascus, Syria</span>
-              </li>
-              <li className="flex items-center gap-2 text-gray-300 text-sm">
-                <Phone className="w-5 h-5 shrink-0" />
-                <a href="tel:+963123456789" className="hover:text-secondary transition-colors">
-                  +963 123 456 789
-                </a>
-              </li>
-              <li className="flex items-center gap-2 text-gray-300 text-sm">
-                <Mail className="w-5 h-5 shrink-0" />
-                <a
-                  href="mailto:info@dama-home.com"
-                  className="hover:text-secondary transition-colors"
-                >
-                  info@dama-home.com
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
+
+        {/* Bronze Line Separator */}
+        <div className="border-t border-secondary/30" />
 
         {/* Bottom Bar */}
-        <div className="mt-8 pt-8 border-t border-gray-700">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-300 text-sm">
+            {/* Copyright */}
+            <p className="text-gray-400 text-sm font-light">
               © {currentYear} Dama Home Realty. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm text-gray-300">
-              <Link href="/privacy-policy" className="hover:text-secondary transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="hover:text-secondary transition-colors">
-                Terms of Service
-              </Link>
-              <Link href="/refund-policy" className="hover:text-secondary transition-colors">
-                Refund Policy
-              </Link>
+
+            {/* Additional Info or Links can go here */}
+            <div className="text-gray-400 text-xs font-light">
+              Made with ❤️ in Damascus
             </div>
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            onClick={scrollToTop}
+            className={cn(
+              'fixed bottom-8 right-8 z-50',
+              'w-12 h-12 rounded-full',
+              'bg-secondary hover:bg-secondary/90',
+              'text-white shadow-lg hover:shadow-xl',
+              'flex items-center justify-center',
+              'transition-all duration-300',
+              'hover:scale-110 active:scale-95',
+              'group'
+            )}
+            aria-label="Back to top"
+          >
+            <ArrowUp className="w-5 h-5 transition-transform group-hover:-translate-y-1" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
-

@@ -18,7 +18,9 @@ export function TestimonialsCarousel({ featured = false, locale = 'en' }: Testim
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoPlayIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -41,6 +43,36 @@ export function TestimonialsCarousel({ featured = false, locale = 'en' }: Testim
 
     fetchTestimonials();
   }, [featured, locale]);
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (testimonials.length <= 1 || isPaused) {
+      if (autoPlayIntervalRef.current) {
+        clearInterval(autoPlayIntervalRef.current);
+        autoPlayIntervalRef.current = null;
+      }
+      return;
+    }
+
+    autoPlayIntervalRef.current = setInterval(() => {
+      setCurrentIndex((prev) => {
+        const next = (prev + 1) % testimonials.length;
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            left: next * 356, // 350px card + 6px gap
+            behavior: 'smooth',
+          });
+        }
+        return next;
+      });
+    }, 5000); // Auto-advance every 5 seconds
+
+    return () => {
+      if (autoPlayIntervalRef.current) {
+        clearInterval(autoPlayIntervalRef.current);
+      }
+    };
+  }, [testimonials.length, isPaused]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
@@ -108,6 +140,21 @@ export function TestimonialsCarousel({ featured = false, locale = 'en' }: Testim
         ref={scrollContainerRef}
         className="overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory scroll-smooth"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onScroll={() => {
+          // Pause auto-play when user manually scrolls
+          if (scrollContainerRef.current) {
+            const scrollLeft = scrollContainerRef.current.scrollLeft;
+            const newIndex = Math.round(scrollLeft / 356);
+            if (newIndex !== currentIndex) {
+              setCurrentIndex(newIndex);
+              setIsPaused(true);
+              // Resume after 3 seconds of no interaction
+              setTimeout(() => setIsPaused(false), 3000);
+            }
+          }
+        }}
       >
         <div className="flex gap-6 min-w-max">
           {testimonials.map((testimonial, index) => (

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Users, Home, Star, Award } from 'lucide-react';
+import { Users, Home, Award, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 interface Stat {
@@ -10,37 +10,26 @@ interface Stat {
   value: number;
   suffix: string;
   label: string;
-  color: string;
 }
 
 const stats: Stat[] = [
-  {
-    icon: Users,
-    value: 500,
-    suffix: '+',
-    label: 'Happy Clients',
-    color: 'text-[#B49162]',
-  },
   {
     icon: Home,
     value: 100,
     suffix: '+',
     label: 'Properties',
-    color: 'text-[#B49162]',
   },
   {
-    icon: Star,
-    value: 98,
-    suffix: '%',
-    label: 'Satisfaction Rate',
-    color: 'text-[#B49162]',
+    icon: Users,
+    value: 500,
+    suffix: '+',
+    label: 'Clients',
   },
   {
-    icon: Award,
+    icon: Calendar,
     value: 5,
     suffix: '',
-    label: 'Years of Excellence',
-    color: 'text-[#B49162]',
+    label: 'Years',
   },
 ];
 
@@ -93,16 +82,16 @@ function Counter({ stat, index }: { stat: Stat; index: number }) {
       ref={ref}
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
+      transition={{ duration: 0.6, delay: index * 0.15 }}
       className="text-center"
     >
-      <div className="flex justify-center mb-4">
-        <div className={`p-4 bg-[#B49162]/10 rounded-full ${stat.color}`}>
-          <Icon className="w-8 h-8" />
+      <div className="flex justify-center mb-6">
+        <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
+          <Icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
         </div>
       </div>
       <motion.div
-        className={`text-5xl md:text-6xl font-bold ${stat.color} mb-2`}
+        className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3"
         key={count}
         initial={{ scale: 1.2, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -110,15 +99,15 @@ function Counter({ stat, index }: { stat: Stat; index: number }) {
       >
         {count}{stat.suffix}
       </motion.div>
-      <p className="text-lg text-gray-600 font-medium">{stat.label}</p>
+      <p className="text-lg md:text-xl text-white/90 font-medium">{stat.label}</p>
     </motion.div>
   );
 }
 
 export function StatsCounter() {
   return (
-    <section className="py-20 bg-linear-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white relative overflow-hidden">
-      {/* Background Pattern */}
+    <section className="py-20 md:py-24 bg-primary text-white relative overflow-hidden">
+      {/* Subtle Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQkQ5MTYyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMEYxNzJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] repeat" />
       </div>
@@ -129,12 +118,12 @@ export function StatsCounter() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16"
+          className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12 md:mb-16"
         >
           Our Impact in Numbers
         </motion.h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-5xl mx-auto">
           {stats.map((stat, index) => (
             <Counter key={index} stat={stat} index={index} />
           ))}
@@ -143,4 +132,3 @@ export function StatsCounter() {
     </section>
   );
 }
-

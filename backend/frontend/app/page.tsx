@@ -4,6 +4,7 @@ import { FeaturedProperties } from '@/components/sections/FeaturedProperties';
 import { TestimonialsCarousel } from '@/components/sections/TestimonialsCarousel';
 import { LatestNews } from '@/components/sections/LatestNews';
 import { FeaturesSection } from '@/components/sections/FeaturesSection';
+import { AnimatedStats } from '@/components/sections/AnimatedStats';
 import { SectionAnimation } from '@/components/animations/SectionAnimation';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Search, Phone, Mail } from 'lucide-react';
@@ -49,9 +50,14 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      
+      {/* Animated Statistics Section */}
+      <SectionAnimation delay={0.05}>
+        <AnimatedStats />
+      </SectionAnimation>
         
         {/* Featured Properties Section with Animation */}
-        <SectionAnimation>
+        <SectionAnimation delay={0.1}>
           <FeaturedProperties />
         </SectionAnimation>
 
