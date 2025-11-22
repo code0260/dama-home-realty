@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { initPerformanceMonitoring } from '@/lib/performance-monitor';
 
-export function PerformanceProvider({ children }: { children: React.ReactNode }) {
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Initialize performance monitoring
     initPerformanceMonitoring();
@@ -11,3 +11,4 @@ export function PerformanceProvider({ children }: { children: React.ReactNode })
 
   return <>{children}</>;
 }
+

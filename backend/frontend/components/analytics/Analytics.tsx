@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { GoogleAnalytics } from './GoogleAnalytics';
+import { usePathname } from 'next/navigation';
+import { initGA, trackPageView } from '@/lib/analytics';
 
 interface AnalyticsProps {
   googleAnalyticsId?: string;
@@ -10,58 +10,20 @@ interface AnalyticsProps {
 
 export function Analytics({ googleAnalyticsId }: AnalyticsProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Track page views
-    if (typeof window !== 'undefined' && window.gtag && googleAnalyticsId) {
-      window.gtag('config', googleAnalyticsId, {
-        page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : ''),
-      });
+    // Initialize Google Analytics if ID is provided
+    if (googleAnalyticsId && typeof window !== 'undefined') {
+      initGA(googleAnalyticsId);
     }
-  }, [pathname, searchParams, googleAnalyticsId]);
+  }, [googleAnalyticsId]);
 
-  // Track custom events
-  const trackEvent = (
-    action: string,
-    category: string,
-    label?: string,
-    value?: number
-  ) => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', action, {
-        event_category: category,
-        event_label: label,
-        value: value,
-      });
-    }
-  };
-
-  // Expose trackEvent globally for use in other components
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).trackEvent = trackEvent;
+    // Track page view on route change
+    if (pathname && googleAnalyticsId) {
+      trackPageView(pathname);
     }
-  }, []);
+  }, [pathname, googleAnalyticsId]);
 
-  return <GoogleAnalytics measurementId={googleAnalyticsId} />;
+  return null;
 }
-
-// TypeScript declaration for gtag
-declare global {
-  interface Window {
-    gtag?: (
-      command: 'config' | 'event' | 'js',
-      targetId: string | Date,
-      config?: Record<string, any>
-    ) => void;
-    dataLayer?: any[];
-    trackEvent?: (
-      action: string,
-      category: string,
-      label?: string,
-      value?: number
-    ) => void;
-  }
-}
-

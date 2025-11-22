@@ -43,7 +43,21 @@ const nextConfig = {
   },
 
   // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer, webpack }) => {
+    // Ignore optional dependencies at build time to prevent build errors
+    if (!isServer) {
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^@sentry\/nextjs$/,
+        })
+      );
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^web-vitals$/,
+        })
+      );
+    }
+
     // Production optimizations
     if (!dev && !isServer) {
       config.optimization = {
@@ -131,4 +145,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

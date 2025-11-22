@@ -13,6 +13,9 @@ import { MobileNavigation } from "@/components/mobile/MobileNavigation";
 import { AppInstallPrompt } from "@/components/pwa/AppInstallPrompt";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { PWAServiceWorker } from "@/components/pwa/PWAServiceWorker";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { ErrorTracking } from "@/components/analytics/ErrorTracking";
+import { WebVitals } from "@/components/analytics/WebVitals";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -143,6 +146,11 @@ export default function RootLayout({
             <PWAServiceWorker />
             <AppInstallPrompt />
             <OfflineIndicator />
+            
+            {/* Analytics & Monitoring */}
+            <GoogleAnalytics />
+            <ErrorTracking />
+            <WebVitals />
             
             <DamaGenie />
           </Providers>
