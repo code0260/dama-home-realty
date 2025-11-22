@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Logo } from '@/components/ui-custom/Logo';
+import { MobileDrawerNavigation } from '@/components/mobile/MobileNavigation';
 import {
   DropdownMenu,
   DropdownMenuContent,

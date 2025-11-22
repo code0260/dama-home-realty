@@ -8,6 +8,11 @@ import { Navbar } from "@/components/ui-custom/Navbar";
 import { Footer } from "@/components/ui-custom/Footer";
 import { ScrollProgressBar } from "@/components/layout/ScrollProgressBar";
 import { NavbarSpacer } from "@/components/layout/NavbarSpacer";
+import { SkipLinks } from "@/components/accessibility/SkipLinks";
+import { MobileNavigation } from "@/components/mobile/MobileNavigation";
+import { AppInstallPrompt } from "@/components/pwa/AppInstallPrompt";
+import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
+import { PWAServiceWorker } from "@/components/pwa/PWAServiceWorker";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -110,6 +115,9 @@ export default function RootLayout({
         <ErrorBoundary>
           <Providers>
             <div className="min-h-screen flex flex-col">
+              {/* Skip Links for Accessibility */}
+              <SkipLinks />
+              
               {/* Scroll Progress Bar at Top */}
               <ScrollProgressBar />
               
@@ -120,13 +128,22 @@ export default function RootLayout({
               <NavbarSpacer />
               
               {/* Main Content - Add padding-top for all pages except Home */}
-              <main className="flex-1 pt-0">
+              <main id="main-content" className="flex-1 pt-0" role="main" tabIndex={-1}>
                 {children}
               </main>
               
               {/* Footer */}
               <Footer />
+              
+              {/* Mobile Bottom Navigation */}
+              <MobileNavigation className="lg:hidden" />
             </div>
+            
+            {/* PWA Components */}
+            <PWAServiceWorker />
+            <AppInstallPrompt />
+            <OfflineIndicator />
+            
             <DamaGenie />
           </Providers>
         </ErrorBoundary>

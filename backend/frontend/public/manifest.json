@@ -1,20 +1,14 @@
 {
-  "name": "Dama Home Realty",
+  "name": "Dama Home Realty - Premium Real Estate Platform",
   "short_name": "Dama Home",
-  "description": "Premium Real Estate Platform for Syrian Expats",
+  "description": "Find your perfect home in Damascus. Rent, buy, or book properties in Syria's capital. Connecting Syrian expats with trusted homes in their homeland.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#F8F9FA",
   "theme_color": "#0F172A",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
-    {
-      "src": "/logo.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
@@ -29,12 +23,25 @@
     }
   ],
   "categories": ["real estate", "business", "lifestyle"],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile-1.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-mobile-2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
   "shortcuts": [
     {
-      "name": "Properties",
+      "name": "Browse Properties",
       "short_name": "Properties",
-      "description": "Browse available properties",
+      "description": "View available properties",
       "url": "/properties",
       "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     },
@@ -44,7 +51,36 @@
       "description": "View our services",
       "url": "/services",
       "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Bookings",
+      "short_name": "Bookings",
+      "description": "View your bookings",
+      "url": "/portal",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  },
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
 

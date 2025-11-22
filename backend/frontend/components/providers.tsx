@@ -5,6 +5,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { Analytics } from '@/components/analytics/Analytics';
 import { NotificationProvider } from '@/components/notifications/NotificationProvider';
+import { PerformanceProvider } from '@/components/providers/PerformanceProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
   const googleAnalyticsId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -13,8 +14,10 @@ export function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <AuthProvider>
         <NotificationProvider>
-          {children}
-          {googleAnalyticsId && <Analytics googleAnalyticsId={googleAnalyticsId} />}
+          <PerformanceProvider>
+            {children}
+            {googleAnalyticsId && <Analytics googleAnalyticsId={googleAnalyticsId} />}
+          </PerformanceProvider>
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
