@@ -112,14 +112,11 @@ export function HeroSection() {
       {/* Background Image with Parallax & Ken Burns Effect */}
       <motion.div className="absolute inset-0 z-0" style={{ y, opacity }}>
         <div className="w-full h-full bg-linear-to-br from-primary via-primary/90 to-secondary/20">
-          {/* Background image with Ken Burns effect */}
+          {/* Background gradient with Ken Burns effect */}
           <motion.div
-            className="absolute inset-0 bg-[url('/damascus-skyline.jpg')] bg-cover bg-center"
+            className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/70 to-secondary/50"
             style={{
               scale,
-              backgroundImage: "url('/damascus-skyline.jpg')",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
             }}
             transition={{ duration: 20, repeat: Infinity, repeatType: 'reverse' }}
           />
