@@ -11,9 +11,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getBooking } from '@/lib/api';
 import { Booking } from '@/types';
 import { format } from 'date-fns';
-import { CreditCard, CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { CreditCard, CheckCircle2, XCircle, Loader2, AlertCircle, Home, Calendar } from 'lucide-react';
 import axiosInstance from '@/lib/axios';
 import Link from 'next/link';
+import { PaymentProgress } from '@/components/payment/PaymentProgress';
+import { PaymentMethods } from '@/components/payment/PaymentMethods';
+import { PaymentSecurity } from '@/components/payment/PaymentSecurity';
+import { BookingSummary } from '@/components/payment/BookingSummary';
+import { motion } from 'framer-motion';
 
 export default function PaymentPage() {
   const params = useParams();
@@ -26,11 +31,14 @@ export default function PaymentPage() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [canceled, setCanceled] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe');
 
   useEffect(() => {
     const canceledParam = searchParams.get('canceled');
     if (canceledParam === 'true') {
       setCanceled(true);
+      setCurrentStep(2);
     }
   }, [searchParams]);
 
@@ -69,6 +77,7 @@ export default function PaymentPage() {
 
     setProcessing(true);
     setError(null);
+    setCurrentStep(3); // Move to processing step
 
     try {
       const response = await axiosInstance.post(`/bookings/${booking.id}/checkout`);
@@ -82,6 +91,7 @@ export default function PaymentPage() {
         err.response?.data?.message || 'Failed to initiate payment. Please try again.'
       );
       setProcessing(false);
+      setCurrentStep(2); // Go back to payment method step
     }
   };
 
@@ -122,12 +132,27 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-primary-900">
       <Navbar />
-      <main className="flex-1 bg-gray-50">
+      <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold text-primary mb-8">Complete Your Booking</h1>
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">
+                Complete Your Booking
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Secure your reservation with a deposit payment
+              </p>
+            </div>
+
+            {/* Payment Progress */}
+            <Card className="mb-6 border-2 border-gray-200 dark:border-primary-700">
+              <CardContent className="pt-6">
+                <PaymentProgress currentStep={currentStep} />
+              </CardContent>
+            </Card>
 
             {canceled && (
               <Alert variant="destructive" className="mb-6">
@@ -138,113 +163,142 @@ export default function PaymentPage() {
               </Alert>
             )}
 
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Booking Summary</CardTitle>
-                <CardDescription>{booking.property?.title || 'Property'}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Check-in</span>
-                  <span className="font-semibold">
-                    {format(new Date(booking.check_in), 'EEEE, MMMM d, yyyy')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Check-out</span>
-                  <span className="font-semibold">
-                    {format(new Date(booking.check_out), 'EEEE, MMMM d, yyyy')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Nights</span>
-                  <span className="font-semibold">{booking.nights} nights</span>
-                </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Total Price</span>
-                    <span className="font-semibold">
-                      {booking.total_price.toLocaleString()} {booking.property?.currency || 'USD'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>Deposit (30%)</span>
-                    <span>
-                      {depositAmount.toLocaleString()} {booking.property?.currency || 'USD'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
-                    <span>Remaining (due at check-in)</span>
-                    <span>
-                      {remainingAmount.toLocaleString()} {booking.property?.currency || 'USD'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Booking Summary */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Booking Summary */}
+                <BookingSummary booking={booking} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Payment
-                </CardTitle>
-                <CardDescription>
-                  Pay the deposit to confirm your booking. The remaining amount will be due at
-                  check-in.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">Deposit Amount</span>
-                      <span className="text-2xl font-bold text-secondary">
-                        {depositAmount.toLocaleString()} {booking.property?.currency || 'USD'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Secure payment powered by Stripe
-                    </p>
-                  </div>
-
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={processing || booking.payment_status === 'paid'}
-                    className="w-full bg-secondary hover:bg-secondary/90 text-white"
-                    size="lg"
+                {/* Payment Methods */}
+                {currentStep >= 2 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {processing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : booking.payment_status === 'paid' ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Already Paid
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Pay Deposit with Stripe
-                      </>
-                    )}
-                  </Button>
+                    <PaymentMethods
+                      selectedMethod={selectedPaymentMethod}
+                      onMethodChange={setSelectedPaymentMethod}
+                      currency={booking.property?.currency || 'USD'}
+                    />
+                  </motion.div>
+                )}
 
-                  <p className="text-xs text-center text-gray-500">
-                    By proceeding, you agree to our terms and conditions
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                {/* Payment Security */}
+                {currentStep >= 2 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                  >
+                    <PaymentSecurity />
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Right Column - Payment Action */}
+              <div className="lg:col-span-1">
+                <Card className="sticky top-24 border-2 border-gray-200 dark:border-primary-700">
+                  <CardHeader>
+                    <CardTitle className="text-primary dark:text-white">Payment Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Amount Breakdown */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Total Price</span>
+                        <span className="font-semibold text-primary dark:text-white">
+                          {booking.total_price.toLocaleString()} {booking.property?.currency || 'USD'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Deposit (30%)</span>
+                        <span className="font-semibold text-secondary">
+                          {depositAmount.toLocaleString()} {booking.property?.currency || 'USD'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-500 dark:text-gray-500 border-t pt-3">
+                        <span>Remaining (due at check-in)</span>
+                        <span>
+                          {remainingAmount.toLocaleString()} {booking.property?.currency || 'USD'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Deposit Amount Highlight */}
+                    <div className="bg-secondary/10 rounded-lg p-4 border border-secondary/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-primary dark:text-white">
+                          Deposit Amount
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-secondary">
+                        {depositAmount.toLocaleString()} {booking.property?.currency || 'USD'}
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                        Pay now to confirm your booking
+                      </p>
+                    </div>
+
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
+
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={processing || booking.payment_status === 'paid' || currentStep < 2}
+                      className="w-full bg-secondary hover:bg-secondary/90 text-white h-12 text-lg"
+                      size="lg"
+                    >
+                      {processing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : booking.payment_status === 'paid' ? (
+                        <>
+                          <CheckCircle2 className="w-5 h-5 mr-2" />
+                          Already Paid
+                        </>
+                      ) : currentStep < 2 ? (
+                        <>
+                          Select Payment Method First
+                        </>
+                      ) : selectedPaymentMethod === 'stripe' ? (
+                        <>
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Pay with Stripe
+                        </>
+                      ) : selectedPaymentMethod === 'card' ? (
+                        <>
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Pay with Card
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5 mr-2" />
+                          Pay Deposit
+                        </>
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-center text-gray-500 dark:text-gray-500">
+                      By proceeding, you agree to our{' '}
+                      <Link href="/terms" className="text-secondary hover:underline">
+                        Terms and Conditions
+                      </Link>{' '}
+                      and{' '}
+                      <Link href="/privacy" className="text-secondary hover:underline">
+                        Privacy Policy
+                      </Link>
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -252,4 +306,3 @@ export default function PaymentPage() {
     </div>
   );
 }
-

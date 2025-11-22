@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getMyBookings, getMyServices } from '@/lib/api';
+import { getMyBookings, getMyServices, getCurrentUser } from '@/lib/api';
 import { Booking } from '@/types';
 import { format, differenceInDays, isAfter, isBefore } from 'date-fns';
 import {
@@ -18,13 +18,29 @@ import {
   Sparkles,
   Phone,
   MessageCircle,
+  Menu,
+  LayoutDashboard,
+  User as UserIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { PortalSidebar } from '@/components/portal/PortalSidebar';
 import { BoardingPassCard } from '@/components/portal/BoardingPassCard';
+import { DashboardOverview } from '@/components/portal/DashboardOverview';
+import { QuickActions } from '@/components/portal/QuickActions';
+import { RecentActivity } from '@/components/portal/RecentActivity';
+import { Notifications } from '@/components/portal/Notifications';
+import { ProfileCompletion } from '@/components/portal/ProfileCompletion';
+import { BookingCalendar } from '@/components/portal/BookingCalendar';
+import { BookingHistory } from '@/components/portal/BookingHistory';
+import { BookingDetails } from '@/components/portal/BookingDetails';
+import { BookingModification } from '@/components/portal/BookingModification';
+import { ServiceRequests } from '@/components/portal/ServiceRequests';
+import { ServiceStatus } from '@/components/portal/ServiceStatus';
+import { ServiceHistory } from '@/components/portal/ServiceHistory';
+import { ServiceRatings } from '@/components/portal/ServiceRatings';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 export default function TenantPortalPage() {
@@ -35,6 +51,11 @@ export default function TenantPortalPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedService, setSelectedService] = useState<any | null>(null);
+  const [bookingDetailsOpen, setBookingDetailsOpen] = useState(false);
+  const [bookingModificationOpen, setBookingModificationOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
   
   // Use refs to prevent multiple redirects and track component mount status
   const hasRedirectedRef = useRef(false);
@@ -214,184 +235,118 @@ export default function TenantPortalPage() {
 
         {/* Content Area */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Active Stay - Boarding Pass Card */}
-          {activeBooking && (
-            <div className="mb-8">
-              <BoardingPassCard booking={activeBooking} />
-            </div>
-          )}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="bookings" className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Bookings
+              </TabsTrigger>
+              <TabsTrigger value="services" className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Services
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Upcoming Bookings */}
-          {upcomingBookings.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-                <Calendar className="w-6 h-6" />
-                Upcoming Stays
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {upcomingBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
+            {/* Dashboard Tab */}
+            <TabsContent value="dashboard" className="space-y-6 mt-6">
+              {/* Profile Completion */}
+              <ProfileCompletion user={user} />
+
+              {/* Dashboard Overview */}
+              <DashboardOverview bookings={bookings} services={services} userName={user?.name} />
+
+              {/* Quick Actions */}
+              <QuickActions />
+
+              {/* Main Grid: Recent Activity & Notifications */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecentActivity bookings={bookings} services={services} />
+                <Notifications bookings={bookings} services={services} />
               </div>
-            </section>
-          )}
+            </TabsContent>
 
-          {/* My Services Section */}
-          {services.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-                <Sparkles className="w-6 h-6" />
-                My Services
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services.map((service) => (
-                  <ServiceCard key={service.id} service={service} />
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Bookings Tab */}
+            <TabsContent value="bookings" className="space-y-6 mt-6">
+              {/* Active Stay - Boarding Pass Card */}
+              {activeBooking && (
+                <div className="mb-8">
+                  <BoardingPassCard booking={activeBooking} />
+                </div>
+              )}
 
-          {/* Past Bookings */}
-          {pastBookings.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-primary mb-4">Past Stays</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pastBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
-              </div>
-            </section>
-          )}
+              {/* Booking Calendar */}
+              <BookingCalendar bookings={bookings} />
 
-          {/* No Bookings */}
-          {bookings.length === 0 && (
-            <Card className="shadow-lg">
-              <CardContent className="py-16 text-center">
-                <Home className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-semibold mb-2 text-primary">No Active Stays</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  You don't have any bookings yet. Contact us to arrange your stay!
-                </p>
-                <Button asChild size="lg" className="bg-secondary hover:bg-secondary/90">
-                  <Link href="/properties">Browse Properties</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+              {/* Booking History */}
+              <BookingHistory
+                bookings={bookings}
+                onBookingClick={(booking) => {
+                  setSelectedBooking(booking);
+                  setBookingDetailsOpen(true);
+                }}
+              />
+            </TabsContent>
+
+            {/* Services Tab */}
+            <TabsContent value="services" className="space-y-6 mt-6">
+              {/* Service Requests */}
+              <ServiceRequests
+                services={services}
+                onServiceClick={(service) => setSelectedService(service)}
+              />
+
+              {/* Service Details */}
+              {selectedService && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <ServiceStatus service={selectedService} />
+                  <ServiceRatings
+                    service={selectedService}
+                    onRatingSubmitted={() => {
+                      // Refresh services after rating
+                      fetchServices();
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Service History */}
+              <ServiceHistory
+                services={services}
+                onServiceClick={(service) => setSelectedService(service)}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
+
+        {/* Booking Details Dialog */}
+        <BookingDetails
+          booking={selectedBooking}
+          open={bookingDetailsOpen}
+          onOpenChange={setBookingDetailsOpen}
+          onModify={(booking) => {
+            setSelectedBooking(booking);
+            setBookingDetailsOpen(false);
+            setBookingModificationOpen(true);
+          }}
+        />
+
+        {/* Booking Modification Dialog */}
+        <BookingModification
+          booking={selectedBooking}
+          open={bookingModificationOpen}
+          onOpenChange={setBookingModificationOpen}
+          onSuccess={() => {
+            // Refresh bookings after modification
+            fetchBookings();
+            setSelectedBooking(null);
+          }}
+        />
       </main>
     </div>
   );
 }
 
-// Service Card Component with Status Badges
-function ServiceCard({ service }: { service: any }) {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'closed':
-      case 'completed':
-        return (
-          <Badge className="bg-green-500 text-white hover:bg-green-600">
-            Done
-          </Badge>
-        );
-      case 'contacted':
-      case 'in_progress':
-        return (
-          <Badge className="bg-blue-500 text-white hover:bg-blue-600">
-            In Progress
-          </Badge>
-        );
-      default:
-        return (
-          <Badge className="bg-yellow-500 text-white hover:bg-yellow-600">
-            Pending
-          </Badge>
-        );
-    }
-  };
-
-  return (
-    <Card className="hover:shadow-lg transition-shadow border-gray-200">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-primary">Service Request</CardTitle>
-          {getStatusBadge(service.status)}
-        </div>
-        <CardDescription>
-          {new Date(service.created_at).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-700 line-clamp-3">{service.message}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Booking Card Component
-function BookingCard({ booking }: { booking: Booking }) {
-  const getStatusBadge = () => {
-    switch (booking.booking_status) {
-      case 'confirmed':
-        return <Badge className="bg-green-500 text-white">Confirmed</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500 text-white">Pending</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-red-500 text-white">Cancelled</Badge>;
-      case 'completed':
-        return <Badge className="bg-gray-500 text-white">Completed</Badge>;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Card className="hover:shadow-md transition-shadow border-gray-200">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg text-primary">
-              {booking.property?.title || 'Property'}
-            </CardTitle>
-            <CardDescription>
-              {booking.property?.neighborhood?.name || 'Damascus'}
-            </CardDescription>
-          </div>
-          {getStatusBadge()}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm">
-          <Calendar className="w-4 h-4 text-gray-500" />
-          <span>
-            {format(new Date(booking.check_in), 'MMM d')} -{' '}
-            {format(new Date(booking.check_out), 'MMM d, yyyy')}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
-            {differenceInDays(new Date(booking.check_out), new Date(booking.check_in))} nights
-          </span>
-          <span className="font-semibold text-primary">
-            {booking.total_price.toLocaleString()} {booking.property?.currency || 'USD'}
-          </span>
-        </div>
-        {booking.payment_status === 'pending' && (
-          <Button
-            asChild
-            variant="outline"
-            className="w-full"
-            size="sm"
-          >
-            <Link href={`/bookings/${booking.id}/payment`}>Complete Payment</Link>
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-}

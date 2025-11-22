@@ -63,6 +63,7 @@ export interface Booking {
   booking_status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   stripe_checkout_session_id?: string | null;
   notes?: string | null;
+  nights?: number; // Calculated from check_in and check_out dates
   property?: Property & {
     tenant_details?: {
       wifi_password?: string | null;

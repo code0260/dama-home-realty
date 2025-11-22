@@ -1,57 +1,50 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { CheckCircle2, ShieldCheck, TrendingUp, Clock, Send } from 'lucide-react';
-import axiosInstance from '@/lib/axios';
-import { useRouter } from 'next/navigation';
+import { CheckCircle2, ShieldCheck, TrendingUp, Clock } from 'lucide-react';
+import { MultiStepPropertyForm } from '@/components/property/MultiStepPropertyForm';
+import { PropertyManagement } from '@/components/property/PropertyManagement';
+import { Property } from '@/types';
+import { getPropertyBySlug } from '@/lib/api';
 
 export default function ListPropertyPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    property_type: '',
-    location: '',
-    message: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const searchParams = useSearchParams();
+  const propertySlug = searchParams.get('edit');
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(!!propertySlug);
+  const [showManagement, setShowManagement] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccess(false);
+  useEffect(() => {
+    if (propertySlug) {
+      fetchProperty();
+    }
+  }, [propertySlug]);
 
+  const fetchProperty = async () => {
     try {
-      await axiosInstance.post('/leads', {
-        name: formData.name,
-        phone: formData.phone,
-        message: `Property Type: ${formData.property_type}\nLocation: ${formData.location}\n\n${formData.message || 'No additional message'}`,
-        status: 'new',
-      });
-      setSuccess(true);
-      setFormData({ name: '', phone: '', property_type: '', location: '', message: '' });
-      setTimeout(() => {
-        setSuccess(false);
-        router.push('/properties');
-      }, 3000);
+      setLoading(true);
+      const propertyData = await getPropertyBySlug(propertySlug!);
+      setProperty(propertyData);
     } catch (error) {
-      console.error('Error submitting listing request:', error);
-      alert('Failed to submit request. Please try again.');
+      console.error('Error fetching property:', error);
+      setProperty(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuccess = (createdProperty: Property) => {
+    setProperty(createdProperty);
+    setShowManagement(true);
+    router.push(`/list-property?edit=${createdProperty.slug}`);
+  };
+
+  const handleEdit = () => {
+    setShowManagement(false);
   };
 
   return (
@@ -164,111 +157,38 @@ export default function ListPropertyPage() {
           </div>
         </section>
 
-        {/* Submission Form */}
-        <section className="py-16 bg-white">
+        {/* Property Form / Management */}
+        <section className="py-16 bg-white dark:bg-primary-900">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mx-auto">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Request Listing</CardTitle>
-                  <CardDescription>
-                    Fill out the form below and our team will contact you within 24 hours
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {success && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-800">
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>
-                        Request submitted successfully! We'll contact you within 24 hours.
-                      </span>
-                    </div>
-                  )}
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Your Name</Label>
-                      <Input
-                        id="name"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Full name"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+963 123 456 789"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="property_type">Property Type</Label>
-                      <Select
-                        value={formData.property_type}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, property_type: value })
-                        }
-                        required
-                      >
-                        <SelectTrigger id="property_type">
-                          <SelectValue placeholder="Select property type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="sale">For Sale</SelectItem>
-                          <SelectItem value="rent">For Rent</SelectItem>
-                          <SelectItem value="hotel">Hotel/Apartment</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        required
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        placeholder="Neighborhood or area in Damascus"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="message">Additional Details (Optional)</Label>
-                      <textarea
-                        id="message"
-                        rows={4}
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        placeholder="Tell us more about your property..."
-                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-secondary hover:bg-secondary/90 text-white"
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        'Submitting...'
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
-                          Request Listing
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                  <Clock className="w-8 h-8 animate-spin text-secondary mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">Loading property...</p>
+                </div>
+              </div>
+            ) : showManagement && property ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="max-w-6xl mx-auto"
+              >
+                <PropertyManagement property={property} onEdit={handleEdit} />
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="max-w-4xl mx-auto"
+              >
+                <MultiStepPropertyForm
+                  property={property}
+                  onSuccess={handleSuccess}
+                />
+              </motion.div>
+            )}
           </div>
         </section>
     </>

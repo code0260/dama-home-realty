@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Agent } from '@/types';
-import { MessageCircle, Phone } from 'lucide-react';
+import { MessageCircle, Phone, Info } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { TeamMemberDetails } from './TeamMemberDetails';
 
 interface TeamMemberCardProps {
   agent: Agent;
@@ -13,6 +14,7 @@ interface TeamMemberCardProps {
 
 export function TeamMemberCard({ agent }: TeamMemberCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const getWhatsAppLink = (phone: string | undefined | null) => {
     if (!phone) return '#';
@@ -128,8 +130,24 @@ export function TeamMemberCard({ agent }: TeamMemberCardProps) {
               License: {agent.license_no}
             </p>
           )}
+
+          {/* View Details Button */}
+          <button
+            onClick={() => setDetailsOpen(true)}
+            className="mt-4 w-full px-4 py-2 text-sm font-semibold text-secondary hover:text-white hover:bg-secondary border border-secondary rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <Info className="w-4 h-4" />
+            View Details
+          </button>
         </div>
       </div>
+
+      {/* Team Member Details Modal */}
+      <TeamMemberDetails
+        agent={agent}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
     </motion.div>
   );
 }

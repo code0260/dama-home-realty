@@ -10,6 +10,15 @@ import { Timeline } from '@/components/about/Timeline';
 import { TeamMemberCard } from '@/components/about/TeamMemberCard';
 import { StatsCounter } from '@/components/about/StatsCounter';
 import { StorySection } from '@/components/about/StorySection';
+import { InteractiveTimeline } from '@/components/about/InteractiveTimeline';
+import { MissionVision } from '@/components/about/MissionVision';
+import { VideoStory } from '@/components/about/VideoStory';
+import { CompanyValues } from '@/components/about/CompanyValues';
+import { AwardsRecognition } from '@/components/about/AwardsRecognition';
+import { Partnerships } from '@/components/about/Partnerships';
+import { StatsVisualization } from '@/components/about/StatsVisualization';
+import { TeamHierarchy } from '@/components/about/TeamHierarchy';
+import { TeamAchievements } from '@/components/about/TeamAchievements';
 import { getAgents } from '@/lib/api';
 import { Agent } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -52,12 +61,21 @@ export default function AboutPage() {
         {/* Story Section - Large Typography with Signature */}
         <StorySection />
 
-        {/* Our Journey Timeline */}
-        <section className="py-20 bg-white">
+        {/* Mission & Vision */}
+        <MissionVision />
+
+        {/* Video Story */}
+        <VideoStory />
+
+        {/* Interactive Timeline */}
+        <InteractiveTimeline />
+
+        {/* Legacy Timeline (Optional - can be removed or kept) */}
+        <section className="py-20 bg-white dark:bg-primary-900/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold text-primary text-center mb-16">
-                Our <span className="text-secondary">Journey</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-primary dark:text-white text-center mb-16">
+                Our <span className="text-secondary">Journey</span> (Timeline)
               </h2>
               <Timeline />
             </div>
@@ -66,6 +84,9 @@ export default function AboutPage() {
 
         {/* Stats Counter - Navy Blue Background */}
         <StatsCounter />
+
+        {/* Stats Visualization */}
+        <StatsVisualization />
 
         {/* Why Us Grid */}
         <section className="py-20 bg-linear-to-br from-gray-50 to-white relative overflow-hidden">
@@ -178,13 +199,16 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Team Achievements */}
+        <TeamAchievements />
+
         {/* Team Section */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-gray-50 dark:bg-primary-900/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] text-center mb-4">
-              Our <span className="text-[#B49162]">Team</span>
+            <h2 className="text-4xl md:text-5xl font-bold text-primary dark:text-white text-center mb-4">
+              Our <span className="text-secondary">Team</span>
             </h2>
-            <p className="text-lg text-gray-600 text-center mb-16 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 text-center mb-16 max-w-2xl mx-auto">
               Meet our experienced agents who are dedicated to helping you find your perfect home in Damascus
             </p>
             
@@ -196,22 +220,38 @@ export default function AboutPage() {
               </div>
             ) : agents.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">Our team information is coming soon.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-lg">Our team information is coming soon.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {agents.map((agent) => (
-                  <TeamMemberCard key={agent.id} agent={agent} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+                  {agents.map((agent) => (
+                    <TeamMemberCard key={agent.id} agent={agent} />
+                  ))}
+                </div>
+
+                {/* Team Hierarchy */}
+                {agents.length > 0 && (
+                  <TeamHierarchy agents={agents} />
+                )}
+              </>
             )}
           </div>
         </section>
 
+        {/* Company Values */}
+        <CompanyValues />
+
+        {/* Awards & Recognition */}
+        <AwardsRecognition />
+
+        {/* Partnerships */}
+        <Partnerships />
+
         {/* Testimonials Section */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-gray-50 dark:bg-primary-900/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-primary mb-8 text-center">What Our Clients Say</h2>
+            <h2 className="text-3xl font-bold text-primary dark:text-white mb-8 text-center">What Our Clients Say</h2>
             <TestimonialsCarousel featured={true} />
           </div>
         </section>

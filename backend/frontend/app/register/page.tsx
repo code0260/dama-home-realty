@@ -3,26 +3,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { Navbar } from '@/components/ui-custom/Navbar';
-import { Footer } from '@/components/ui-custom/Footer';
 import { Logo } from '@/components/ui-custom/Logo';
+import { SocialLogin } from '@/components/auth/SocialLogin';
+import { MultiStepRegistration } from '@/components/auth/MultiStepRegistration';
+import axiosInstance from '@/lib/axios';
+
+interface RegistrationData {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  passwordConfirmation: string;
+  emailVerificationCode: string;
+  phoneVerificationCode: string;
+  acceptTerms: boolean;
+  acceptPrivacy: boolean;
+  referralCode?: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isAuthenticated, loading: authLoading } = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [socialLoginLoading, setSocialLoginLoading] = useState<string | null>(null);
   const hasRedirectedRef = useRef(false);
 
   // Redirect if already authenticated (only once) - but only if not currently registering
@@ -38,25 +44,15 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, authLoading, router, isLoading]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRegister = async (data: RegistrationData) => {
     setError(null);
-
-    // Client-side validation
-    if (password !== passwordConfirmation) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      await register(name, email, password, passwordConfirmation);
+      // Register with all the data
+      await register(data.name, data.email, data.password, data.passwordConfirmation);
+      // After successful registration, redirect to verification page or portal
+      router.push('/portal');
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||
@@ -64,8 +60,40 @@ export default function RegisterPage() {
         err.response?.data?.errors?.password?.[0] ||
         'Registration failed. Please try again.';
       setError(errorMessage);
+      throw err; // Re-throw to let MultiStepRegistration handle it
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEmailVerification = async (email: string) => {
+    try {
+      await axiosInstance.post('/auth/verify-email/send', { email });
+    } catch (err: any) {
+      throw new Error(
+        err.response?.data?.message || 'Failed to send email verification code'
+      );
+    }
+  };
+
+  const handlePhoneVerification = async (phone: string) => {
+    try {
+      await axiosInstance.post('/auth/verify-phone/send', { phone });
+    } catch (err: any) {
+      throw new Error(
+        err.response?.data?.message || 'Failed to send phone verification code'
+      );
+    }
+  };
+
+  const handleSocialLogin = async (provider: string) => {
+    setSocialLoginLoading(provider);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+      window.location.href = `${baseUrl}/auth/${provider}/redirect`;
+    } catch (err: any) {
+      setError('Failed to initiate social login. Please try again.');
+      setSocialLoginLoading(null);
     }
   };
 
@@ -78,104 +106,58 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh] py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-4">
-            <div className="flex justify-center">
+    <div className="flex items-center justify-center min-h-[80vh] py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-primary-900">
+      <div className="container max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-2xl mx-auto"
+        >
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
               <Logo size="lg" showText={false} />
             </div>
-            <div className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">
-                Create Account
-              </CardTitle>
-              <CardDescription>
-                Sign up to get started with Dama Home Realty
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">
+              Create Account
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Sign up to get started with Dama Home Realty
+            </p>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
+          {/* Social Login */}
+          <div className="mb-8">
+            <SocialLogin
+              onSocialLogin={handleSocialLogin}
+              isLoading={!!socialLoginLoading}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
+          {/* Multi-Step Registration Form */}
+          <MultiStepRegistration
+            onRegister={handleRegister}
+            onEmailVerification={handleEmailVerification}
+            onPhoneVerification={handlePhoneVerification}
+            isLoading={isLoading}
+            error={error}
+          />
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="At least 8 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  minLength={8}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password_confirmation">Confirm Password</Label>
-                <Input
-                  id="password_confirmation"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={passwordConfirmation}
-                  onChange={(e) => setPasswordConfirmation(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  minLength={8}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
+          {/* Login Link */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Already have an account?{' '}
+              <Link
+                href="/login"
+                className="text-secondary hover:underline font-medium"
               >
-                {isLoading ? 'Creating account...' : 'Create Account'}
-              </Button>
-              <p className="text-sm text-center text-gray-600">
-                Already have an account?{' '}
-                <Link
-                  href="/login"
-                  className="text-primary hover:underline font-medium"
-                >
-                  Sign in
-                </Link>
-              </p>
-            </CardFooter>
-          </form>
-        </Card>
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
