@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BookingResource\Pages;
+use App\Filament\Resources\BookingResource\RelationManagers\ContractsRelationManager;
 use App\Models\Booking;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -226,7 +227,7 @@ class BookingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ContractsRelationManager::class,
         ];
     }
 

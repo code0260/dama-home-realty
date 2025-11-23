@@ -66,8 +66,10 @@ export function LocationPicker({
   const [loading, setLoading] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: googleMapsApiKey,
   });
 
   useEffect(() => {
@@ -273,7 +275,21 @@ export function LocationPicker({
       )}
 
       {/* Map */}
-      {isLoaded ? (
+      {loadError || !googleMapsApiKey ? (
+        <Card className="border-2 border-yellow-200 dark:border-yellow-800">
+          <CardContent className="p-4">
+            <Alert>
+              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <AlertDescription>
+                Google Maps API key is not configured. Map features are disabled.
+                Please add <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your environment variables.
+                <br />
+                You can still enter the address manually.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      ) : isLoaded ? (
         <Card className="border-2 border-gray-200 dark:border-primary-700 overflow-hidden">
           <CardContent className="p-0">
             <GoogleMap

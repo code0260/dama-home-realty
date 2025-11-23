@@ -74,8 +74,13 @@ export function PropertyFilters({
           params: { city: 'Damascus', locale: 'en' },
         });
         setNeighborhoods(response.data?.data || []);
-      } catch (error) {
-        console.error('Error fetching neighborhoods:', error);
+      } catch (error: any) {
+        // Silently handle network errors - backend may not be running
+        if (!error.isNetworkError && !error.isTimeoutError) {
+          console.error('Error fetching neighborhoods:', error);
+        }
+        // Set empty array on error to prevent UI issues
+        setNeighborhoods([]);
       } finally {
         setLoadingNeighborhoods(false);
       }

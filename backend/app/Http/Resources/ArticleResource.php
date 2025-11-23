@@ -28,6 +28,7 @@ class ArticleResource extends JsonResource
                     return [
                         'id' => $this->author->id,
                         'name' => $this->author->name,
+                        'email' => $this->author->email ?? null,
                     ];
                 },
                 null
@@ -36,6 +37,8 @@ class ArticleResource extends JsonResource
             'is_featured' => $this->is_featured,
             'views' => $this->views,
             'excerpt' => $this->getExcerpt($locale),
+            'categories' => $this->categories ?? ['Real Estate'],
+            'tags' => $this->tags ?? [],
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

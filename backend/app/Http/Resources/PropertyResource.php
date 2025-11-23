@@ -52,7 +52,10 @@ class PropertyResource extends JsonResource
             'images' => $this->images ?? [],
             'video_url' => $this->video_url,
             'owner_contact' => $this->owner_contact,
+            'owner_name' => $this->owner_name ?? null,
+            'owner_email' => $this->owner_email ?? null,
             'status' => $this->status,
+            'views' => $this->views ?? 0,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

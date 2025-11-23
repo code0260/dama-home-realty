@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Contract;
 use App\Mail\BookingConfirmed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
@@ -85,11 +87,33 @@ class WebhookController extends Controller
         $depositPercentage = config('booking.deposit_percentage', 30);
         $depositAmount = $booking->total_price * ($depositPercentage / 100);
 
-        $booking->update([
-            'payment_status' => 'partial', // Partial because it's only the deposit
-            'amount_paid' => $depositAmount,
-            'booking_status' => 'confirmed', // Confirm booking after deposit payment
-        ]);
+        DB::transaction(function () use ($booking, $depositAmount) {
+            $booking->update([
+                'payment_status' => 'partial', // Partial because it's only the deposit
+                'amount_paid' => $depositAmount,
+                'booking_status' => 'confirmed', // Confirm booking after deposit payment
+            ]);
+
+            // Create contract automatically after payment
+            if (!$booking->contract) {
+                Contract::create([
+                    'booking_id' => $booking->id,
+                    'status' => 'active',
+                    'start_date' => $booking->check_in,
+                    'end_date' => $booking->check_out,
+                    'total_amount' => $booking->total_price,
+                    'deposit_amount' => $depositAmount,
+                    'payment_status' => 'partial',
+                    'terms' => $this->generateDefaultContractTerms($booking),
+                    'signed_by_tenant' => false,
+                    'signed_by_owner' => false,
+                ]);
+
+                Log::info('Stripe webhook: Contract created automatically', [
+                    'booking_id' => $booking->id,
+                ]);
+            }
+        });
 
         // Send booking confirmation email
         try {
@@ -105,7 +129,7 @@ class WebhookController extends Controller
             ]);
         }
 
-        Log::info('Stripe webhook: Booking payment updated', [
+        Log::info('Stripe webhook: Booking payment updated and contract created', [
             'booking_id' => $booking->id,
             'payment_status' => 'partial',
         ]);
@@ -129,5 +153,23 @@ class WebhookController extends Controller
             'payment_intent_id' => $paymentIntent->id,
             'error' => $paymentIntent->last_payment_error ?? null,
         ]);
+    }
+
+    /**
+     * Generate default contract terms
+     */
+    protected function generateDefaultContractTerms(Booking $booking): string
+    {
+        return "This is a rental agreement contract for the property: {$booking->property->getTranslation('title', 'en')}.
+
+TERMS AND CONDITIONS:
+1. The tenant agrees to pay the total amount of {$booking->total_price} {$booking->property->currency}.
+2. A deposit of " . ($booking->total_price * 0.3) . " {$booking->property->currency} has been paid.
+3. The remaining amount must be paid before check-in.
+4. The tenant is responsible for maintaining the property in good condition.
+5. Any damages will be deducted from the security deposit.
+6. The contract is valid from {$booking->check_in->format('Y-m-d')} to {$booking->check_out->format('Y-m-d')}.
+
+This contract is automatically generated upon payment confirmation.";
     }
 }

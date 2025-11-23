@@ -158,10 +158,14 @@ function PropertiesContent() {
 
         setProperties(sortedData);
         setPagination(response);
-      } catch (error) {
+      } catch (error: any) {
         if (isCancelled) return;
-        console.error('Error fetching properties:', error);
+        // Silently handle network errors - backend may not be running
+        if (!error.isNetworkError && !error.isTimeoutError) {
+          console.error('Error fetching properties:', error);
+        }
         setProperties([]);
+        setPagination({ data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 });
       } finally {
         if (!isCancelled) {
           setLoading(false);

@@ -47,6 +47,8 @@ class Property extends Model
         'images',
         'video_url',
         'owner_contact',
+        'owner_name',
+        'owner_email',
         'status',
         'wifi_password',
         'door_code',

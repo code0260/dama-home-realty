@@ -54,6 +54,31 @@ class ServiceResource extends Resource
                             ->label('Icon')
                             ->placeholder('heroicon-o-home or icon name')
                             ->helperText('Icon identifier (e.g., heroicon-o-home)'),
+                        Forms\Components\TextInput::make('slug')
+                            ->label('Slug')
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Auto-generated from title if left empty'),
+                        Forms\Components\FileUpload::make('image')
+                            ->label('Service Image')
+                            ->image()
+                            ->directory('services')
+                            ->visibility('public'),
+                        Forms\Components\TextInput::make('price')
+                            ->label('Price')
+                            ->numeric()
+                            ->prefix('$'),
+                        Forms\Components\Select::make('currency')
+                            ->options([
+                                'USD' => 'USD',
+                                'SYP' => 'SYP',
+                            ])
+                            ->default('USD'),
+                        Forms\Components\TextInput::make('duration')
+                            ->label('Duration')
+                            ->placeholder('e.g., 2 hours, 1 day'),
+                        Forms\Components\TextInput::make('category')
+                            ->label('Category')
+                            ->placeholder('e.g., Legal, Maintenance'),
                         Forms\Components\TextInput::make('sort_order')
                             ->label('Sort Order')
                             ->numeric()
@@ -61,7 +86,11 @@ class ServiceResource extends Resource
                         Forms\Components\Toggle::make('is_active')
                             ->default(true)
                             ->label('Active'),
-                    ]),
+                        Forms\Components\Toggle::make('is_featured')
+                            ->default(false)
+                            ->label('Featured'),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -69,17 +98,34 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image')
+                    ->circular()
+                    ->size(50),
                 Tables\Columns\TextColumn::make('title')
                     ->formatStateUsing(fn ($record) => $record->getTranslation('title', 'en'))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('icon')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('sort_order')
+                Tables\Columns\TextColumn::make('category')
+                    ->searchable()
+                    ->badge()
+                    ->color('primary'),
+                Tables\Columns\TextColumn::make('price')
+                    ->formatStateUsing(fn ($record) => $record->price ? ($record->currency === 'USD' ? '$' : '') . number_format($record->price, 2) . ($record->currency === 'SYP' ? ' SYP' : '') : 'N/A')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('duration')
+                    ->label('Duration'),
+                Tables\Columns\TextColumn::make('icon')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\IconColumn::make('is_featured')
+                    ->boolean()
+                    ->label('Featured'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active'),
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -88,6 +134,16 @@ class ServiceResource extends Resource
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Active Status'),
+                Tables\Filters\TernaryFilter::make('is_featured')
+                    ->label('Featured'),
+                Tables\Filters\SelectFilter::make('category')
+                    ->label('Category')
+                    ->options(function () {
+                        return Service::whereNotNull('category')
+                            ->distinct()
+                            ->pluck('category', 'category')
+                            ->toArray();
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

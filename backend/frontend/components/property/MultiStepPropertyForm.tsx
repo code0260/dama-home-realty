@@ -113,6 +113,8 @@ export function MultiStepPropertyForm({
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof PropertyFormData, string>>>({});
   const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [priceSuggestion, setPriceSuggestion] = useState<number | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -160,18 +162,59 @@ export function MultiStepPropertyForm({
 
   const saveDraft = useCallback(async () => {
     try {
-      const draftData = {
-        ...formData,
+      // Prepare draft data with only filled fields
+      const draftData: any = {
         status: 'draft',
       };
 
+      // Only include fields that have values (except empty strings and empty arrays)
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          if (Array.isArray(value)) {
+            if (value.length > 0) {
+              draftData[key] = value;
+            }
+          } else {
+            draftData[key] = value;
+          }
+        }
+      });
+
+      // Ensure status is draft
+      draftData.status = 'draft';
+
       if (property?.id) {
-        await axiosInstance.put(`/properties/${property.id}`, draftData);
+        // Update existing property
+        await axiosInstance.put(`/properties/${property.id}`, draftData).catch((err) => {
+          // Fallback: save to localStorage
+          if (err.response?.status === 422 || err.response?.status === 404) {
+            const existingDrafts = JSON.parse(localStorage.getItem('property_drafts') || '[]');
+            const draftIndex = existingDrafts.findIndex((d: any) => d.id === property.id);
+            if (draftIndex >= 0) {
+              existingDrafts[draftIndex] = { ...existingDrafts[draftIndex], ...draftData };
+            } else {
+              existingDrafts.push({ id: property.id, ...draftData });
+            }
+            localStorage.setItem('property_drafts', JSON.stringify(existingDrafts));
+            console.warn('API draft save failed, saved to localStorage');
+          }
+        });
       } else {
-        await axiosInstance.post('/properties/drafts', draftData);
+        // Save new draft using POST to /properties with status=draft
+        // Store in localStorage as fallback if API fails
+        await axiosInstance.post('/properties', draftData).catch((err) => {
+          // Fallback: save to localStorage if API endpoint fails
+          if (err.response?.status === 422 || err.response?.status === 405 || err.response?.status === 404) {
+            const existingDrafts = JSON.parse(localStorage.getItem('property_drafts') || '[]');
+            const draftId = `draft_${Date.now()}`;
+            localStorage.setItem('property_drafts', JSON.stringify([...existingDrafts, { id: draftId, ...draftData }]));
+            console.warn('API draft save failed, saved to localStorage');
+          }
+        });
       }
     } catch (error) {
-      console.error('Error saving draft:', error);
+      // Silently handle errors - draft saving should not interrupt user flow
+      console.debug('Draft save error (handled silently):', error);
     }
   }, [formData, property]);
 
@@ -279,6 +322,10 @@ export function MultiStepPropertyForm({
         }
       });
 
+      // Clear previous errors and success messages
+      setSubmitError(null);
+      setSubmitSuccess(null);
+
       const response = property?.id
         ? await axiosInstance.put(`/properties/${property.id}`, submitData, {
             headers: { 'Content-Type': 'multipart/form-data' },
@@ -287,17 +334,58 @@ export function MultiStepPropertyForm({
             headers: { 'Content-Type': 'multipart/form-data' },
           });
 
+      // Success message
+      const successMessage = property?.id 
+        ? 'تم تحديث العقار بنجاح! سيتم مراجعته من قبل الإدارة قريباً.'
+        : 'تم إرسال طلب إضافة العقار بنجاح! سيتم مراجعته من قبل الإدارة قريباً.';
+      
+      setSubmitSuccess(successMessage);
       setSuccess(true);
       onSuccess?.(response.data);
       
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       setTimeout(() => {
         router.push(`/properties/${response.data.slug}`);
-      }, 2000);
+      }, 3000);
     } catch (error: any) {
+      // Extract error message from response
+      let errorMessage = 'فشل إرسال طلب إضافة العقار. يرجى المحاولة مرة أخرى.';
+      
+      if (error.response) {
+        // Backend validation errors
+        if (error.response.data?.errors) {
+          const validationErrors = error.response.data.errors;
+          const firstError = Object.values(validationErrors)[0];
+          errorMessage = Array.isArray(firstError) 
+            ? firstError[0] 
+            : String(firstError);
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.status === 422) {
+          errorMessage = 'البيانات المدخلة غير صحيحة. يرجى التحقق من جميع الحقول وإعادة المحاولة.';
+        } else if (error.response.status === 401) {
+          errorMessage = 'يجب تسجيل الدخول أولاً لإضافة عقار.';
+        } else if (error.response.status === 403) {
+          errorMessage = 'ليس لديك صلاحية لإضافة عقار.';
+        } else if (error.response.status === 500) {
+          errorMessage = 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.';
+        }
+      } else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        errorMessage = 'فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+      } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        errorMessage = 'انتهت مهلة الاتصال. يرجى المحاولة مرة أخرى.';
+      }
+
+      setSubmitError(errorMessage);
       setErrors({
         ...errors,
-        title: error.response?.data?.message || 'Failed to submit property. Please try again.',
+        title: errorMessage,
       });
+
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -343,6 +431,37 @@ export function MultiStepPropertyForm({
   return (
     <Card className={cn('border-2 border-gray-200 dark:border-primary-700', className)}>
       <CardHeader>
+        {/* Global Success/Error Messages */}
+        {submitSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4"
+          >
+            <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription className="text-green-800 dark:text-green-200 font-medium">
+                {submitSuccess}
+              </AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
+        {submitError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4"
+          >
+            <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <AlertDescription className="text-red-800 dark:text-red-200 font-medium">
+                {submitError}
+              </AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-secondary/10 rounded-lg">
@@ -685,6 +804,26 @@ export function MultiStepPropertyForm({
               transition={{ duration: 0.3 }}
               className="space-y-4"
             >
+              {/* Success Message */}
+              {submitSuccess && (
+                <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-green-800 dark:text-green-200">
+                    {submitSuccess}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Error Message */}
+              {submitError && (
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <AlertDescription className="text-red-800 dark:text-red-200">
+                    {submitError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="owner_name">Owner Name *</Label>
                 <Input

@@ -109,4 +109,24 @@ class Article extends Model
     {
         $this->increment('views');
     }
+
+    /**
+     * Get categories attribute (default to ['Real Estate']).
+     */
+    public function getCategoriesAttribute(): array
+    {
+        // For now, return default category
+        // In future, you can add a categories relationship or JSON column
+        return ['Real Estate'];
+    }
+
+    /**
+     * Get tags attribute (default to empty array).
+     */
+    public function getTagsAttribute(): array
+    {
+        // For now, return empty array
+        // In future, you can add a tags relationship or JSON column
+        return [];
+    }
 }

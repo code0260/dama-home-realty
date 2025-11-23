@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePropertyRequest;
 use App\Http\Resources\PropertyResource;
 use App\Http\Resources\PropertyListResource;
 use App\Http\Traits\HasApiResponse;
 use App\Models\Booking;
 use App\Models\Property;
+use App\Services\ImageOptimizationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
@@ -85,9 +89,23 @@ class PropertyController extends Controller
             }
 
             // Filter by status (default: active)
+            // Note: Admin users can see pending and draft properties
             $status = $request->get('status', 'active');
-            if (in_array($status, ['active', 'sold', 'rented'])) {
-                $query->where('status', $status);
+            $allowedStatuses = ['active', 'sold', 'rented', 'pending', 'draft'];
+            
+            // Only allow admin to filter by pending/draft
+            // Regular users can only see active properties
+            $user = Auth::user();
+            $isAdmin = $user && $user->hasAnyRole(['Super Admin', 'Admin', 'Staff']);
+            
+            if (!$isAdmin) {
+                // Regular users can only see active properties (exclude pending/draft)
+                $query->whereIn('status', ['active', 'sold', 'rented']);
+            } else {
+                // Admin can filter by any status including pending/draft
+                if (in_array($status, $allowedStatuses)) {
+                    $query->where('status', $status);
+                }
             }
 
             // Search in title only (description excluded from list view for performance)
@@ -143,25 +161,40 @@ class PropertyController extends Controller
     public function show(Request $request, string $identifier)
     {
         try {
+            // Check if user is admin
+            $user = Auth::user();
+            $isAdmin = $user && $user->hasAnyRole(['Super Admin', 'Admin', 'Staff']);
+            
             // Optimize query with eager loading to prevent N+1
-            $property = Property::with([
+            $query = Property::with([
                 'neighborhood:id,name',
                 'agent:id,name,photo,role,phone,languages,license_no',
             ])->select([
                 'id', 'uuid', 'slug', 'title', 'description', 'price', 'currency',
                 'type', 'neighborhood_id', 'agent_id', 'reference_id',
                 'bedrooms', 'bathrooms', 'area_sqm', 'is_verified', 'is_featured',
-                'amenities', 'images', 'video_url', 'owner_contact', 'status',
+                'amenities', 'images', 'video_url', 'owner_contact', 'owner_name', 'owner_email', 'status', 'views',
                 'wifi_password', 'door_code', 'house_rules', 'full_address',
                 'created_at', 'updated_at',
-            ])->where(function ($query) use ($identifier) {
-                $query->where('uuid', $identifier)
-                      ->orWhere('slug', $identifier);
-            })->first();
+            ])->where(function ($q) use ($identifier) {
+                $q->where('uuid', $identifier)
+                  ->orWhere('slug', $identifier);
+            });
+            
+            // Only show active/sold/rented properties to regular users
+            // Admins can see all properties including pending/draft
+            if (!$isAdmin) {
+                $query->whereIn('status', ['active', 'sold', 'rented']);
+            }
+            
+            $property = $query->first();
 
             if (!$property) {
                 return $this->notFoundResponse('Property not found');
             }
+
+            // Increment views count (for analytics)
+            $property->increment('views');
 
             // Only show tenant details if user has active booking
             $showTenantDetails = false;
@@ -243,6 +276,270 @@ class PropertyController extends Controller
 
             return $this->errorResponse(
                 'Failed to fetch availability. Please try again later.',
+                500
+            );
+        }
+    }
+
+    /**
+     * Store a newly created property.
+     */
+    public function store(StorePropertyRequest $request)
+    {
+        try {
+            $validated = $request->validated();
+            $isDraft = ($validated['status'] ?? 'pending') === 'draft';
+
+            // Handle image uploads
+            $imagePaths = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('properties', 'public');
+                    $imagePaths[] = $path;
+                }
+            }
+
+            // Format title and description as JSON (translatable)
+            // For drafts, use empty defaults if not provided
+            $titleText = $validated['title'] ?? ($isDraft ? 'Draft Property' : '');
+            $title = [
+                'en' => $titleText,
+                'ar' => $titleText, // Default to same value, can be updated later
+            ];
+
+            $descriptionText = $validated['description'] ?? ($isDraft ? '' : '');
+            $description = [
+                'en' => $descriptionText,
+                'ar' => $descriptionText, // Default to same value, can be updated later
+            ];
+
+            // Prepare property data
+            $propertyData = [
+                'title' => $title,
+                'description' => $description,
+                'type' => $validated['type'] ?? 'rent',
+                'neighborhood_id' => $validated['neighborhood_id'] ?? null,
+                'bedrooms' => $validated['bedrooms'] ?? 0,
+                'bathrooms' => $validated['bathrooms'] ?? 0,
+                'area_sqm' => $validated['area_sqm'] ?? 0,
+                'price' => $validated['price'] ?? 0,
+                'currency' => $validated['currency'] ?? 'USD',
+                'amenities' => $validated['amenities'] ?? [],
+                'images' => $imagePaths,
+                'video_url' => $validated['video_url'] ?? null,
+                'owner_contact' => $validated['owner_contact'] ?? '',
+                'owner_name' => $validated['owner_name'] ?? null,
+                'owner_email' => $validated['owner_email'] ?? null,
+                'status' => $validated['status'] ?? 'pending', // Default to pending for review
+                'reference_id' => $validated['reference_id'] ?? null,
+            ];
+
+            // Set full_address if latitude/longitude provided
+            if (isset($validated['address']) && !empty($validated['address'])) {
+                $propertyData['full_address'] = $validated['address'];
+            }
+
+            // Use database transaction for atomicity
+            $property = DB::transaction(function () use ($propertyData) {
+                $property = Property::create($propertyData);
+
+                // Optimize images if service is available
+                try {
+                    $optimizationService = app(ImageOptimizationService::class);
+                    if ($optimizationService && !empty($propertyData['images'])) {
+                        $optimizedImages = $optimizationService->optimizeToWebP($propertyData['images'], 'public');
+                        $property->update(['images' => $optimizedImages]);
+                    }
+                } catch (\Exception $e) {
+                    // Log error but don't fail the property creation
+                    Log::warning('Image optimization failed for property: ' . $e->getMessage());
+                }
+
+                return $property->load(['neighborhood', 'agent']);
+            });
+
+            $resource = new PropertyResource($property);
+            return $resource->response()->setStatusCode(201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse(
+                $e->errors(),
+                'Validation failed'
+            );
+        } catch (\Exception $e) {
+            Log::error('PropertyController@store error: ' . $e->getMessage(), [
+                'request' => $request->except(['password', 'password_confirmation', 'images']),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to create property. Please try again later.',
+                500
+            );
+        }
+    }
+
+    /**
+     * Update the specified property.
+     */
+    public function update(Request $request, int $id)
+    {
+        try {
+            $property = Property::findOrFail($id);
+
+            // Check authorization - user must own the property or be admin
+            if (Auth::check()) {
+                // Allow update if user is admin/staff or owns the property
+                $user = Auth::user();
+                if (!$user->hasAnyRole(['Super Admin', 'Admin', 'Staff']) && $property->agent_id !== $user->id) {
+                    return $this->unauthorizedResponse('You are not authorized to update this property.');
+                }
+            }
+
+            // Validate request
+            $validated = $request->validate([
+                'title' => 'sometimes|required|string|max:255|min:5',
+                'type' => 'sometimes|required|in:rent,sale,hotel',
+                'description' => 'sometimes|required|string|min:50|max:5000',
+                'neighborhood_id' => 'sometimes|required|integer|exists:neighborhoods,id',
+                'address' => 'sometimes|required|string|max:500',
+                'bedrooms' => 'sometimes|required|integer|min:0|max:20',
+                'bathrooms' => 'sometimes|required|integer|min:0|max:20',
+                'area_sqm' => 'sometimes|required|numeric|min:1|max:100000',
+                'price' => 'sometimes|required|numeric|min:0|max:999999999.99',
+                'currency' => 'sometimes|required|in:USD,SYP',
+                'amenities' => 'sometimes|nullable|array',
+                'images' => 'sometimes|nullable|array|min:1|max:20',
+                'video_url' => 'sometimes|nullable|url|max:500',
+                'owner_name' => 'sometimes|required|string|max:255|min:2',
+                'owner_email' => 'sometimes|required|email|max:255',
+                'owner_contact' => 'sometimes|required|string|max:50',
+                'status' => 'sometimes|nullable|in:active,draft,pending,sold,rented',
+            ]);
+
+            // Handle image uploads (if new images provided)
+            if ($request->hasFile('images')) {
+                // Delete old images
+                if ($property->images) {
+                    foreach ($property->images as $oldImage) {
+                        if (Storage::disk('public')->exists($oldImage)) {
+                            Storage::disk('public')->delete($oldImage);
+                        }
+                    }
+                }
+
+                // Upload new images
+                $imagePaths = [];
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('properties', 'public');
+                    $imagePaths[] = $path;
+                }
+                $validated['images'] = $imagePaths;
+            }
+
+            // Format title and description as JSON if provided
+            if (isset($validated['title'])) {
+                $validated['title'] = [
+                    'en' => $validated['title'],
+                    'ar' => $validated['title'], // Default to same value
+                ];
+            }
+
+            if (isset($validated['description'])) {
+                $validated['description'] = [
+                    'en' => $validated['description'],
+                    'ar' => $validated['description'], // Default to same value
+                ];
+            }
+
+            // Add owner_name and owner_email if provided
+            if (isset($validated['owner_name'])) {
+                $validated['owner_name'] = $validated['owner_name'];
+            }
+            if (isset($validated['owner_email'])) {
+                $validated['owner_email'] = $validated['owner_email'];
+            }
+
+            // Use database transaction
+            $property = DB::transaction(function () use ($property, $validated) {
+                $property->update($validated);
+
+                // Optimize images if new images uploaded
+                if (isset($validated['images'])) {
+                    try {
+                        $optimizationService = app(ImageOptimizationService::class);
+                        if ($optimizationService) {
+                            $optimizedImages = $optimizationService->optimizeToWebP($validated['images'], 'public');
+                            $property->update(['images' => $optimizedImages]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Image optimization failed for property update: ' . $e->getMessage());
+                    }
+                }
+
+                return $property->load(['neighborhood', 'agent']);
+            });
+
+            $resource = new PropertyResource($property);
+            return $resource->response();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Property not found');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse(
+                $e->errors(),
+                'Validation failed'
+            );
+        } catch (\Exception $e) {
+            Log::error('PropertyController@update error: ' . $e->getMessage(), [
+                'property_id' => $id,
+                'request' => $request->except(['password', 'password_confirmation', 'images']),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to update property. Please try again later.',
+                500
+            );
+        }
+    }
+
+    /**
+     * Remove the specified property.
+     */
+    public function destroy(int $id)
+    {
+        try {
+            $property = Property::findOrFail($id);
+
+            // Check authorization
+            if (Auth::check()) {
+                $user = Auth::user();
+                if (!$user->hasAnyRole(['Super Admin', 'Admin', 'Staff']) && $property->agent_id !== $user->id) {
+                    return $this->unauthorizedResponse('You are not authorized to delete this property.');
+                }
+            }
+
+            // Delete images from storage
+            if ($property->images) {
+                foreach ($property->images as $image) {
+                    if (Storage::disk('public')->exists($image)) {
+                        Storage::disk('public')->delete($image);
+                    }
+                }
+            }
+
+            $property->delete();
+
+            return $this->successResponse(null, 'Property deleted successfully');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFoundResponse('Property not found');
+        } catch (\Exception $e) {
+            Log::error('PropertyController@destroy error: ' . $e->getMessage(), [
+                'property_id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse(
+                'Failed to delete property. Please try again later.',
                 500
             );
         }

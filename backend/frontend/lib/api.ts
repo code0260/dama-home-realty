@@ -212,10 +212,10 @@ export async function getCurrentUser(): Promise<User> {
     return response.data;
   } catch (error: any) {
     // Re-throw with better error message
-    if (error.isTimeoutError) {
+    if (error.isNetworkError || error.isTimeoutError) {
       throw {
         ...error,
-        message: 'Authentication check timed out. Please ensure the backend server is running.',
+        message: 'Unable to connect to backend server. Please ensure the Laravel server is running.',
       };
     }
     throw error;

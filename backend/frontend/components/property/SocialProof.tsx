@@ -21,7 +21,7 @@ interface SocialProofProps {
 }
 
 export function SocialProof({ property, className }: SocialProofProps) {
-  const [views, setViews] = useState(Math.floor(Math.random() * 1000) + 50);
+  const [views, setViews] = useState(property.views || 0);
   const [savedCount, setSavedCount] = useState(Math.floor(Math.random() * 100) + 5);
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(Math.floor(Math.random() * 50) + 10);

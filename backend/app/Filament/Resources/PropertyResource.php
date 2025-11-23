@@ -8,6 +8,7 @@ use App\Models\Property;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Html;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -134,6 +135,14 @@ class PropertyResource extends Resource
                             ->url()
                             ->placeholder('YouTube or Vimeo URL')
                             ->helperText('Enter full URL for property tour video'),
+                        Forms\Components\FileUpload::make('floor_plans')
+                            ->label('Floor Plans')
+                            ->image()
+                            ->multiple()
+                            ->maxFiles(5)
+                            ->directory('properties/floor-plans')
+                            ->visibility('public')
+                            ->helperText('Upload floor plan images'),
                         Forms\Components\Toggle::make('is_verified')
                             ->label('Verified Property')
                             ->default(false),
@@ -186,13 +195,22 @@ class PropertyResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->placeholder('Phone number or email'),
+                        Forms\Components\TextInput::make('owner_name')
+                            ->label('Owner Name')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('owner_email')
+                            ->label('Owner Email')
+                            ->email()
+                            ->maxLength(255),
                         Forms\Components\Select::make('status')
                             ->options([
                                 'active' => 'Active',
+                                'pending' => 'Pending Review',
+                                'draft' => 'Draft',
                                 'sold' => 'Sold',
                                 'rented' => 'Rented',
                             ])
-                            ->default('active')
+                            ->default('pending')
                             ->required(),
                     ])
                     ->columns(2),
@@ -262,11 +280,20 @@ class PropertyResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'active' => 'success',
+                        'pending' => 'warning',
+                        'draft' => 'gray',
                         'sold' => 'danger',
-                        'rented' => 'warning',
+                        'rented' => 'info',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'active' => 'Active',
+                        'pending' => 'Pending Review',
+                        'draft' => 'Draft',
+                        'sold' => 'Sold',
+                        'rented' => 'Rented',
+                        default => ucfirst($state),
+                    })
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_verified')
                     ->label('Verified')
@@ -297,15 +324,110 @@ class PropertyResource extends Resource
                     ->suffix(' sqm')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('views')
+                    ->label('Views')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('owner_name')
+                    ->label('Owner')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'active' => 'Active',
+                        'pending' => 'Pending Review',
+                        'draft' => 'Draft',
+                        'sold' => 'Sold',
+                        'rented' => 'Rented',
+                    ]),
+                Tables\Filters\SelectFilter::make('type')
+                    ->label('Type')
+                    ->options([
+                        'rent' => 'Rent',
+                        'sale' => 'Sale',
+                        'hotel' => 'Hotel',
+                    ]),
+                Tables\Filters\TernaryFilter::make('is_verified')
+                    ->label('Verified')
+                    ->placeholder('All')
+                    ->trueLabel('Verified only')
+                    ->falseLabel('Not verified only'),
+                Tables\Filters\TernaryFilter::make('is_featured')
+                    ->label('Featured')
+                    ->placeholder('All')
+                    ->trueLabel('Featured only')
+                    ->falseLabel('Not featured only'),
             ])
             ->actions([
+                Tables\Actions\Action::make('approve')
+                    ->label('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Property $record) {
+                        $record->update(['status' => 'active']);
+                    })
+                    ->visible(fn (Property $record) => $record->status === 'pending')
+                    ->successNotificationTitle('Property approved successfully'),
+                Tables\Actions\Action::make('reject')
+                    ->label('Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function (Property $record) {
+                        $record->update(['status' => 'draft']);
+                    })
+                    ->visible(fn (Property $record) => $record->status === 'pending')
+                    ->successNotificationTitle('Property rejected'),
+                Tables\Actions\Action::make('preview')
+                    ->label('Preview')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn (Property $record) => route('properties.show', ['slug' => $record->slug]))
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('analytics')
+                    ->label('Analytics')
+                    ->icon('heroicon-o-chart-bar')
+                    ->color('info')
+                    ->modalHeading(fn (Property $record) => 'Property Analytics: ' . $record->getTranslation('title', 'en'))
+                    ->modalContent(function (Property $record) {
+                        $views = $record->views ?? 0;
+                        $bookingsCount = $record->bookings()->count();
+                        $leadsCount = $record->leads()->count();
+                        
+                        return Html::html(
+                            '<div class="space-y-4 p-4">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="bg-blue-50 p-4 rounded-lg">
+                                        <div class="text-sm text-gray-600">Total Views</div>
+                                        <div class="text-2xl font-bold text-blue-600">' . number_format($views) . '</div>
+                                    </div>
+                                    <div class="bg-green-50 p-4 rounded-lg">
+                                        <div class="text-sm text-gray-600">Bookings</div>
+                                        <div class="text-2xl font-bold text-green-600">' . $bookingsCount . '</div>
+                                    </div>
+                                    <div class="bg-purple-50 p-4 rounded-lg">
+                                        <div class="text-sm text-gray-600">Leads</div>
+                                        <div class="text-2xl font-bold text-purple-600">' . $leadsCount . '</div>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    <strong>Status:</strong> ' . ucfirst($record->status) . '<br>
+                                    <strong>Created:</strong> ' . $record->created_at->format('M d, Y') . '<br>
+                                    <strong>Last Updated:</strong> ' . $record->updated_at->format('M d, Y') . '
+                                </div>
+                            </div>'
+                        );
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn () => auth()->user()->hasRole('Super Admin')),
@@ -318,6 +440,48 @@ class PropertyResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('approve')
+                        ->label('Approve Selected')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['status' => 'active']);
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('reject')
+                        ->label('Reject Selected')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['status' => 'draft']);
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('mark_featured')
+                        ->label('Mark as Featured')
+                        ->icon('heroicon-o-star')
+                        ->color('warning')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['is_featured' => true]);
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('unmark_featured')
+                        ->label('Unmark as Featured')
+                        ->icon('heroicon-o-star')
+                        ->color('gray')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['is_featured' => false]);
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('verify')
+                        ->label('Verify Selected')
+                        ->icon('heroicon-o-check-badge')
+                        ->color('success')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['is_verified' => true]);
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     Tables\Actions\DeleteBulkAction::make()
                         ->visible(fn () => auth()->user()->hasRole('Super Admin')),
                 ]),

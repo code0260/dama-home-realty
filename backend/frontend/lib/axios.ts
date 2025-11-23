@@ -25,9 +25,10 @@ async function getCsrfCookie(forceRefresh: boolean = false): Promise<void> {
   }
 
   const baseURL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+  
   csrfCookiePromise = axios.get(`${baseURL}/sanctum/csrf-cookie`, {
     withCredentials: true,
-    timeout: 10000, // 10 seconds for CSRF cookie (shorter than main requests)
+    timeout: 15000, // 15 seconds for CSRF cookie (increased)
   }).then(() => {
     // Small delay to ensure cookie is properly set
     return new Promise<void>((resolve) => {
@@ -42,7 +43,26 @@ async function getCsrfCookie(forceRefresh: boolean = false): Promise<void> {
     }, 5 * 60 * 1000);
   }).catch((error) => {
     csrfCookiePromise = null;
-    throw error;
+    
+    // Log error but don't throw - allow request to proceed without CSRF token
+    // The backend will handle CSRF validation and return 419 if needed
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      console.warn('CSRF cookie request timed out. Request may fail CSRF validation.', {
+        baseURL,
+        timeout: '15s',
+        hint: 'Backend server may be slow or unreachable. Check if server is running.',
+      });
+    } else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      console.warn('CSRF cookie request failed due to network error. Request may fail CSRF validation.', {
+        baseURL,
+        hint: 'Backend server may be down. Check if server is running.',
+      });
+    } else {
+      console.warn('CSRF cookie request failed:', error.message);
+    }
+    
+    // Don't throw - allow the request to proceed
+    // The backend will handle CSRF validation appropriately
   });
 
   return csrfCookiePromise;
@@ -70,21 +90,34 @@ axiosInstance.interceptors.request.use(
     // Get CSRF cookie before POST/PUT/DELETE requests
     if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase() || '')) {
       try {
-        // Get CSRF cookie first
-        await getCsrfCookie();
+        // Get CSRF cookie first (non-blocking - won't throw on timeout)
+        await getCsrfCookie().catch(() => {
+          // Error already logged in getCsrfCookie
+          // Continue with request anyway
+        });
         
-        // Wait a bit to ensure cookie is accessible
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait a bit to ensure cookie is accessible (but don't wait too long)
+        await Promise.race([
+          new Promise(resolve => setTimeout(resolve, 100)),
+          new Promise(resolve => setTimeout(resolve, 500)), // Max wait 500ms
+        ]);
         
         // Get XSRF-TOKEN cookie and set it as X-XSRF-TOKEN header
         const xsrfToken = getCookie('XSRF-TOKEN');
         if (xsrfToken) {
           config.headers['X-XSRF-TOKEN'] = xsrfToken;
         } else {
-          console.warn('XSRF-TOKEN cookie not found. CSRF protection may fail.');
+          // Only warn in development
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('XSRF-TOKEN cookie not found. CSRF protection may fail. The request will proceed anyway.');
+          }
         }
-      } catch (error) {
-        console.error('Failed to get CSRF cookie:', error);
+      } catch (error: any) {
+        // Log error but don't block the request
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to get CSRF cookie:', error.message || error);
+        }
+        // Request will proceed without CSRF token - backend will handle validation
       }
     }
     return config;
@@ -103,21 +136,38 @@ axiosInstance.interceptors.response.use(
     // Handle network errors (connection issues)
     if (error.code === 'ERR_NETWORK' || error.message === 'Network Error' || error.code === 'ECONNREFUSED') {
       const baseURL = axiosInstance.defaults.baseURL;
-      console.error('Network Error - Backend server may be down or unreachable:', {
-        baseURL,
-        url: error.config?.url,
-        message: error.message,
-        code: error.code,
-        hint: `Make sure the backend server is running at ${baseURL?.replace('/api', '') || 'http://localhost:8000'}`,
-      });
+      const backendURL = baseURL?.replace('/api', '') || 'http://localhost:8000';
+      
+      // Only log once per session to avoid console spam
+      if (!(window as any).__networkErrorLogged) {
+        console.warn(
+          `%c⚠️ Backend Server Not Available%c\n\n` +
+          `The Laravel backend server is not running or unreachable.\n` +
+          `Expected URL: ${backendURL}\n\n` +
+          `To fix this:\n` +
+          `1. Open a terminal in the 'backend' folder\n` +
+          `2. Run: php artisan serve\n` +
+          `3. Make sure it's running on port 8000\n\n` +
+          `The application will continue to work, but API calls will fail.`,
+          'color: #f59e0b; font-weight: bold; font-size: 14px;',
+          'color: #6b7280; font-size: 12px;'
+        );
+        (window as any).__networkErrorLogged = true;
+        
+        // Clear the flag after 30 seconds to allow re-logging if server comes back online
+        setTimeout(() => {
+          (window as any).__networkErrorLogged = false;
+        }, 30000);
+      }
       
       // For GET requests, we'll let the component handle the error gracefully
       // but provide a more helpful error message
       const networkError = {
         ...error,
         isNetworkError: true,
-        message: `Unable to connect to backend server at ${baseURL}. Please ensure the Laravel server is running.`,
+        message: `Unable to connect to backend server. Please ensure the Laravel server is running at ${backendURL}`,
         code: error.code || 'NETWORK_ERROR',
+        backendURL,
       };
       
       return Promise.reject(networkError);

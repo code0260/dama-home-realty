@@ -28,8 +28,34 @@ class SecurityHeaders
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
-        // Content Security Policy (adjust as needed)
-        $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.openai.com https://maps.googleapis.com;";
+        // Skip CSP for admin panel (Filament/Livewire needs more flexibility)
+        if ($request->is('admin/*')) {
+            // In development, skip CSP entirely for admin panel to avoid Livewire issues
+            if (app()->environment('local', 'development')) {
+                // Skip CSP for admin panel in development
+                return $response;
+            }
+            
+            // More permissive CSP for Filament admin panel in production
+            $csp = "default-src 'self'; " .
+                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://cdn.jsdelivr.net; " .
+                   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net; " .
+                   "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net data:; " .
+                   "img-src 'self' data: https: blob:; " .
+                   "connect-src 'self' https://api.openai.com https://maps.googleapis.com ws: wss: http: https:; " .
+                   "frame-src 'self' https://maps.googleapis.com; " .
+                   "form-action 'self';";
+        } else {
+            // Stricter CSP for public pages
+            $csp = "default-src 'self'; " .
+                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://cdn.jsdelivr.net; " .
+                   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net; " .
+                   "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net data:; " .
+                   "img-src 'self' data: https: blob:; " .
+                   "connect-src 'self' https://api.openai.com https://maps.googleapis.com ws: wss:; " .
+                   "frame-src 'self' https://maps.googleapis.com;";
+        }
+        
         $response->headers->set('Content-Security-Policy', $csp);
 
         return $response;

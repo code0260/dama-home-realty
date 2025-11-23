@@ -26,8 +26,15 @@ class Service extends Model
         'title',
         'description',
         'icon',
+        'slug',
+        'image',
+        'price',
+        'currency',
+        'duration',
+        'category',
         'sort_order',
         'is_active',
+        'is_featured',
     ];
 
     /**
@@ -41,7 +48,9 @@ class Service extends Model
             'title' => 'array',
             'description' => 'array',
             'is_active' => 'boolean',
+            'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'price' => 'decimal:2',
         ];
     }
 }

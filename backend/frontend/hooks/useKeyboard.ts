@@ -18,8 +18,13 @@ export interface KeyboardShortcut {
 export function useKeyboard(shortcuts: KeyboardShortcut[], deps: any[] = []) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      // Check if event.key exists to prevent errors
+      if (!event.key) {
+        return;
+      }
+
       shortcuts.forEach((shortcut) => {
-        const matchesKey = event.key.toLowerCase() === shortcut.key.toLowerCase();
+        const matchesKey = event.key && shortcut.key && event.key.toLowerCase() === shortcut.key.toLowerCase();
         const matchesCtrl = shortcut.ctrlKey === undefined || event.ctrlKey === shortcut.ctrlKey;
         const matchesShift = shortcut.shiftKey === undefined || event.shiftKey === shortcut.shiftKey;
         const matchesAlt = shortcut.altKey === undefined || event.altKey === shortcut.altKey;

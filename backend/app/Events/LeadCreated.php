@@ -35,6 +35,7 @@ class LeadCreated implements ShouldBroadcast
         // Broadcast to private channel for Super Admins
         return [
             new PrivateChannel('admin.notifications'),
+            new PrivateChannel('admin.dashboard'),
         ];
     }
 

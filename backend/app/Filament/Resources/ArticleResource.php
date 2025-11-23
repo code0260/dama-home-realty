@@ -111,6 +111,27 @@ class ArticleResource extends Resource
                             ->default(false),
                     ])
                     ->columns(3),
+                
+                Forms\Components\Section::make('Categories & Tags')
+                    ->schema([
+                        Forms\Components\TagsInput::make('categories')
+                            ->label('Categories')
+                            ->placeholder('Add category and press Enter')
+                            ->suggestions([
+                                'Real Estate',
+                                'Property Tips',
+                                'Market News',
+                                'Legal Advice',
+                                'Interior Design',
+                                'Investment',
+                            ])
+                            ->default(['Real Estate'])
+                            ->columnSpanFull(),
+                        Forms\Components\TagsInput::make('tags')
+                            ->label('Tags')
+                            ->placeholder('Add tag and press Enter')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -134,6 +155,12 @@ class ArticleResource extends Resource
                 Tables\Columns\IconColumn::make('is_featured')
                     ->label('Featured')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('categories')
+                    ->label('Categories')
+                    ->badge()
+                    ->color('primary')
+                    ->formatStateUsing(fn ($record) => is_array($record->categories) ? implode(', ', array_slice($record->categories, 0, 2)) : 'Real Estate')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('views')
                     ->label('Views')
                     ->sortable()

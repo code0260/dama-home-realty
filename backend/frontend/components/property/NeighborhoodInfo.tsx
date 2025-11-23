@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, Users, Home, TrendingUp, Coffee } from 'lucide-react';
+import { MapPin, Users, Home, TrendingUp, Coffee, DollarSign } from 'lucide-react';
 import { Property } from '@/types';
 import { Card } from '@/components/ui/card';
 
@@ -108,7 +108,3 @@ export function NeighborhoodInfo({ property, neighborhoodStats }: NeighborhoodIn
     </Card>
   );
 }
-
-// Add missing icons
-import { DollarSign } from 'lucide-react';
-

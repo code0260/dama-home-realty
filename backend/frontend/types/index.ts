@@ -20,7 +20,10 @@ export interface Property {
   images: string[];
   video_url?: string | null;
   owner_contact: string;
-  status: 'active' | 'sold' | 'rented';
+  owner_name?: string | null;
+  owner_email?: string | null;
+  status: 'active' | 'sold' | 'rented' | 'pending' | 'draft';
+  views?: number;
   created_at: string;
   updated_at: string;
 }
@@ -166,11 +169,14 @@ export interface Article {
   author: {
     id: number;
     name: string;
+    email?: string | null;
   } | null;
   published_at: string | null;
   is_featured: boolean;
   views: number;
-  excerpt: string;
+  excerpt?: string;
+  categories?: string[];
+  tags?: string[];
   created_at?: string;
   updated_at?: string;
 }
