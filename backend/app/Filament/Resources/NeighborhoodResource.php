@@ -79,7 +79,7 @@ class NeighborhoodResource extends Resource
                     ->size(50),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
-                    ->formatStateUsing(fn ($record) => $record->getTranslation('name', 'en'))
+                    ->formatStateUsing(fn ($record) => $record ? ($record->getTranslation('name', 'en') ?? $record->name ?? 'N/A') : 'N/A')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),

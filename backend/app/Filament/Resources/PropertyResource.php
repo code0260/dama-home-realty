@@ -62,7 +62,7 @@ class PropertyResource extends Resource
                         Forms\Components\Select::make('neighborhood_id')
                             ->label('Neighborhood')
                             ->relationship('neighborhood', 'name', fn ($query) => $query->where('city', 'Damascus'))
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('name', 'en'))
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record ? ($record->getTranslation('name', 'en') ?? $record->name ?? 'N/A') : 'N/A')
                             ->searchable()
                             ->preload()
                             ->required(),
@@ -231,7 +231,7 @@ class PropertyResource extends Resource
                     }),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
-                    ->formatStateUsing(fn ($record) => $record->getTranslation('title', 'en'))
+                    ->formatStateUsing(fn ($record) => $record ? ($record->getTranslation('title', 'en') ?? $record->title ?? 'N/A') : 'N/A')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
@@ -261,8 +261,11 @@ class PropertyResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->label('Price')
                     ->formatStateUsing(function ($record) {
-                        $currency = $record->currency === 'USD' ? '$' : 'SYP';
-                        return $currency . number_format($record->price, 2);
+                        if (!$record || !isset($record->price)) {
+                            return 'N/A';
+                        }
+                        $currency = ($record->currency ?? 'USD') === 'USD' ? '$' : 'SYP';
+                        return $currency . number_format($record->price ?? 0, 2);
                     })
                     ->sortable()
                     ->color('success'),
@@ -390,13 +393,13 @@ class PropertyResource extends Resource
                 Tables\Actions\Action::make('preview')
                     ->label('Preview')
                     ->icon('heroicon-o-eye')
-                    ->url(fn (Property $record) => url('/properties/' . $record->slug))
+                    ->url(fn (Property $record) => config('app.frontend_url', url('/')) . '/properties/' . $record->slug)
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('analytics')
                     ->label('Analytics')
                     ->icon('heroicon-o-chart-bar')
                     ->color('info')
-                    ->modalHeading(fn (Property $record) => 'Property Analytics: ' . $record->getTranslation('title', 'en'))
+                    ->modalHeading(fn (Property $record) => 'Property Analytics: ' . ($record->getTranslation('title', 'en') ?? $record->title ?? 'N/A'))
                     ->modalContent(function (Property $record) {
                         $views = $record->views ?? 0;
                         $bookingsCount = $record->bookings()->count();

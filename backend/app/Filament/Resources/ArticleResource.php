@@ -145,7 +145,7 @@ class ArticleResource extends Resource
                     ->size(50),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
-                    ->getStateUsing(fn (Article $record) => $record->getTranslation('title', 'en'))
+                    ->getStateUsing(fn (Article $record) => $record ? ($record->getTranslation('title', 'en') ?? $record->title ?? 'N/A') : 'N/A')
                     ->searchable()
                     ->sortable()
                     ->limit(50),

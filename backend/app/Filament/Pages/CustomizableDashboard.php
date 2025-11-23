@@ -96,6 +96,18 @@ class CustomizableDashboard extends Page
         );
     }
     
+    public function resetLayout(): void
+    {
+        $user = Auth::user();
+        
+        DashboardLayout::where('user_id', $user->id)
+            ->where('is_default', true)
+            ->delete();
+        
+        // Create default layout
+        $this->loadUserLayout();
+    }
+    
     public function getWidgets(): array
     {
         return static::$widgets;

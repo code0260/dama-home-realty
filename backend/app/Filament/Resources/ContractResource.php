@@ -143,7 +143,9 @@ class ContractResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('booking.property.title')
                     ->label('Property')
-                    ->formatStateUsing(fn ($record) => $record->booking->property->getTranslation('title', 'en'))
+                    ->formatStateUsing(fn ($record) => $record->booking && $record->booking->property 
+                        ? ($record->booking->property->getTranslation('title', 'en') ?? $record->booking->property->title ?? 'N/A')
+                        : 'N/A')
                     ->searchable()
                     ->limit(30),
                 Tables\Columns\TextColumn::make('booking.user.name')

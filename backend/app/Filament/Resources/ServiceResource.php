@@ -102,7 +102,7 @@ class ServiceResource extends Resource
                     ->circular()
                     ->size(50),
                 Tables\Columns\TextColumn::make('title')
-                    ->formatStateUsing(fn ($record) => $record->getTranslation('title', 'en'))
+                    ->formatStateUsing(fn ($record) => $record ? ($record->getTranslation('title', 'en') ?? $record->title ?? 'N/A') : 'N/A')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('category')

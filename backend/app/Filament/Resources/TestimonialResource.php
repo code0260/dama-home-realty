@@ -90,7 +90,11 @@ class TestimonialResource extends Resource
                 Tables\Columns\TextColumn::make('country_flag')
                     ->label('Flag'),
                 Tables\Columns\TextColumn::make('comment')
-                    ->formatStateUsing(fn ($record) => substr($record->getTranslation('comment', 'en'), 0, 50) . '...')
+                    ->formatStateUsing(function ($record) {
+                        if (!$record) return 'N/A';
+                        $comment = $record->getTranslation('comment', 'en') ?? $record->comment ?? '';
+                        return $comment ? (substr($comment, 0, 50) . '...') : 'N/A';
+                    })
                     ->limit(50),
                 Tables\Columns\TextColumn::make('rating')
                     ->formatStateUsing(fn ($state) => str_repeat('⭐', $state))

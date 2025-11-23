@@ -41,7 +41,7 @@ class LeadResource extends Resource
                             ->columnSpanFull(),
                         Forms\Components\Select::make('property_id')
                             ->relationship('property', 'title', fn ($query) => $query->where('status', 'active'))
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('title', 'en'))
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record ? ($record->getTranslation('title', 'en') ?? $record->title ?? 'N/A') : 'N/A')
                             ->searchable()
                             ->preload()
                             ->nullable(),
