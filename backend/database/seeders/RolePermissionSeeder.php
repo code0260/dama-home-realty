@@ -63,6 +63,7 @@ class RolePermissionSeeder extends Seeder
         // Create roles
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
         $staff = Role::firstOrCreate(['name' => 'Staff']);
+        $agent = Role::firstOrCreate(['name' => 'Agent']);
         $tenant = Role::firstOrCreate(['name' => 'Tenant']);
 
         // Assign all permissions to Super Admin
@@ -92,6 +93,23 @@ class RolePermissionSeeder extends Seeder
             'view services',
             'create services',
             'edit services',
+        ]);
+
+        // Assign permissions to Agent (similar to Staff but focused on properties and bookings)
+        $agent->givePermissionTo([
+            // Properties: view, create, update (NO delete)
+            'view properties',
+            'create properties',
+            'edit properties',
+            
+            // Bookings: view, create, update (NO delete)
+            'view bookings',
+            'create bookings',
+            'edit bookings',
+            
+            // Leads: view, update
+            'view leads',
+            'edit leads',
         ]);
 
         // Assign limited permissions to Tenant

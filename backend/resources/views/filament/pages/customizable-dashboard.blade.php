@@ -30,10 +30,19 @@
         <div id="dashboard-grid" class="grid grid-cols-12 gap-4">
             <!-- Widgets will be dynamically loaded here -->
             <div class="col-span-12">
-                <x-filament-widgets::widgets 
-                    :widgets="$this->getWidgets()"
-                    :columns="$this->getColumns()"
-                />
+                @if(method_exists($this, 'getWidgets'))
+                    <x-filament-widgets::widgets 
+                        :widgets="$this->getWidgets()"
+                        :columns="$this->getColumns()"
+                    />
+                @else
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+                        <p class="text-gray-600 dark:text-gray-400">
+                            Widget customization feature is being developed. 
+                            Please use the default dashboard for now.
+                        </p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

@@ -17,6 +17,12 @@ class CustomizableDashboard extends Page
     protected static ?int $navigationSort = 0;
     
     protected static ?string $title = 'Customizable Dashboard';
+    
+    protected static array $widgets = [
+        \App\Filament\Widgets\StatsOverview::class,
+        \App\Filament\Widgets\AdvancedRevenueChart::class,
+        \App\Filament\Widgets\BookingsAnalytics::class,
+    ];
 
     public function mount(): void
     {
@@ -88,6 +94,16 @@ class CustomizableDashboard extends Page
                 'grid_config' => $gridConfig,
             ]
         );
+    }
+    
+    public function getWidgets(): array
+    {
+        return static::$widgets;
+    }
+    
+    public function getColumns(): int
+    {
+        return 12;
     }
 }
 

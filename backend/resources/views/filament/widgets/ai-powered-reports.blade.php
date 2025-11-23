@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <x-slot name="heading">
-            {{ $this->getHeading() }}
+            {{ static::$heading ?? 'AI-Powered Reports' }}
         </x-slot>
 
         <div class="space-y-6">

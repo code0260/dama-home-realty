@@ -390,7 +390,7 @@ class PropertyResource extends Resource
                 Tables\Actions\Action::make('preview')
                     ->label('Preview')
                     ->icon('heroicon-o-eye')
-                    ->url(fn (Property $record) => route('properties.show', ['slug' => $record->slug]))
+                    ->url(fn (Property $record) => url('/properties/' . $record->slug))
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('analytics')
                     ->label('Analytics')

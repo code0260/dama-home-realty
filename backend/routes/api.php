@@ -100,7 +100,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'throttle:60,1', \App\Http\M
     Route::get('/dashboard/bookings', [AdminDashboardController::class, 'getBookings']);
     Route::get('/dashboard/leads', [AdminDashboardController::class, 'getLeads']);
     Route::get('/dashboard/properties', [AdminDashboardController::class, 'getProperties']);
-    Route::get('/dashboard/properties/map-data', [AdminDashboardController::class, 'getPropertiesMapData']);
+    Route::get('/dashboard/properties/map-data', [AdminDashboardController::class, 'getPropertiesMapData'])->name('admin.dashboard.properties.map-data');
     
     // Analytics
     Route::get('/analytics/overview', [AdminAnalyticsController::class, 'overview']);

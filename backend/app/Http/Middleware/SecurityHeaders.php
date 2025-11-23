@@ -29,22 +29,24 @@ class SecurityHeaders
         }
 
         // Skip CSP for admin panel (Filament/Livewire needs more flexibility)
-        if ($request->is('admin/*')) {
-            // In development, skip CSP entirely for admin panel to avoid Livewire issues
+        if ($request->is('admin/*') || $request->is('livewire/*')) {
+            // In development, COMPLETELY DISABLE CSP for admin panel and Livewire
             if (app()->environment('local', 'development')) {
-                // Skip CSP for admin panel in development
+                // Completely remove CSP header for admin panel in development
+                // This allows Livewire to work without any restrictions
                 return $response;
+            } else {
+                // More permissive CSP for Filament admin panel in production
+                $csp = "default-src 'self'; " .
+                       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://cdn.jsdelivr.net; " .
+                       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net; " .
+                       "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net data:; " .
+                       "img-src 'self' data: https: blob:; " .
+                       "connect-src 'self' https://api.openai.com https://maps.googleapis.com ws: wss: http: https:; " .
+                       "frame-src 'self' https://maps.googleapis.com; " .
+                       "form-action 'self';";
+                $response->headers->set('Content-Security-Policy', $csp);
             }
-            
-            // More permissive CSP for Filament admin panel in production
-            $csp = "default-src 'self'; " .
-                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://cdn.jsdelivr.net; " .
-                   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net; " .
-                   "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net data:; " .
-                   "img-src 'self' data: https: blob:; " .
-                   "connect-src 'self' https://api.openai.com https://maps.googleapis.com ws: wss: http: https:; " .
-                   "frame-src 'self' https://maps.googleapis.com; " .
-                   "form-action 'self';";
         } else {
             // Stricter CSP for public pages
             $csp = "default-src 'self'; " .
@@ -54,9 +56,8 @@ class SecurityHeaders
                    "img-src 'self' data: https: blob:; " .
                    "connect-src 'self' https://api.openai.com https://maps.googleapis.com ws: wss:; " .
                    "frame-src 'self' https://maps.googleapis.com;";
+            $response->headers->set('Content-Security-Policy', $csp);
         }
-        
-        $response->headers->set('Content-Security-Policy', $csp);
 
         return $response;
     }

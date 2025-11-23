@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <x-slot name="heading">
-            {{ $this->getHeading() }}
+            {{ static::$heading ?? 'DamaGenie AI Assistant' }}
         </x-slot>
 
         <div class="w-full">

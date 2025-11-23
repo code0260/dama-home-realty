@@ -33,13 +33,26 @@ class ContractResource extends Resource
                             ->relationship('booking', 'id', fn ($query) => 
                                 $query->where('booking_status', 'confirmed')
                                     ->whereDoesntHave('contract')
+                                    ->with(['property', 'user'])
                             )
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->getOptionLabelFromRecordUsing(fn ($record) => 
-                                "Booking #{$record->id} - {$record->property->getTranslation('title', 'en')} - {$record->user->name}"
-                            )
+                            ->getOptionLabelFromRecordUsing(function ($record) {
+                                if (!$record) {
+                                    return 'Unknown Booking';
+                                }
+                                
+                                $propertyTitle = 'No Property';
+                                if ($record->property) {
+                                    $propertyTitle = $record->property->getTranslation('title', 'en') 
+                                        ?? $record->property->getTranslation('title', 'ar') 
+                                        ?? 'Unknown Property';
+                                }
+                                
+                                $userName = $record->user?->name ?? 'Unknown User';
+                                return "Booking #{$record->id} - {$propertyTitle} - {$userName}";
+                            })
                             ->label('Booking'),
                         Forms\Components\TextInput::make('contract_number')
                             ->label('Contract Number')

@@ -45,7 +45,7 @@ class PropertiesMap extends Widget
 
         return [
             'properties' => $properties,
-            'apiEndpoint' => route('api.admin.dashboard.properties.map-data'),
+            'apiEndpoint' => url('/api/admin/dashboard/properties/map-data'),
         ];
     }
 }

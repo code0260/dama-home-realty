@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <x-slot name="heading">
-            {{ $this->getHeading() }}
+            {{ static::$heading ?? 'Properties Map' }}
         </x-slot>
 
         <div class="w-full" style="height: 500px;">
