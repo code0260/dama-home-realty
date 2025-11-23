@@ -17,7 +17,7 @@ class AIChatInterface extends Widget
     public function getViewData(): array
     {
         return [
-            'api_endpoint' => route('api.ai-concierge.chat'),
+            'api_endpoint' => url('/api/ai-concierge/chat'),
             'initial_message' => 'Hello! I\'m DamaGenie, your AI assistant. How can I help you with your dashboard today?',
         ];
     }

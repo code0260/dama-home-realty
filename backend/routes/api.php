@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
 // AI routes (Rate limit: 20 requests per minute - more expensive)
 Route::middleware('throttle:20,1')->group(function () {
     Route::post('/ai-search', [AiSearchController::class, 'search']);
-    Route::post('/ai-concierge/chat', [AiConciergeController::class, 'chat']);
+    Route::post('/ai-concierge/chat', [AiConciergeController::class, 'chat'])->name('ai-concierge.chat');
 });
 
 // Public read routes (Rate limit: 60 requests per minute)
