@@ -20,7 +20,10 @@ return new class extends Migration
             $table->decimal('price', 12, 2);
             $table->enum('currency', ['USD', 'SYP'])->default('USD');
             $table->enum('type', ['rent', 'sale', 'hotel']);
-            $table->foreignId('neighborhood_id')->nullable();
+            $table->foreignId('neighborhood_id')
+                ->nullable()
+                ->constrained('neighborhoods')
+                ->cascadeOnDelete();
             $table->integer('bedrooms');
             $table->integer('bathrooms');
             $table->integer('area_sqm');
