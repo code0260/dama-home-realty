@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, ShieldCheck, TrendingUp, Clock } from 'lucide-react';
 import { MultiStepPropertyForm } from '@/components/property/MultiStepPropertyForm';
@@ -10,25 +10,39 @@ import { PropertyManagement } from '@/components/property/PropertyManagement';
 import { Property } from '@/types';
 import { getPropertyBySlug } from '@/lib/api';
 
+export const dynamic = 'force-dynamic';
+
 export default function ListPropertyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const propertySlug = searchParams.get('edit');
+  const [propertySlug, setPropertySlug] = useState<string | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(!!propertySlug);
+  const [loading, setLoading] = useState(false);
   const [showManagement, setShowManagement] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get('edit');
+      setPropertySlug(slug);
+      setLoading(!!slug);
+    }
+  }, []);
+
+  useEffect(() => {
     if (propertySlug) {
-      fetchProperty();
+      fetchProperty(propertySlug);
+    } else {
+      setProperty(null);
+      setShowManagement(false);
     }
   }, [propertySlug]);
 
-  const fetchProperty = async () => {
+  const fetchProperty = async (slug: string) => {
     try {
       setLoading(true);
-      const propertyData = await getPropertyBySlug(propertySlug!);
+      const propertyData = await getPropertyBySlug(slug);
       setProperty(propertyData);
+      setShowManagement(true);
     } catch (error) {
       console.error('Error fetching property:', error);
       setProperty(null);
@@ -40,7 +54,9 @@ export default function ListPropertyPage() {
   const handleSuccess = (createdProperty: Property) => {
     setProperty(createdProperty);
     setShowManagement(true);
-    router.push(`/list-property?edit=${createdProperty.slug}`);
+    const slug = createdProperty.slug;
+    setPropertySlug(slug);
+    router.push(`/list-property?edit=${slug}`);
   };
 
   const handleEdit = () => {
@@ -48,7 +64,7 @@ export default function ListPropertyPage() {
   };
 
   return (
-    <>
+    <Suspense fallback={<div className="py-16 text-center">Loading...</div>}>
         {/* Hero Section */}
         <section className="bg-linear-to-br from-primary via-primary/95 to-secondary/20 text-white py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -191,7 +207,7 @@ export default function ListPropertyPage() {
             )}
           </div>
         </section>
-    </>
+    </Suspense>
   );
 }
 

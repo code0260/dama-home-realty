@@ -60,3 +60,9 @@ backend/frontend/.env.production.local
 *.temp
 .cache/
 
+# Server-specific files (Hostinger)
+index.php
+frontend-build.zip
+*.sh
+!keep_pm2_alive.sh
+
