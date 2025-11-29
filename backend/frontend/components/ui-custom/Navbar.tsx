@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Globe, User, LogOut, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
+// ThemeToggle removed - Light mode only
 import { Logo } from '@/components/ui-custom/Logo';
 import { MobileDrawerNavigation } from '@/components/mobile/MobileNavigation';
 import {
@@ -76,14 +76,14 @@ export function Navbar() {
     'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300',
     shouldBeTransparent
       ? 'bg-transparent backdrop-blur-sm'
-      : 'bg-white/95 dark:bg-primary/95 backdrop-blur-md shadow-md border-b border-gray-200/50 dark:border-gray-800/50',
+      : 'bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200/50',
     'supports-backdrop-filter:backdrop-blur-md'
   );
 
   // Text color: white on home page when transparent, dark/white on other pages or when scrolled
   const textColorClasses = shouldBeTransparent
     ? 'text-white'
-    : 'text-primary dark:text-white';
+    : 'text-primary';
 
   return (
     <motion.nav
@@ -133,7 +133,7 @@ export function Navbar() {
                     'relative group text-sm font-medium transition-colors',
                     shouldBeTransparent
                       ? 'text-white'
-                      : 'text-primary dark:text-white',
+                      : 'text-primary',
                     'hover:text-secondary'
                   )}
                 >
@@ -155,9 +155,6 @@ export function Navbar() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-3 md:gap-4">
-            {/* Theme Toggle */}
-            <ThemeToggle />
-
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -167,7 +164,7 @@ export function Navbar() {
                   className={cn(
                     'hidden sm:flex items-center gap-2 h-9 px-3',
                     textColorClasses,
-                    'hover:bg-white/10 dark:hover:bg-primary/20'
+                    'hover:bg-gray-100'
                   )}
                 >
                   <Languages className="w-4 h-4" />
@@ -226,7 +223,7 @@ export function Navbar() {
                         className={cn(
                           'hidden sm:flex items-center gap-2 h-9',
                           textColorClasses,
-                          'hover:bg-white/10 dark:hover:bg-primary/20'
+                          'hover:bg-gray-100'
                         )}
                       >
                         <User className="w-4 h-4" />
@@ -265,7 +262,7 @@ export function Navbar() {
                       className={cn(
                         'hidden sm:flex h-9',
                         textColorClasses,
-                        'hover:bg-white/10 dark:hover:bg-primary/20'
+                        'hover:bg-gray-100'
                       )}
                     >
                       <Link href="/login">Login</Link>
@@ -297,7 +294,7 @@ export function Navbar() {
                   className={cn(
                     'lg:hidden h-9 w-9 p-0',
                     textColorClasses,
-                    'hover:bg-white/10 dark:hover:bg-primary/20'
+                    'hover:bg-gray-100'
                   )}
                   aria-label="Open menu"
                 >
@@ -331,7 +328,7 @@ export function Navbar() {
                               'text-base font-medium transition-colors py-2',
                               isActive
                                 ? 'text-secondary border-l-4 border-secondary pl-4'
-                                : 'text-gray-700 dark:text-gray-300 hover:text-secondary pl-4',
+                                : 'text-gray-700 hover:text-secondary pl-4',
                               'hover:border-l-4 hover:border-secondary/50'
                             )}
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -343,7 +340,7 @@ export function Navbar() {
                     })}
                   </nav>
 
-                  <div className="border-t border-gray-200 dark:border-gray-800 pt-6 space-y-4">
+                  <div className="border-t border-gray-200 pt-6 space-y-4">
                     {/* List Property Button */}
                     <SheetClose asChild>
                       <Button
@@ -357,8 +354,8 @@ export function Navbar() {
                     </SheetClose>
 
                     {/* Language Switcher */}
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700">
                         Language
                       </span>
                       <div className="flex gap-2">
@@ -395,7 +392,7 @@ export function Navbar() {
                             <SheetClose asChild>
                               <Link
                                 href="/portal"
-                                className="block text-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-secondary transition-colors py-2"
+                                className="block text-center text-sm font-medium text-gray-700 hover:text-secondary transition-colors py-2"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
                                 My Portal

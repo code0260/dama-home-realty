@@ -13,56 +13,29 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system');
+  // Force light mode only - no dark mode support
+  const [theme, setTheme] = useState<Theme>('light');
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Get theme from localStorage or default to system
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    // Always use light theme - ignore localStorage
+    setTheme('light');
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
 
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-
-    let resolved: 'light' | 'dark';
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-      resolved = systemTheme;
-    } else {
-      resolved = theme;
-    }
-
-    setResolvedTheme(resolved);
-    root.classList.add(resolved);
-    localStorage.setItem('theme', theme);
-  }, [theme, mounted]);
-
-  // Listen for system theme changes
-  useEffect(() => {
-    if (!mounted || theme !== 'system') return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      const root = window.document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(e.matches ? 'dark' : 'light');
-      setResolvedTheme(e.matches ? 'dark' : 'light');
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme, mounted]);
+    // Remove dark class if exists, always add light
+    root.classList.remove('dark');
+    root.classList.add('light');
+    
+    setResolvedTheme('light');
+    // Save light theme to localStorage
+    localStorage.setItem('theme', 'light');
+  }, [mounted]);
 
   // Always provide context, even before mount, to prevent errors
   return (

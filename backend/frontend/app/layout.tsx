@@ -30,11 +30,12 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com'),
   title: {
     default: 'Dama Home Realty - Properties in Damascus',
     template: '%s | Dama Home Realty',
   },
+  applicationName: 'Dama Home Realty',
   description: "Find your perfect home in Damascus. Rent, buy, or book properties in Syria's capital. Connecting Syrian expats with trusted homes in their homeland.",
   keywords: [
     'Damascus real estate',
@@ -51,10 +52,10 @@ export const metadata: Metadata = {
   creator: 'Dama Home Realty',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon-192x192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/icon-192x192.png',
     apple: [
       { url: '/icon-192x192.png', sizes: '180x180', type: 'image/png' },
     ],
@@ -107,13 +108,14 @@ export default function RootLayout({
         <link rel="icon" type="image/png" href="/icon-192x192.png" sizes="192x192" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" sizes="180x180" />
         <meta name="theme-color" content="#0F172A" />
+        <meta name="color-scheme" content="light" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Dama Home Realty" />
       </head>
       <body
-        className={`${inter.variable} ${cairo.variable} font-sans antialiased bg-background dark:bg-[#020617] text-foreground dark:text-slate-200 transition-colors`}
+        className={`${inter.variable} ${cairo.variable} font-sans antialiased bg-background text-foreground`}
       >
         <ErrorBoundary>
           <Providers>
