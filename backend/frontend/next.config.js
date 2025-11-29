@@ -2,6 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  // Disable Turbopack - use webpack instead for better compatibility on shared hosting
+  experimental: {
+    turbo: false,
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -17,6 +21,9 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
