@@ -145,12 +145,22 @@ pm2 logs nextjs
 # Laravel Logs
 tail -50 ~/domains/damahomerealty.com/public_html/backend/storage/logs/laravel.log
 
-# PM2 Keep-Alive Logs
+# PM2 Keep-Alive Logs (if cron works)
 tail -f ~/pm2_keepalive.log
 
-# Cron Jobs
-crontab -l
+# Manual PM2 Check
+bash ~/check_pm2.sh
+
+# PM2 Saved Processes
+pm2 list
 ```
+
+### PM2 Auto-Restart:
+PM2 محفوظ ويعيد التشغيل تلقائياً بسبب:
+- `pm2 save` - حفظ العمليات
+- PM2 autorestart - إعادة تشغيل تلقائية عند التوقف
+- `.bashrc` script - يعيد التشغيل عند SSH login
+- Manual script - `~/check_pm2.sh` للتحقق اليدوي
 
 ### إعادة التشغيل:
 ```bash
