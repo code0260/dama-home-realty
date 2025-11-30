@@ -459,9 +459,6 @@ class FullDatabaseSeeder extends Seeder
                     'en' => 'Complete property management services including maintenance, tenant relations, and financial management.',
                     'ar' => 'خدمات إدارة عقارات شاملة تشمل الصيانة، علاقات المستأجرين، والإدارة المالية.'
                 ],
-                'price' => 100,
-                'currency' => 'USD',
-                'slug' => 'property-management',
             ],
             [
                 'title' => ['en' => 'Real Estate Consultation', 'ar' => 'استشارات عقارية'],
@@ -469,9 +466,6 @@ class FullDatabaseSeeder extends Seeder
                     'en' => 'Expert consultation for buying, selling, or renting properties in Damascus.',
                     'ar' => 'استشارات خبيرة لشراء أو بيع أو تأجير العقارات في دمشق.'
                 ],
-                'price' => 50,
-                'currency' => 'USD',
-                'slug' => 'real-estate-consultation',
             ],
             [
                 'title' => ['en' => 'Property Valuation', 'ar' => 'تقييم العقارات'],
@@ -479,9 +473,6 @@ class FullDatabaseSeeder extends Seeder
                     'en' => 'Professional property valuation services to determine fair market value.',
                     'ar' => 'خدمات تقييم عقارية احترافية لتحديد القيمة السوقية العادلة.'
                 ],
-                'price' => 75,
-                'currency' => 'USD',
-                'slug' => 'property-valuation',
             ],
             [
                 'title' => ['en' => 'Legal Documentation', 'ar' => 'الوثائق القانونية'],
@@ -489,21 +480,27 @@ class FullDatabaseSeeder extends Seeder
                     'en' => 'Assistance with all legal documentation and contracts for property transactions.',
                     'ar' => 'المساعدة في جميع الوثائق القانونية والعقود لمعاملات العقارات.'
                 ],
-                'price' => 150,
-                'currency' => 'USD',
-                'slug' => 'legal-documentation',
             ],
         ];
 
         $services = [];
         foreach ($servicesData as $data) {
-            $service = Service::firstOrCreate(
-                ['slug' => $data['slug']],
-                array_merge($data, [
+            // Remove slug from data since it doesn't exist in the table
+            $slug = $data['slug'] ?? null;
+            unset($data['slug']);
+            
+            // Check if service exists by title
+            $service = Service::where('title->en', $data['title']['en'])
+                ->orWhere('title->ar', $data['title']['ar'])
+                ->first();
+            
+            if (!$service) {
+                $service = Service::create(array_merge($data, [
                     'is_active' => true,
                     'sort_order' => count($services) + 1,
-                ])
-            );
+                ]));
+            }
+            
             $services[] = $service;
         }
         $this->command->info('   ✅ تم إنشاء ' . count($services) . ' خدمة');
