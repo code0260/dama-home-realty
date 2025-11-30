@@ -1,5 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
@@ -9,9 +10,20 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Send ALL requests to index.php (which handles routing to Laravel or Next.js)
+    # 1. Serve Next.js static files directly if they exist
+    RewriteCond %{REQUEST_URI} ^/_next/
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 2. Serve public files (images, icons, etc.) directly if they exist
+    RewriteCond %{REQUEST_URI} ^/images/
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # 3. Send ALL other requests to index.php (which handles routing to Laravel or Next.js)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ index.php [L]
+    RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 
