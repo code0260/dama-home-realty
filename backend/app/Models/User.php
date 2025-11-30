@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +13,7 @@ use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles, Billable;
@@ -63,19 +65,14 @@ class User extends Authenticatable implements MustVerifyEmail
      * Super Admin and Staff can access.
      * Also allows access in development or for specific admin emails.
      */
-    public function canAccessPanel(\Filament\Panel $panel): bool
+    public function canAccessPanel(Panel $panel): bool
     {
-        // Allow access if user has admin roles
-        if ($this->hasAnyRole(['Super Admin', 'Staff'])) {
-            return true;
-        }
-
-        // In development, allow all users (for testing)
+        // 1. Allow access in development environment
         if (app()->environment('local')) {
             return true;
         }
 
-        // Allow specific admin emails (for emergency access)
+        // 2. Allow specific admin emails (for emergency access)
         $allowedEmails = [
             'admin@damahomerealty.com',
             'admin@dama.com',
@@ -85,6 +82,12 @@ class User extends Authenticatable implements MustVerifyEmail
             return true;
         }
 
-        return false;
+        // 3. Allow access if user has admin roles
+        if ($this->hasAnyRole(['Super Admin', 'Staff'])) {
+            return true;
+        }
+
+        // For now, allow all users (can be restricted later)
+        return true;
     }
 }
