@@ -7,6 +7,8 @@ use App\Policies\BookingPolicy;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Http\Request; // <--- هام جداً: مكتبة الطلبات
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,12 +40,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->registerPolicies();
+        // 1. إجبار الموقع على HTTPS (للألوان والستايل)
+        URL::forceScheme('https');
 
-        // Inject custom CSS for Filament login page
-        FilamentView::registerRenderHook(
-            'panels::auth.login.form.before',
-            fn (): string => view('filament.custom.login-background')->render()
+        // 2. إصلاح خطأ 405 (Trust Proxies)
+        // هذا الكود يجعل لارفيل يثق في الطلبات القادمة من index.php
+        Request::setTrustedProxies(
+            ['*'], 
+            Request::HEADER_X_FORWARDED_FOR | 
+            Request::HEADER_X_FORWARDED_HOST | 
+            Request::HEADER_X_FORWARDED_PORT | 
+            Request::HEADER_X_FORWARDED_PROTO | 
+            Request::HEADER_X_FORWARDED_AWS_ELB
         );
+
+        // 3. تسجيل سياسات الأمان
+        $this->registerPolicies();
     }
 }
