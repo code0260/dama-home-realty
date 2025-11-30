@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     // Build title safely
     const metadataTitle = `${propertyTitle} in ${neighborhoodName} - Dama Home Realty`;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com';
     const canonicalUrl = `${siteUrl}/properties/${slug}`;
 
     // Build keywords array safely
