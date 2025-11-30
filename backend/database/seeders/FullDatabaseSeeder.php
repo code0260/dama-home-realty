@@ -371,9 +371,9 @@ class FullDatabaseSeeder extends Seeder
                 'phone' => '+963 11 ' . rand(100, 999) . ' ' . rand(1000, 9999),
                 'message' => 'أريد معلومات عن هذا العقار',
                 'property_id' => $property->id,
-                'status' => ['new', 'contacted', 'qualified', 'converted', 'lost'][array_rand(['new', 'contacted', 'qualified', 'converted', 'lost'])],
-                'type' => ['inquiry', 'viewing', 'booking'][array_rand(['inquiry', 'viewing', 'booking'])],
-                'preferred_date' => Carbon::now()->addDays(rand(1, 14)),
+                'status' => ['new', 'contacted', 'closed'][array_rand(['new', 'contacted', 'closed'])],
+                'type' => ['inquiry', 'live_tour_request', 'service_request'][array_rand(['inquiry', 'live_tour_request', 'service_request'])],
+                'preferred_date' => Carbon::now()->addDays(rand(1, 14))->format('Y-m-d'),
                 'preferred_time' => ['09:00', '14:00', '16:00'][array_rand(['09:00', '14:00', '16:00'])],
             ]);
             $leads[] = $lead;
