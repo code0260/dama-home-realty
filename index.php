@@ -40,13 +40,13 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     // Change to Laravel public directory
     chdir(__DIR__ . '/backend/public');
     
-    // Enable debug logging temporarily
+    // Enable debug logging temporarily (DO NOT read php://input here!)
     error_log("=== INDEX.PHP DEBUG ===");
     error_log("REQUEST_METHOD: " . ($_SERVER['REQUEST_METHOD'] ?? 'NOT SET'));
     error_log("REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'NOT SET'));
     error_log("SCRIPT_NAME: " . ($_SERVER['SCRIPT_NAME'] ?? 'NOT SET'));
     error_log("POST data exists: " . (isset($_POST) && count($_POST) > 0 ? 'YES' : 'NO'));
-    error_log("php://input length: " . strlen(file_get_contents('php://input')));
+    error_log("CONTENT_TYPE: " . ($_SERVER['CONTENT_TYPE'] ?? 'NOT SET'));
     
     // Require Laravel's index.php
     require __DIR__ . '/backend/public/index.php';
