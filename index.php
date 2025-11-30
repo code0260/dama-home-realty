@@ -15,11 +15,16 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     $_SERVER['SCRIPT_NAME'] = '/index.php';
     $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/backend/public/index.php';
     
-    // CRITICAL: Preserve REQUEST_METHOD exactly as received
+    // CRITICAL: Set REQUEST_METHOD in multiple ways to ensure Laravel sees it
+    // Some PHP configurations or Laravel versions check different sources
     $_SERVER['REQUEST_METHOD'] = strtoupper($originalMethod);
+    $_ENV['REQUEST_METHOD'] = strtoupper($originalMethod);
+    putenv('REQUEST_METHOD=' . strtoupper($originalMethod));
     
-    // Also set HTTP method in environment (some frameworks check this)
-    putenv('REQUEST_METHOD=' . $_SERVER['REQUEST_METHOD']);
+    // Also set HTTP_X_HTTP_METHOD_OVERRIDE if needed (some proxies use this)
+    if (!isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+        $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = strtoupper($originalMethod);
+    }
     
     // Preserve query string if exists
     if (isset($_SERVER['QUERY_STRING'])) {
@@ -37,20 +42,21 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     // Laravel's Request::capture() will handle reading from php://input
     // For multipart/form-data, PHP automatically populates $_POST and $_FILES
     
-    // Change to Laravel public directory
-    chdir(__DIR__ . '/backend/public');
-    
-    // Enable debug logging to Laravel log file
+    // Enable debug logging to Laravel log file (BEFORE chdir)
     $debugFile = __DIR__ . '/backend/storage/logs/index_debug.log';
     $debugMsg = sprintf(
-        "[%s] INDEX.PHP DEBUG - METHOD: %s, URI: %s, POST: %s, CONTENT_TYPE: %s\n",
+        "[%s] INDEX.PHP DEBUG - METHOD: %s, URI: %s, POST: %s, CONTENT_TYPE: %s, _ENV: %s\n",
         date('Y-m-d H:i:s'),
         $_SERVER['REQUEST_METHOD'] ?? 'NOT SET',
         $_SERVER['REQUEST_URI'] ?? 'NOT SET',
         isset($_POST) && count($_POST) > 0 ? 'YES' : 'NO',
-        $_SERVER['CONTENT_TYPE'] ?? 'NOT SET'
+        $_SERVER['CONTENT_TYPE'] ?? 'NOT SET',
+        $_ENV['REQUEST_METHOD'] ?? 'NOT SET'
     );
     file_put_contents($debugFile, $debugMsg, FILE_APPEND);
+    
+    // Change to Laravel public directory AFTER setting all variables
+    chdir(__DIR__ . '/backend/public');
     
     // Require Laravel's index.php
     require __DIR__ . '/backend/public/index.php';
