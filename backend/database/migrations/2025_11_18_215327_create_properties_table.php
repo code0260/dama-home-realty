@@ -20,10 +20,7 @@ return new class extends Migration
             $table->decimal('price', 12, 2);
             $table->enum('currency', ['USD', 'SYP'])->default('USD');
             $table->enum('type', ['rent', 'sale', 'hotel']);
-            $table->foreignId('neighborhood_id')
-                ->nullable()
-                ->constrained('neighborhoods')
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('neighborhood_id')->nullable();
             $table->integer('bedrooms');
             $table->integer('bathrooms');
             $table->integer('area_sqm');
@@ -35,6 +32,12 @@ return new class extends Migration
             $table->string('owner_contact');
             $table->enum('status', ['active', 'sold', 'rented'])->default('active');
             $table->timestamps();
+            
+            // Add foreign key constraint after table creation
+            $table->foreign('neighborhood_id')
+                ->references('id')
+                ->on('neighborhoods')
+                ->onDelete('cascade');
         });
     }
 

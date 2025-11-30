@@ -118,7 +118,8 @@ if ($response === false || $httpCode === 0) {
     curl_close($ch);
     
     // Try to restart Next.js via PM2 (if available)
-    $pm2Restart = @shell_exec('pm2 restart nextjs 2>&1');
+    $pm2Path = '/home/u646739138/.nvm/versions/node/v18.20.8/bin/pm2';
+    $pm2Restart = @shell_exec("export PATH=/home/u646739138/.nvm/versions/node/v18.20.8/bin:\$PATH && cd " . __DIR__ . "/frontend && $pm2Path restart nextjs 2>&1 || $pm2Path start npm --name nextjs -- start 2>&1");
     
     // Log the error for debugging
     $errorLog = __DIR__ . '/backend/storage/logs/nextjs_errors.log';
