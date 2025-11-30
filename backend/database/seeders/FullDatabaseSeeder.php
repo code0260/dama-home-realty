@@ -545,7 +545,9 @@ class FullDatabaseSeeder extends Seeder
         foreach ($articlesData as $data) {
             $article = Article::firstOrCreate(
                 ['slug' => $data['slug']],
-                $data
+                array_merge($data, [
+                    'author_id' => $admin->id, // Use admin as author
+                ])
             );
             $articles[] = $article;
         }
