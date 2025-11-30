@@ -61,7 +61,7 @@ backend/frontend/.env.production.local
 .cache/
 
 # Server-specific files (Hostinger)
-index.php
+# index.php - Now tracked in Git for deployment
 frontend-build.zip
 *.sh
 !keep_pm2_alive.sh
