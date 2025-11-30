@@ -61,9 +61,30 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check if user can access Filament admin panel.
      * Super Admin and Staff can access.
+     * Also allows access in development or for specific admin emails.
      */
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        return $this->hasAnyRole(['Super Admin', 'Staff']);
+        // Allow access if user has admin roles
+        if ($this->hasAnyRole(['Super Admin', 'Staff'])) {
+            return true;
+        }
+
+        // In development, allow all users (for testing)
+        if (app()->environment('local')) {
+            return true;
+        }
+
+        // Allow specific admin emails (for emergency access)
+        $allowedEmails = [
+            'admin@damahomerealty.com',
+            'admin@dama.com',
+        ];
+
+        if (in_array($this->email, $allowedEmails)) {
+            return true;
+        }
+
+        return false;
     }
 }
