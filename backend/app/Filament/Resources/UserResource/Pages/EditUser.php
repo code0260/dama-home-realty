@@ -24,8 +24,8 @@ class EditUser extends EditRecord
         // Load roles relationship
         $this->record->load('roles');
         
-        // Set roles for the form
-        $data['roles'] = $this->record->roles->pluck('id')->toArray();
+        // Set roles for the form (single role, get first role ID)
+        $data['roles'] = $this->record->roles->first()?->id;
         
         return $data;
     }
@@ -46,9 +46,13 @@ class EditUser extends EditRecord
     protected function afterSave(): void
     {
         // Sync roles
-        $roles = $this->form->getState()['roles'] ?? [];
-        if (!empty($roles)) {
-            $this->record->syncRoles($roles);
+        $roleId = $this->form->getState()['roles'] ?? null;
+        if ($roleId) {
+            // Get role by ID and assign by name
+            $role = \Spatie\Permission\Models\Role::find($roleId);
+            if ($role) {
+                $this->record->syncRoles([$role->name]);
+            }
         } else {
             // If no role selected, remove all roles (except Super Admin protection)
             if (!$this->record->hasRole('Super Admin')) {

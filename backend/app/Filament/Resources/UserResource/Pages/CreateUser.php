@@ -29,9 +29,13 @@ class CreateUser extends CreateRecord
     protected function afterCreate(): void
     {
         // Assign role if selected
-        $roles = $this->form->getState()['roles'] ?? [];
-        if (!empty($roles)) {
-            $this->record->syncRoles($roles);
+        $roleId = $this->form->getState()['roles'] ?? null;
+        if ($roleId) {
+            // Get role by ID and assign by name
+            $role = \Spatie\Permission\Models\Role::find($roleId);
+            if ($role) {
+                $this->record->syncRoles([$role->name]);
+            }
         }
     }
 }
