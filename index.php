@@ -54,7 +54,9 @@ if (preg_match('#^/(api|admin|storage|livewire)#', $uri)) {
     // Laravel's Request::capture() will handle reading from php://input
     // For multipart/form-data, PHP automatically populates $_POST and $_FILES
     
-    // Enable debug logging to Laravel log file (BEFORE chdir)
+    // Enable debug logging only in development (optional - disable in production)
+    // Uncomment the lines below if you need to debug routing issues
+    /*
     $debugFile = __DIR__ . '/backend/storage/logs/index_debug.log';
     $debugMsg = sprintf(
         "[%s] INDEX.PHP DEBUG - METHOD: %s, URI: %s, POST: %s, CONTENT_TYPE: %s, _ENV: %s\n",
@@ -66,6 +68,7 @@ if (preg_match('#^/(api|admin|storage|livewire)#', $uri)) {
         $_ENV['REQUEST_METHOD'] ?? 'NOT SET'
     );
     file_put_contents($debugFile, $debugMsg, FILE_APPEND);
+    */
     
     // Change to Laravel public directory AFTER setting all variables
     chdir(__DIR__ . '/backend/public');
