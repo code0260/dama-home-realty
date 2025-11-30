@@ -71,10 +71,19 @@ class FullDatabaseSeeder extends Seeder
 
         $neighborhoods = [];
         foreach ($neighborhoodsData as $data) {
-            $neighborhood = Neighborhood::firstOrCreate(
-                ['name' => $data['name']],
-                $data
-            );
+            // Generate slug from English name
+            $slug = Str::slug($data['name']['en']);
+            
+            // Try to find by slug first, then by name
+            $neighborhood = Neighborhood::where('slug', $slug)
+                ->orWhere('name->en', $data['name']['en'])
+                ->orWhere('name->ar', $data['name']['ar'])
+                ->first();
+            
+            if (!$neighborhood) {
+                $neighborhood = Neighborhood::create(array_merge($data, ['slug' => $slug]));
+            }
+            
             $neighborhoods[] = $neighborhood;
         }
         $this->command->info('   ✅ تم إنشاء ' . count($neighborhoods) . ' حي');
