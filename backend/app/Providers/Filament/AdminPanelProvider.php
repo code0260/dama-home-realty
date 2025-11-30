@@ -28,9 +28,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Dama Home Realty')
-            ->brandLogo(asset('images/logo-horizontal.png.png'))
+            ->brandLogo(asset('images/logo.png'))
             ->brandLogoHeight('3rem')
-            ->favicon(asset('images/favicon.png.png'))
+            ->favicon(asset('images/icon-192x192.png'))
             ->colors([
                 'primary' => Color::hex('#B49162'), // Bronze/Gold - Dama Home Realty brand color
                 'gray' => Color::Slate, // Cool-toned gray to match Navy Blue vibe
