@@ -1,0 +1,7 @@
+# This .htaccess is disabled because routing is handled by index.php in public_html
+# The index.php file in public_html routes requests to either Laravel or Next.js
+
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     # ... (disabled - routing handled by public_html/index.php)
+# </IfModule>
