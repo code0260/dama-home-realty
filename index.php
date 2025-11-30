@@ -40,6 +40,10 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     // Change to Laravel public directory
     chdir(__DIR__ . '/backend/public');
     
+    // Debug: Log request method (remove in production)
+    // error_log("DEBUG: REQUEST_METHOD = " . $_SERVER['REQUEST_METHOD']);
+    // error_log("DEBUG: REQUEST_URI = " . $_SERVER['REQUEST_URI']);
+    
     // Require Laravel's index.php
     require __DIR__ . '/backend/public/index.php';
     exit;
