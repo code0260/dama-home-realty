@@ -385,33 +385,43 @@ class FullDatabaseSeeder extends Seeder
         $this->command->info('9️⃣ إنشاء الشهادات...');
         $testimonialsData = [
             [
-                'name' => 'أحمد الخالدي',
-                'role' => 'مستأجر',
-                'content' => 'خدمة ممتازة وعقارات موثوقة. أنصح الجميع بالتعامل معهم.',
+                'client_name' => 'أحمد الخالدي',
+                'comment' => [
+                    'en' => 'Excellent service and reliable properties. I recommend everyone to work with them.',
+                    'ar' => 'خدمة ممتازة وعقارات موثوقة. أنصح الجميع بالتعامل معهم.'
+                ],
                 'rating' => 5,
             ],
             [
-                'name' => 'فاطمة الأسد',
-                'role' => 'مستثمرة',
-                'content' => 'وجدت العقار المثالي بفضل فريق العمل المحترف.',
+                'client_name' => 'فاطمة الأسد',
+                'comment' => [
+                    'en' => 'Found the perfect property thanks to the professional team.',
+                    'ar' => 'وجدت العقار المثالي بفضل فريق العمل المحترف.'
+                ],
                 'rating' => 5,
             ],
             [
-                'name' => 'محمد الحموي',
-                'role' => 'مستأجر',
-                'content' => 'تجربة رائعة من البداية للنهاية. شكراً لكم!',
+                'client_name' => 'محمد الحموي',
+                'comment' => [
+                    'en' => 'Great experience from start to finish. Thank you!',
+                    'ar' => 'تجربة رائعة من البداية للنهاية. شكراً لكم!'
+                ],
                 'rating' => 5,
             ],
             [
-                'name' => 'سارة الديري',
-                'role' => 'مستثمرة',
-                'content' => 'عقارات عالية الجودة وخدمة عملاء ممتازة.',
+                'client_name' => 'سارة الديري',
+                'comment' => [
+                    'en' => 'High quality properties and excellent customer service.',
+                    'ar' => 'عقارات عالية الجودة وخدمة عملاء ممتازة.'
+                ],
                 'rating' => 5,
             ],
             [
-                'name' => 'خالد حسن',
-                'role' => 'مستأجر',
-                'content' => 'أفضل موقع للبحث عن عقارات في دمشق.',
+                'client_name' => 'خالد حسن',
+                'comment' => [
+                    'en' => 'Best website to search for properties in Damascus.',
+                    'ar' => 'أفضل موقع للبحث عن عقارات في دمشق.'
+                ],
                 'rating' => 5,
             ],
         ];
@@ -419,10 +429,11 @@ class FullDatabaseSeeder extends Seeder
         $testimonials = [];
         foreach ($testimonialsData as $data) {
             $testimonial = Testimonial::firstOrCreate(
-                ['name' => $data['name']],
+                ['client_name' => $data['client_name']],
                 array_merge($data, [
                     'is_featured' => true,
-                    'is_approved' => true,
+                    'country_flag' => 'sy',
+                    'sort_order' => count($testimonials) + 1,
                 ])
             );
             $testimonials[] = $testimonial;
@@ -434,49 +445,54 @@ class FullDatabaseSeeder extends Seeder
         $this->command->info('🔟 إنشاء الخدمات...');
         $servicesData = [
             [
-                'name' => ['en' => 'Property Management', 'ar' => 'إدارة العقارات'],
+                'title' => ['en' => 'Property Management', 'ar' => 'إدارة العقارات'],
                 'description' => [
                     'en' => 'Complete property management services including maintenance, tenant relations, and financial management.',
                     'ar' => 'خدمات إدارة عقارات شاملة تشمل الصيانة، علاقات المستأجرين، والإدارة المالية.'
                 ],
                 'price' => 100,
                 'currency' => 'USD',
+                'slug' => 'property-management',
             ],
             [
-                'name' => ['en' => 'Real Estate Consultation', 'ar' => 'استشارات عقارية'],
+                'title' => ['en' => 'Real Estate Consultation', 'ar' => 'استشارات عقارية'],
                 'description' => [
                     'en' => 'Expert consultation for buying, selling, or renting properties in Damascus.',
                     'ar' => 'استشارات خبيرة لشراء أو بيع أو تأجير العقارات في دمشق.'
                 ],
                 'price' => 50,
                 'currency' => 'USD',
+                'slug' => 'real-estate-consultation',
             ],
             [
-                'name' => ['en' => 'Property Valuation', 'ar' => 'تقييم العقارات'],
+                'title' => ['en' => 'Property Valuation', 'ar' => 'تقييم العقارات'],
                 'description' => [
                     'en' => 'Professional property valuation services to determine fair market value.',
                     'ar' => 'خدمات تقييم عقارية احترافية لتحديد القيمة السوقية العادلة.'
                 ],
                 'price' => 75,
                 'currency' => 'USD',
+                'slug' => 'property-valuation',
             ],
             [
-                'name' => ['en' => 'Legal Documentation', 'ar' => 'الوثائق القانونية'],
+                'title' => ['en' => 'Legal Documentation', 'ar' => 'الوثائق القانونية'],
                 'description' => [
                     'en' => 'Assistance with all legal documentation and contracts for property transactions.',
                     'ar' => 'المساعدة في جميع الوثائق القانونية والعقود لمعاملات العقارات.'
                 ],
                 'price' => 150,
                 'currency' => 'USD',
+                'slug' => 'legal-documentation',
             ],
         ];
 
         $services = [];
         foreach ($servicesData as $data) {
             $service = Service::firstOrCreate(
-                ['name' => $data['name']],
+                ['slug' => $data['slug']],
                 array_merge($data, [
                     'is_active' => true,
+                    'sort_order' => count($services) + 1,
                 ])
             );
             $services[] = $service;
@@ -490,44 +506,32 @@ class FullDatabaseSeeder extends Seeder
             [
                 'title' => ['en' => 'Best Neighborhoods to Live in Damascus', 'ar' => 'أفضل الأحياء للسكن في دمشق'],
                 'slug' => 'best-neighborhoods-damascus',
-                'excerpt' => [
-                    'en' => 'A comprehensive guide to the best neighborhoods in Damascus for expats and locals.',
-                    'ar' => 'دليل شامل لأفضل الأحياء في دمشق للمغتربين والمحليين.'
-                ],
                 'content' => [
-                    'en' => 'Damascus offers a variety of neighborhoods, each with its unique charm...',
-                    'ar' => 'تقدم دمشق مجموعة متنوعة من الأحياء، كل منها له سحره الفريد...'
+                    'en' => 'Damascus offers a variety of neighborhoods, each with its unique charm. From the historic Old City to modern districts like Abu Rummaneh and Malki, there is something for everyone. This comprehensive guide will help you find the perfect neighborhood for your needs.',
+                    'ar' => 'تقدم دمشق مجموعة متنوعة من الأحياء، كل منها له سحره الفريد. من المدينة القديمة التاريخية إلى الأحياء الحديثة مثل أبو رمانة والمالكي، هناك شيء للجميع. سيساعدك هذا الدليل الشامل في العثور على الحي المثالي لاحتياجاتك.'
                 ],
-                'is_published' => true,
                 'published_at' => now(),
+                'is_featured' => true,
             ],
             [
                 'title' => ['en' => 'Tips for Renting in Damascus', 'ar' => 'نصائح لتأجير العقارات في دمشق'],
                 'slug' => 'tips-renting-damascus',
-                'excerpt' => [
-                    'en' => 'Essential tips and advice for finding and renting the perfect property in Damascus.',
-                    'ar' => 'نصائح وإرشادات أساسية لإيجاد وتأجير العقار المثالي في دمشق.'
-                ],
                 'content' => [
-                    'en' => 'Renting a property in Damascus requires careful consideration...',
-                    'ar' => 'تأجير عقار في دمشق يتطلب اعتبارات دقيقة...'
+                    'en' => 'Renting a property in Damascus requires careful consideration of several factors. Location, amenities, and price are all important. This article provides essential tips and advice for finding and renting the perfect property in Damascus.',
+                    'ar' => 'تأجير عقار في دمشق يتطلب اعتبارات دقيقة لعدة عوامل. الموقع والمرافق والسعر كلها مهمة. تقدم هذه المقالة نصائح وإرشادات أساسية لإيجاد وتأجير العقار المثالي في دمشق.'
                 ],
-                'is_published' => true,
                 'published_at' => now()->subDays(5),
+                'is_featured' => false,
             ],
             [
                 'title' => ['en' => 'Understanding Property Prices in Syria', 'ar' => 'فهم أسعار العقارات في سوريا'],
                 'slug' => 'property-prices-syria',
-                'excerpt' => [
-                    'en' => 'A detailed analysis of property prices and market trends in Syria.',
-                    'ar' => 'تحليل مفصل لأسعار العقارات واتجاهات السوق في سوريا.'
-                ],
                 'content' => [
-                    'en' => 'The Syrian real estate market has seen various changes...',
-                    'ar' => 'شهد سوق العقارات السوري تغييرات متنوعة...'
+                    'en' => 'The Syrian real estate market has seen various changes over the years. Understanding property prices and market trends is crucial for both buyers and sellers. This detailed analysis will help you navigate the market effectively.',
+                    'ar' => 'شهد سوق العقارات السوري تغييرات متنوعة على مر السنين. فهم أسعار العقارات واتجاهات السوق أمر بالغ الأهمية لكل من المشترين والبائعين. سيساعدك هذا التحليل المفصل على التنقل في السوق بفعالية.'
                 ],
-                'is_published' => true,
                 'published_at' => now()->subDays(10),
+                'is_featured' => false,
             ],
         ];
 
