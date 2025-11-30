@@ -87,7 +87,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HEADER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2); // Reduced timeout for faster failure detection
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD'] ?? 'GET');
 
 // Forward POST data if exists
@@ -110,18 +110,100 @@ if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
 
 // Execute request
 $response = curl_exec($ch);
+$curlError = curl_error($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-if ($response === false) {
-    $error = curl_error($ch);
-    http_response_code(503);
-    header('Content-Type: text/plain');
-    echo "Service temporarily unavailable: " . $error;
+// If Next.js is not available, serve a maintenance page or try to restart it
+if ($response === false || $httpCode === 0) {
     curl_close($ch);
+    
+    // Try to restart Next.js via PM2 (if available)
+    $pm2Restart = @shell_exec('pm2 restart nextjs 2>&1');
+    
+    // Log the error for debugging
+    $errorLog = __DIR__ . '/backend/storage/logs/nextjs_errors.log';
+    $errorMsg = sprintf(
+        "[%s] Next.js unavailable: %s | PM2 restart: %s\n",
+        date('Y-m-d H:i:s'),
+        $curlError ?: 'Connection failed',
+        $pm2Restart ? 'Attempted' : 'PM2 not available'
+    );
+    @file_put_contents($errorLog, $errorMsg, FILE_APPEND);
+    
+    // Serve a user-friendly error page
+    http_response_code(503);
+    header('Content-Type: text/html; charset=UTF-8');
+    ?>
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>الخدمة غير متاحة مؤقتاً - Dama Home Realty</title>
+        <style>
+            body {
+                font-family: 'Cairo', Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                color: #333;
+            }
+            .container {
+                background: white;
+                padding: 40px;
+                border-radius: 10px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 500px;
+            }
+            h1 {
+                color: #B49162;
+                margin-bottom: 20px;
+            }
+            p {
+                line-height: 1.6;
+                color: #666;
+            }
+            .retry-btn {
+                background: #B49162;
+                color: white;
+                padding: 12px 30px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                margin-top: 20px;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .retry-btn:hover {
+                background: #9a7a4f;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>الخدمة غير متاحة مؤقتاً</h1>
+            <p>نعتذر، الموقع قيد الصيانة أو غير متاح حالياً. يرجى المحاولة مرة أخرى بعد قليل.</p>
+            <p style="font-size: 14px; color: #999; margin-top: 20px;">
+                إذا استمرت المشكلة، يرجى التواصل معنا.
+            </p>
+            <a href="/" class="retry-btn" onclick="window.location.reload()">إعادة المحاولة</a>
+        </div>
+    </body>
+    </html>
+    <?php
     exit;
 }
 
 $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+if ($httpCode === 0) {
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+}
 
 // Forward response headers
 $responseHeaders = explode("\r\n", substr($response, 0, $headerSize));
