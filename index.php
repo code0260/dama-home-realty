@@ -3,8 +3,8 @@
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
 $uri = parse_url($uri, PHP_URL_PATH);
 
-// Route API, Admin, and Storage to Laravel
-if (preg_match('#^/(api|admin|storage)#', $uri)) {
+// Route API, Admin, Storage, and Livewire to Laravel
+if (preg_match('#^/(api|admin|storage|livewire)#', $uri)) {
     // Get original request method BEFORE any modifications
     $originalMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     
