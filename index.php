@@ -5,12 +5,24 @@ $uri = parse_url($uri, PHP_URL_PATH);
 
 // Route API, Admin, and Storage to Laravel
 if (preg_match('#^/(api|admin|storage)#', $uri)) {
+    // Preserve original URI and method
     $_SERVER['REQUEST_URI'] = $uri;
     $_SERVER['SCRIPT_NAME'] = '/index.php';
     $_SERVER['REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     
-    // Preserve original request method and input
-    $_SERVER['ORIGINAL_REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'];
+    // For POST/PUT/PATCH/DELETE requests, ensure POST data is available
+    if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+        // Read raw input and populate $_POST if it's form data
+        $input = file_get_contents('php://input');
+        
+        // If Content-Type is application/x-www-form-urlencoded, parse it
+        if (isset($_SERVER['CONTENT_TYPE']) && 
+            strpos($_SERVER['CONTENT_TYPE'], 'application/x-www-form-urlencoded') !== false) {
+            parse_str($input, $_POST);
+        }
+        // If Content-Type is multipart/form-data, $_POST is already populated by PHP
+        // For JSON, Laravel will read from php://input directly via Request::capture()
+    }
     
     chdir(__DIR__ . '/backend/public');
     require __DIR__ . '/backend/public/index.php';
