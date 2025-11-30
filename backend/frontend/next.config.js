@@ -4,14 +4,16 @@ const path = require('path');
 const nextConfig = {
   reactStrictMode: true,
   // output: 'standalone', // Removed - using next start instead
-  // Webpack is used by default when Turbopack is disabled via environment variable
   // Fix workspace root detection - explicitly set to current directory
   outputFileTracingRoot: path.join(__dirname),
-  // Fix Turbopack root detection
+  // Disable Turbopack completely - use Webpack instead (more stable on shared hosting)
   experimental: {
-    turbo: {
-      root: path.join(__dirname),
-    },
+    turbo: false,
+  },
+  // Force Webpack
+  webpack: (config, { isServer }) => {
+    config.experiments = { ...config.experiments, topLevelAwait: true };
+    return config;
   },
   images: {
     unoptimized: true,
