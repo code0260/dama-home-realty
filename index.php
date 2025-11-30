@@ -5,16 +5,35 @@ $uri = parse_url($uri, PHP_URL_PATH);
 
 // Route API, Admin, and Storage to Laravel
 if (preg_match('#^/(api|admin|storage)#', $uri)) {
-    // Preserve original URI and method
+    // Preserve original URI
     $_SERVER['REQUEST_URI'] = $uri;
+    
+    // Fix SCRIPT_NAME and SCRIPT_FILENAME for Laravel
     $_SERVER['SCRIPT_NAME'] = '/index.php';
-    $_SERVER['REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/backend/public/index.php';
+    
+    // Ensure REQUEST_METHOD is set correctly
+    if (!isset($_SERVER['REQUEST_METHOD'])) {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+    
+    // For POST/PUT/PATCH/DELETE, ensure method is preserved
+    $method = strtoupper($_SERVER['REQUEST_METHOD']);
+    $_SERVER['REQUEST_METHOD'] = $method;
+    
+    // Set HTTP method override if needed (for some frameworks)
+    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+        $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+    }
     
     // Important: Don't read php://input here - let Laravel read it directly
     // Laravel's Request::capture() will handle reading from php://input
     // For multipart/form-data, PHP automatically populates $_POST and $_FILES
     
+    // Change to Laravel public directory
     chdir(__DIR__ . '/backend/public');
+    
+    // Require Laravel's index.php
     require __DIR__ . '/backend/public/index.php';
     exit;
 }
