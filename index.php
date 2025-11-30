@@ -10,19 +10,9 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     $_SERVER['SCRIPT_NAME'] = '/index.php';
     $_SERVER['REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     
-    // For POST/PUT/PATCH/DELETE requests, ensure POST data is available
-    if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-        // Read raw input and populate $_POST if it's form data
-        $input = file_get_contents('php://input');
-        
-        // If Content-Type is application/x-www-form-urlencoded, parse it
-        if (isset($_SERVER['CONTENT_TYPE']) && 
-            strpos($_SERVER['CONTENT_TYPE'], 'application/x-www-form-urlencoded') !== false) {
-            parse_str($input, $_POST);
-        }
-        // If Content-Type is multipart/form-data, $_POST is already populated by PHP
-        // For JSON, Laravel will read from php://input directly via Request::capture()
-    }
+    // Important: Don't read php://input here - let Laravel read it directly
+    // Laravel's Request::capture() will handle reading from php://input
+    // For multipart/form-data, PHP automatically populates $_POST and $_FILES
     
     chdir(__DIR__ . '/backend/public');
     require __DIR__ . '/backend/public/index.php';
