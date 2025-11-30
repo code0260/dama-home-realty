@@ -17,13 +17,25 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     
     // CRITICAL: Set REQUEST_METHOD in multiple ways to ensure Laravel sees it
     // Some PHP configurations or Laravel versions check different sources
-    $_SERVER['REQUEST_METHOD'] = strtoupper($originalMethod);
-    $_ENV['REQUEST_METHOD'] = strtoupper($originalMethod);
-    putenv('REQUEST_METHOD=' . strtoupper($originalMethod));
+    $method = strtoupper($originalMethod);
+    $_SERVER['REQUEST_METHOD'] = $method;
+    $_ENV['REQUEST_METHOD'] = $method;
+    putenv('REQUEST_METHOD=' . $method);
     
     // Also set HTTP_X_HTTP_METHOD_OVERRIDE if needed (some proxies use this)
     if (!isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
-        $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = strtoupper($originalMethod);
+        $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = $method;
+    }
+    
+    // CRITICAL: For POST/PUT/PATCH/DELETE, ensure Laravel sees the method
+    // Some servers/proxies may override this, so we set it explicitly
+    if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+        // Set as POST for form submissions (Laravel's Request::capture() checks this)
+        $_SERVER['REQUEST_METHOD'] = $method;
+        // Also set _method parameter for method spoofing (Laravel supports this)
+        if ($method !== 'POST' && !isset($_POST['_method'])) {
+            $_POST['_method'] = $method;
+        }
     }
     
     // Preserve query string if exists
@@ -57,6 +69,11 @@ if (preg_match('#^/(api|admin|storage)#', $uri)) {
     
     // Change to Laravel public directory AFTER setting all variables
     chdir(__DIR__ . '/backend/public');
+    
+    // CRITICAL: Re-set REQUEST_METHOD after chdir() in case it was lost
+    $_SERVER['REQUEST_METHOD'] = $method;
+    $_ENV['REQUEST_METHOD'] = $method;
+    putenv('REQUEST_METHOD=' . $method);
     
     // Require Laravel's index.php
     require __DIR__ . '/backend/public/index.php';
