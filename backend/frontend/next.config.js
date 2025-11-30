@@ -3,6 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   // output: 'standalone', // Removed - using next start instead
   // Webpack is used by default when Turbopack is disabled via environment variable
+  // Fix workspace root detection
+  outputFileTracingRoot: require('path').join(__dirname),
   images: {
     unoptimized: true,
     remotePatterns: [
