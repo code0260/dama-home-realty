@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // output: 'standalone', // Removed - using next start instead
   // Webpack is used by default when Turbopack is disabled via environment variable
   images: {
     unoptimized: true,
