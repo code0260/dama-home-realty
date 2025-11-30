@@ -5,25 +5,32 @@ $uri = parse_url($uri, PHP_URL_PATH);
 
 // Route API, Admin, and Storage to Laravel
 if (preg_match('#^/(api|admin|storage)#', $uri)) {
-    // Preserve original URI
+    // Get original request method BEFORE any modifications
+    $originalMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    
+    // Preserve original URI (without query string for routing)
     $_SERVER['REQUEST_URI'] = $uri;
     
     // Fix SCRIPT_NAME and SCRIPT_FILENAME for Laravel
     $_SERVER['SCRIPT_NAME'] = '/index.php';
     $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/backend/public/index.php';
     
-    // Ensure REQUEST_METHOD is set correctly
-    if (!isset($_SERVER['REQUEST_METHOD'])) {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+    // CRITICAL: Preserve REQUEST_METHOD exactly as received
+    $_SERVER['REQUEST_METHOD'] = strtoupper($originalMethod);
+    
+    // Also set HTTP method in environment (some frameworks check this)
+    putenv('REQUEST_METHOD=' . $_SERVER['REQUEST_METHOD']);
+    
+    // Preserve query string if exists
+    if (isset($_SERVER['QUERY_STRING'])) {
+        $_SERVER['QUERY_STRING'] = $_SERVER['QUERY_STRING'];
     }
     
-    // For POST/PUT/PATCH/DELETE, ensure method is preserved
-    $method = strtoupper($_SERVER['REQUEST_METHOD']);
-    $_SERVER['REQUEST_METHOD'] = $method;
-    
-    // Set HTTP method override if needed (for some frameworks)
-    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
-        $_SERVER['REQUEST_METHOD'] = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+    // Preserve all HTTP headers
+    foreach ($_SERVER as $key => $value) {
+        if (strpos($key, 'HTTP_') === 0) {
+            // Headers are already in $_SERVER, keep them
+        }
     }
     
     // Important: Don't read php://input here - let Laravel read it directly
