@@ -14,7 +14,7 @@ interface NeighborhoodCardProps {
 export function NeighborhoodCard({ neighborhood, propertyCount }: NeighborhoodCardProps) {
   // Get image or placeholder
   const imageUrl = neighborhood.image 
-    ? (neighborhood.image.startsWith('http') ? neighborhood.image : `http://localhost:8000/storage/${neighborhood.image}`)
+    ? (neighborhood.image.startsWith('http') ? neighborhood.image : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com'}/storage/${neighborhood.image}`)
     : null;
 
   return (

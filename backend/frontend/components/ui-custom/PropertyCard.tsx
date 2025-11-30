@@ -49,12 +49,14 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
   };
 
   // Get cover image or placeholder
-  const coverImage =
-    property.images && property.images.length > 0
-      ? property.images[0].startsWith('http')
-        ? property.images[0]
-        : `http://localhost:8000/storage/${property.images[0]}`
-      : null;
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com';
+    return `${apiUrl}/storage/${imagePath}`;
+  };
+
+  const coverImage = property.images && property.images.length > 0 ? getImageUrl(property.images[0]) : null;
 
   // Handle favorite toggle
   const handleFavoriteToggle = (e: React.MouseEvent) => {

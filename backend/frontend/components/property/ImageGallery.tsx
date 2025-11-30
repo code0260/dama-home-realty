@@ -21,7 +21,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
   // Get full image URL
   const getImageUrl = (image: string) => {
     if (image.startsWith('http')) return image;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com';
     return `${apiUrl}/storage/${image}`;
   };
 

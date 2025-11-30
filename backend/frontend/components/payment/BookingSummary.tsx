@@ -28,7 +28,7 @@ export function BookingSummary({ booking, className }: BookingSummaryProps) {
     booking.property?.images && booking.property.images.length > 0
       ? booking.property.images[0].startsWith('http')
         ? booking.property.images[0]
-        : `http://localhost:8000/storage/${booking.property.images[0]}`
+        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com'}/storage/${booking.property.images[0]}`
       : null;
 
   return (

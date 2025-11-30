@@ -31,7 +31,7 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
     property.images && property.images.length > 0
       ? property.images[0].startsWith('http')
         ? property.images[0]
-        : `http://localhost:8000/storage/${property.images[0]}`
+        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com'}/storage/${property.images[0]}`
       : null;
 
   const hasSolarPower =

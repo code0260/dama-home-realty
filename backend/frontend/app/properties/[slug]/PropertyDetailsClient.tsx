@@ -181,7 +181,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
       ? property.images.map((img: string) => 
           img.startsWith('http') 
             ? img 
-            : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000'}/storage/${img}`
+            : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com'}/storage/${img}`
         )
       : [],
     address: {

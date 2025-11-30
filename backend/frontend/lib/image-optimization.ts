@@ -19,7 +19,7 @@ export function getOptimizedImageUrl(
 
   // Construct full URL from base URL
   const apiUrl =
-    baseUrl || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+    baseUrl || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || process.env.NEXT_PUBLIC_SITE_URL || 'https://damahomerealty.com';
 
   // Remove leading slash if present
   const cleanPath = image.startsWith('/') ? image.slice(1) : image;
