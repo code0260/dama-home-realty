@@ -56,11 +56,11 @@
     "tailwind-merge": "^3.4.0",
     "zod": "^4.1.12",
     "@sentry/nextjs": "^8.40.0",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "@tailwindcss/postcss": "^4"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
-    "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
