@@ -85,10 +85,22 @@ npm install --omit=dev --legacy-peer-deps --silent || {
 }
 
 # إعادة بناء Next.js
-echo "   - إعادة بناء Next.js..."
-NEXT_PRIVATE_SKIP_TURBO=1 npm run build || {
+echo "   - حذف مجلد .next القديم..."
+rm -rf .next 2>/dev/null || true
+
+echo "   - إعادة بناء Next.js (باستخدام Webpack فقط)..."
+# تعطيل Turbopack بشكل كامل
+export NEXT_PRIVATE_SKIP_TURBO=1
+export NEXT_PRIVATE_DISABLE_TURBO=1
+# استخدام Webpack بدلاً من Turbopack
+NEXT_PRIVATE_SKIP_TURBO=1 NEXT_PRIVATE_DISABLE_TURBO=1 npm run build || {
     echo -e "${RED}❌ خطأ في بناء Next.js${NC}"
-    exit 1
+    echo -e "${YELLOW}💡 محاولة البناء بدون Turbopack...${NC}"
+    # محاولة بديلة: بناء مباشر مع Webpack
+    NODE_OPTIONS="--max-old-space-size=2048" NEXT_PRIVATE_SKIP_TURBO=1 npx next build || {
+        echo -e "${RED}❌ فشل البناء. تحقق من الأخطاء أعلاه.${NC}"
+        exit 1
+    }
 }
 
 echo -e "${GREEN}✅ تم تحديث Next.js Frontend${NC}"
