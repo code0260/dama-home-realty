@@ -15,9 +15,9 @@ if exist "frontend-build.zip" (
     del /f "frontend-build.zip"
 )
 
-REM ضغط مجلد frontend
+REM ضغط مجلد frontend (بدون .next و node_modules)
 echo 📦 ضغط مجلد backend\frontend...
-powershell -Command "Compress-Archive -Path 'backend\frontend\*' -DestinationPath 'frontend-build.zip' -Force"
+powershell -Command "$exclude = @('.next', 'node_modules', '.pnp', '.vercel', 'coverage', 'test-results', '.playwright', 'playwright-report'); Get-ChildItem -Path 'backend\frontend' -Exclude $exclude | Compress-Archive -DestinationPath 'frontend-build.zip' -Force"
 
 if exist "frontend-build.zip" (
     echo.
