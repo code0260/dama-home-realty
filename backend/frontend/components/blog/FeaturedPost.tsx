@@ -22,8 +22,8 @@ export function FeaturedPost({ article, className }: FeaturedPostProps) {
         transition={{ duration: 0.6 }}
         className="mb-8"
       >
-        <h2 className="text-3xl md:text-4xl font-bold text-primary dark:text-white mb-4 flex items-center gap-3">
-          <span className="text-secondary">Featured</span>
+        <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4 flex items-center gap-3">
+          <span className="text-[#B49162]">Featured</span>
           <span>Article</span>
         </h2>
         <p className="text-gray-600 dark:text-gray-400">

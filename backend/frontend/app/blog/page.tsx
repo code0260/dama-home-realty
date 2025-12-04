@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { PageHero } from '@/components/ui-custom/PageHero';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty/EmptyState';
@@ -77,13 +78,16 @@ export default function BlogPage() {
 
   return (
     <>
-        {/* Header */}
-        <section className="bg-linear-to-br from-primary via-primary/95 to-secondary/20 text-white py-20 dark:bg-primary">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 dark:text-white">Blog & News</h1>
-            <p className="text-xl text-gray-200 dark:text-gray-300">Stay updated with the latest real estate news and insights</p>
-          </div>
-        </section>
+      {/* Hero Section */}
+      <PageHero
+        title={
+          <>
+            Blog & <span className="text-[#B49162]">News</span>
+          </>
+        }
+        subtitle="Stay updated with the latest real estate news and insights"
+        breadcrumbs={[{ label: 'Blog' }]}
+      />
 
         {/* Main Content */}
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -170,7 +174,7 @@ export default function BlogPage() {
                                   onClick={() => setCurrentPage(page)}
                                   className={cn(
                                     currentPage === page &&
-                                      'bg-secondary hover:bg-secondary/90 text-white'
+                                      'bg-[#B49162] hover:bg-[#9A7A4F] text-white'
                                   )}
                                 >
                                   {page}

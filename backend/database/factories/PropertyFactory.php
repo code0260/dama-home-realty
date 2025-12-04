@@ -104,6 +104,7 @@ class PropertyFactory extends Factory
         $titleAr = $titleData['ar'] . ' في ' . $neighborhood->getTranslation('name', 'ar');
 
         return [
+            'uuid' => (string) Str::uuid(), // Generate UUID for factory
             'title' => [
                 'en' => $titleEn,
                 'ar' => $titleAr,

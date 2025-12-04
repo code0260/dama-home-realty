@@ -24,7 +24,12 @@ const versions = [
 
 export default function RefundPolicyPage() {
   return (
-    <LegalPageLayout title="Refund Policy" lastUpdated={lastUpdated} versions={versions}>
+    <LegalPageLayout 
+      title="Refund Policy" 
+      lastUpdated={lastUpdated} 
+      versions={versions}
+      description="Understand our refund and cancellation policies for bookings and services."
+    >
       <section id="overview">
         <h2>1. Overview</h2>
         <p>

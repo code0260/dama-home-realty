@@ -20,12 +20,11 @@ return new class extends Migration
 
         // Update status enum to include 'pending' and 'draft'
         // MySQL doesn't support ALTER ENUM directly, so we need to use raw SQL
-        DB::statement("ALTER TABLE properties MODIFY COLUMN status ENUM('active', 'sold', 'rented', 'pending', 'draft') DEFAULT 'pending'");
+        // Note: Keeping default as 'active' to preserve existing behavior and avoid hiding live properties
+        DB::statement("ALTER TABLE properties MODIFY COLUMN status ENUM('active', 'sold', 'rented', 'pending', 'draft') DEFAULT 'active'");
         
-        // Update default status for existing records to 'pending' if they are 'active'
-        DB::table('properties')
-            ->where('status', 'active')
-            ->update(['status' => 'pending']);
+        // Removed: Force-updating existing 'active' records to 'pending' is dangerous in production
+        // Existing records will keep their current status, and new records will default to 'active'
     }
 
     /**
@@ -38,11 +37,13 @@ return new class extends Migration
         });
 
         // Revert status enum to original values
-        DB::statement("ALTER TABLE properties MODIFY COLUMN status ENUM('active', 'sold', 'rented') DEFAULT 'active'");
-        
-        // Convert 'pending' and 'draft' back to 'active' before dropping the enum values
+        // Note: Converting 'pending' and 'draft' records to 'active' to avoid data loss
+        // This is safer than leaving them in an invalid state
         DB::table('properties')
             ->whereIn('status', ['pending', 'draft'])
             ->update(['status' => 'active']);
+        
+        // Revert enum after data conversion to avoid constraint violations
+        DB::statement("ALTER TABLE properties MODIFY COLUMN status ENUM('active', 'sold', 'rented') DEFAULT 'active'");
     }
 };

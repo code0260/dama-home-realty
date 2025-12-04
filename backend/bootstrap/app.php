@@ -19,7 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/ai-concierge/chat',
             'api/ai-search',
             'api/webhooks/stripe',
+            // Note: api/contact requires CSRF token (handled by Sanctum)
         ]);
+
+        // Add middleware to ensure XSRF-TOKEN cookie is accessible
+        $middleware->append(\App\Http\Middleware\EnsureXSRFTokenIsAccessible::class);
 
         // Add security headers
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);

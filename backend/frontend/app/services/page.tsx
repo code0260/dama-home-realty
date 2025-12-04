@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { PageHero } from '@/components/ui-custom/PageHero';
 import { Service } from '@/types';
 import { getServices, submitServiceRequest } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -81,10 +82,11 @@ export default function ServicesPage() {
         setSuccess(false);
         setFormData({ name: '', phone: '', message: '' });
       }, 2000);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message || 'Failed to submit request. Please try again.'
-      );
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Failed to submit request. Please try again.';
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -92,24 +94,12 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Minimal Hero Section */}
-      <section className="py-20 md:py-24 bg-linear-to-br from-primary/5 via-background to-secondary/5">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-4">
-              Premium Real Estate Services
-            </h1>
-            <p className="text-lg md:text-xl text-slate-600 font-light">
-              Comprehensive solutions for all your real estate needs in Damascus
-            </p>
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section */}
+      <PageHero
+        title="Premium Real Estate Services"
+        subtitle="Comprehensive solutions for all your real estate needs in Damascus"
+        breadcrumbs={[{ label: 'Services' }]}
+      />
 
       {/* Services Grid Section */}
       <section className="py-12 md:py-20 bg-background">

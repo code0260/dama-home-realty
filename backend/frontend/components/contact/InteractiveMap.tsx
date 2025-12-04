@@ -74,58 +74,10 @@ export function InteractiveMap({ locations = defaultLocations, className }: Inte
 
   return (
     <div className={cn('space-y-6', className)}>
-      {/* Location Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {locations.map((location) => (
-          <motion.div
-            key={location.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card
-              className={cn(
-                'cursor-pointer border-2 transition-all duration-300',
-                selectedLocation.id === location.id
-                  ? 'border-secondary shadow-lg'
-                  : 'border-gray-200 dark:border-primary-700 hover:border-secondary/50'
-              )}
-              onClick={() => setSelectedLocation(location)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-secondary/10 rounded-lg flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-secondary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-primary dark:text-white mb-1">
-                      {location.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      {location.address}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-                      <Phone className="w-3 h-3" />
-                      <span>{location.phone}</span>
-                    </div>
-                  </div>
-                  {selectedLocation.id === location.id && (
-                    <Badge variant="outline" className="bg-secondary/10 border-secondary">
-                      Selected
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
       {/* Map */}
-      <Card className="border-2 border-gray-200 dark:border-primary-700 overflow-hidden">
+      <Card className="border border-gray-200 shadow-sm bg-white overflow-hidden">
         <CardContent className="p-0">
-          <div className="relative w-full h-96 md:h-[500px] bg-gray-100 dark:bg-primary-800">
+          <div className="relative w-full h-64 md:h-80 bg-gray-100">
             <iframe
               src={mapUrl}
               width="100%"
@@ -141,7 +93,7 @@ export function InteractiveMap({ locations = defaultLocations, className }: Inte
             <div className="absolute bottom-4 right-4 z-10">
               <Button
                 onClick={handleGetDirections}
-                className="bg-white hover:bg-gray-50 text-primary shadow-lg flex items-center gap-2"
+                className="bg-white hover:bg-gray-50 text-[#0F172A] shadow-lg border border-gray-200 flex items-center gap-2"
               >
                 <Navigation className="w-4 h-4" />
                 Get Directions
@@ -151,80 +103,64 @@ export function InteractiveMap({ locations = defaultLocations, className }: Inte
         </CardContent>
       </Card>
 
-      {/* Selected Location Details */}
-      <Card className="border-2 border-gray-200 dark:border-primary-700">
-        <CardContent className="p-6">
-          <h3 className="text-xl font-bold text-primary dark:text-white mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-secondary" />
-            {selectedLocation.name}
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Contact Info */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-primary dark:text-white mb-1">Address</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    {selectedLocation.address}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-primary dark:text-white mb-1">Phone</p>
-                  <a
-                    href={`tel:${selectedLocation.phone}`}
-                    className="text-secondary hover:underline text-sm"
-                  >
-                    {selectedLocation.phone}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-primary dark:text-white mb-1">Email</p>
-                  <a
-                    href={`mailto:${selectedLocation.email}`}
-                    className="text-secondary hover:underline text-sm"
-                  >
-                    {selectedLocation.email}
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Office Hours */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-semibold text-primary dark:text-white mb-2">Office Hours</p>
-                  <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Monday - Friday:</span>
-                      <span>{selectedLocation.hours.weekdays}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Saturday:</span>
-                      <span>{selectedLocation.hours.saturday}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Sunday:</span>
-                      <span>{selectedLocation.hours.sunday}</span>
+      {/* Location Selector */}
+      <div className="space-y-3">
+        {locations.map((location) => (
+          <motion.div
+            key={location.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card
+              className={cn(
+                'cursor-pointer border transition-all duration-300',
+                selectedLocation.id === location.id
+                  ? 'border-[#B49162] shadow-md bg-[#B49162]/5'
+                  : 'border-gray-200 hover:border-[#B49162]/50 hover:shadow-sm bg-white'
+              )}
+              onClick={() => setSelectedLocation(location)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    'p-2 rounded-lg flex-shrink-0 transition-colors',
+                    selectedLocation.id === location.id
+                      ? 'bg-[#B49162]'
+                      : 'bg-[#B49162]/10'
+                  )}>
+                    <MapPin className={cn(
+                      'w-5 h-5',
+                      selectedLocation.id === location.id ? 'text-white' : 'text-[#B49162]'
+                    )} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={cn(
+                      'font-bold mb-1',
+                      selectedLocation.id === location.id ? 'text-[#B49162]' : 'text-[#0F172A]'
+                    )}>
+                      {location.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {location.address}
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Phone className="w-3 h-3" />
+                      <span>{location.phone}</span>
                     </div>
                   </div>
+                  {selectedLocation.id === location.id && (
+                    <Badge className="bg-[#B49162] text-white border-0">
+                      Selected
+                    </Badge>
+                  )}
                 </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -95,31 +95,22 @@ export function Navbar() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 md:h-24 items-center justify-between">
           {/* Left: Logo + Brand Text */}
-          <Link
-            href="/"
-            className="flex items-center gap-3 group transition-opacity hover:opacity-90"
-            aria-label="Dama Home Realty - Home"
-          >
-            <div className="relative w-12 h-12 md:w-14 md:h-14 shrink-0 transition-transform group-hover:scale-105">
-              <Image
-                src="/icon-192x192.png"
-                alt="Dama Home Logo"
-                fill
-                className="object-contain drop-shadow-sm"
-                priority
-                sizes="(max-width: 768px) 48px, 56px"
-              />
-            </div>
-            <span
+          <div className="flex items-center">
+            <Logo 
+              href="/"
+              showText={true}
+              size="lg"
+              textSize="lg"
+              textPosition="side"
+              variant="navbar"
               className={cn(
-                'font-bold tracking-wide transition-colors whitespace-nowrap',
-                textColorClasses,
-                'text-lg md:text-xl lg:text-2xl'
+                'transition-colors duration-300',
+                shouldBeTransparent 
+                  ? '[&_.brand-primary]:text-[#B49162] [&_.brand-secondary]:text-white' 
+                  : '[&_.brand-primary]:text-[#B49162] [&_.brand-secondary]:text-[#0F172A]'
               )}
-            >
-              Dama Home
-            </span>
-          </Link>
+            />
+          </div>
 
           {/* Center: Navigation Links (Desktop) */}
           <nav className="hidden lg:flex items-center gap-8">

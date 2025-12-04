@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { List, Hash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { List, Hash, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Heading {
   id: string;
@@ -15,7 +16,7 @@ interface Heading {
 
 interface LegalTableOfContentsProps {
   className?: string;
-  contentRef?: React.RefObject<HTMLElement | null>;
+  contentRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export function LegalTableOfContents({
@@ -24,6 +25,7 @@ export function LegalTableOfContents({
 }: LegalTableOfContentsProps) {
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [activeId, setActiveId] = useState<string>('');
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
     // Extract headings from the document
@@ -69,7 +71,7 @@ export function LegalTableOfContents({
   }, [contentRef, activeId]);
 
   useEffect(() => {
-    // Highlight active heading on scroll
+    // Enhanced Scroll Spy - Highlight active heading on scroll
     const handleScroll = () => {
       const headingElements = headings
         .map((h) => document.getElementById(h.id))
@@ -77,22 +79,51 @@ export function LegalTableOfContents({
 
       if (headingElements.length === 0) return;
 
-      // Find the heading closest to the top of the viewport
-      let activeHeading = headingElements[0];
-      let minDistance = Infinity;
+      // Find the heading currently in viewport
+      const viewportTop = window.scrollY + 200; // Account for header + offset
+      const viewportBottom = window.scrollY + window.innerHeight - 100;
 
-      headingElements.forEach((element) => {
+      let activeHeadingId: string | null = null;
+      let maxVisibleHeight = 0;
+
+      headingElements.forEach((element: HTMLElement) => {
         const rect = element.getBoundingClientRect();
-        const distance = Math.abs(rect.top - 150); // Account for header + offset
+        const elementTop = window.scrollY + rect.top;
+        const elementBottom = elementTop + rect.height;
 
-        if (rect.top <= 200 && distance < minDistance) {
-          minDistance = distance;
-          activeHeading = element;
+        // Check if element is in viewport
+        const isVisible = elementTop < viewportBottom && elementBottom > viewportTop;
+        
+        if (isVisible && element.id) {
+          const visibleHeight = Math.min(elementBottom, viewportBottom) - Math.max(elementTop, viewportTop);
+          if (visibleHeight > maxVisibleHeight) {
+            maxVisibleHeight = visibleHeight;
+            activeHeadingId = element.id;
+          }
         }
       });
 
-      if (activeHeading) {
-        setActiveId(activeHeading.id);
+      // If no heading is visible, find the one closest to the top
+      if (!activeHeadingId) {
+        let closestHeadingId: string | null = null;
+        let minDistance = Infinity;
+
+        headingElements.forEach((element: HTMLElement) => {
+          if (!element.id) return;
+          const rect = element.getBoundingClientRect();
+          const distance = Math.abs(rect.top - 200);
+
+          if (rect.top <= 250 && distance < minDistance) {
+            minDistance = distance;
+            closestHeadingId = element.id;
+          }
+        });
+
+        activeHeadingId = closestHeadingId;
+      }
+
+      if (activeHeadingId) {
+        setActiveId(activeHeadingId);
       }
     };
 
@@ -105,7 +136,7 @@ export function LegalTableOfContents({
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 120; // Account for fixed header
+      const offset = 150; // Account for fixed header
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
 
@@ -115,6 +146,9 @@ export function LegalTableOfContents({
       });
 
       setActiveId(id);
+      
+      // Close mobile menu after clicking
+      setIsMobileOpen(false);
     }
   };
 
@@ -122,54 +156,110 @@ export function LegalTableOfContents({
     return null;
   }
 
-  return (
-    <Card
-      className={cn(
-        'sticky top-24 border-2 border-gray-200 dark:border-primary-700',
-        className
-      )}
-    >
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-bold text-primary dark:text-white flex items-center gap-2">
-          <List className="w-5 h-5 text-secondary" />
-          Table of Contents
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[500px]">
-          <nav className="space-y-1">
-            {headings.map((heading, index) => {
-              const isActive = activeId === heading.id;
-              const indent = heading.level - 2; // h2 is level 0, h3 is level 1
+  const TOCContent = () => (
+    <ScrollArea className="h-[500px] lg:h-[600px]">
+      <nav className="space-y-1 pr-4">
+        {headings.map((heading, index) => {
+          const isActive = activeId === heading.id;
+          const indent = heading.level - 2; // h2 is level 0, h3 is level 1
 
-              return (
-                <motion.button
-                  key={heading.id}
-                  onClick={() => scrollToHeading(heading.id)}
-                  className={cn(
-                    'w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-start gap-2 text-sm',
-                    isActive
-                      ? 'bg-secondary/10 text-secondary font-semibold border-l-2 border-secondary'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-primary-800 hover:text-primary dark:hover:text-white'
-                  )}
-                  style={{ paddingLeft: `${0.75 + indent * 0.75}rem` }}
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Hash
-                    className={cn(
-                      'w-3 h-3 mt-0.5 flex-shrink-0',
-                      isActive && 'text-secondary'
-                    )}
-                  />
-                  <span className="line-clamp-2">{heading.text}</span>
-                </motion.button>
-              );
-            })}
-          </nav>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+          return (
+            <motion.button
+              key={heading.id}
+              onClick={() => scrollToHeading(heading.id)}
+              className={cn(
+                'w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 flex items-start gap-2 text-sm',
+                'hover:bg-slate-100 dark:hover:bg-slate-800',
+                isActive
+                  ? 'bg-[#B49162]/10 text-[#B49162] font-semibold border-l-3 border-[#B49162] shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              )}
+              style={{ paddingLeft: `${0.75 + indent * 0.75}rem` }}
+              whileHover={{ x: 2 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Hash
+                className={cn(
+                  'w-3.5 h-3.5 mt-0.5 shrink-0',
+                  isActive ? 'text-[#B49162]' : 'text-slate-400'
+                )}
+              />
+              <span className="line-clamp-2 leading-relaxed">{heading.text}</span>
+            </motion.button>
+          );
+        })}
+      </nav>
+    </ScrollArea>
+  );
+
+  return (
+    <>
+      {/* Mobile: Collapsible TOC */}
+      <div className="lg:hidden">
+        <Card className="border border-slate-200 dark:border-slate-700 shadow-sm">
+          <CardHeader 
+            className="cursor-pointer pb-3"
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <List className="w-5 h-5 text-[#B49162]" />
+                Table of Contents
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMobileOpen(!isMobileOpen);
+                }}
+              >
+                {isMobileOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <AnimatePresence>
+            {isMobileOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <CardContent className="pt-0">
+                  <TOCContent />
+                </CardContent>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      </div>
+
+      {/* Desktop: Always Visible TOC */}
+      <div className="hidden lg:block">
+        <Card
+          className={cn(
+            'border border-slate-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800',
+            className
+          )}
+        >
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <List className="w-5 h-5 text-[#B49162]" />
+              Table of Contents
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TOCContent />
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }
-

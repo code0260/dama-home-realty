@@ -66,12 +66,16 @@ export default function ListPropertyPage() {
   return (
     <Suspense fallback={<div className="py-16 text-center">Loading...</div>}>
         {/* Hero Section */}
-        <section className="bg-linear-to-br from-primary via-primary/95 to-secondary/20 text-white py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Want to Rent or Sell Your Property to Trusted Expats?
+        <section className="bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white py-20 md:py-24 relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQkQ5MTYyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMEYxNzJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] repeat" />
+          </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+              Want to Rent or Sell Your Property to <span className="text-[#B49162]">Trusted Expats</span>?
             </h1>
-            <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Join our platform and connect with verified tenants and buyers from the Syrian
               diaspora
             </p>
@@ -81,48 +85,48 @@ export default function ListPropertyPage() {
         {/* Benefits Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
-              Why List With Us
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] text-center mb-12">
+              Why List <span className="text-[#B49162]">With Us</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <Card className="text-center hover:shadow-lg transition-shadow">
+              <Card className="text-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-[#B49162]/30">
                 <CardHeader>
-                  <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4">
-                    <TrendingUp className="w-8 h-8 text-secondary" />
+                  <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#B49162] transition-colors duration-300">
+                    <TrendingUp className="w-8 h-8 text-[#B49162] group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <CardTitle className="text-xl">High Occupancy Rate</CardTitle>
+                  <CardTitle className="text-xl text-[#0F172A]">High Occupancy Rate</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-base text-gray-600">
                     Connect with reliable tenants and buyers actively seeking properties in
                     Damascus.
                   </CardDescription>
                 </CardContent>
               </Card>
 
-              <Card className="text-center hover:shadow-lg transition-shadow">
+              <Card className="text-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-[#B49162]/30">
                 <CardHeader>
-                  <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4">
-                    <ShieldCheck className="w-8 h-8 text-secondary" />
+                  <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#B49162] transition-colors duration-300">
+                    <ShieldCheck className="w-8 h-8 text-[#B49162] group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <CardTitle className="text-xl">Verified Tenants</CardTitle>
+                  <CardTitle className="text-xl text-[#0F172A]">Verified Tenants</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-base text-gray-600">
                     We verify all potential tenants and buyers to ensure trustworthy transactions.
                   </CardDescription>
                 </CardContent>
               </Card>
 
-              <Card className="text-center hover:shadow-lg transition-shadow">
+              <Card className="text-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-[#B49162]/30">
                 <CardHeader>
-                  <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-secondary" />
+                  <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#B49162] transition-colors duration-300">
+                    <Clock className="w-8 h-8 text-[#B49162] group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <CardTitle className="text-xl">Hassle-Free Management</CardTitle>
+                  <CardTitle className="text-xl text-[#0F172A]">Hassle-Free Management</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-base text-gray-600">
                     We handle the listing, verification, and communication so you can focus on what
                     matters.
                   </CardDescription>
@@ -135,35 +139,35 @@ export default function ListPropertyPage() {
         {/* How It Works */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
-              How It Works
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] text-center mb-12">
+              How It <span className="text-[#B49162]">Works</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <div className="text-center">
-                <div className="mx-auto w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">
+                <div className="mx-auto w-20 h-20 bg-[#B49162] text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
                   1
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Submit Details</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">Submit Details</h3>
                 <p className="text-gray-600">
                   Fill out our simple form with your property details and contact information.
                 </p>
               </div>
 
               <div className="text-center">
-                <div className="mx-auto w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">
+                <div className="mx-auto w-20 h-20 bg-[#B49162] text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
                   2
                 </div>
-                <h3 className="text-xl font-semibold mb-2">We Verify</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">We Verify</h3>
                 <p className="text-gray-600">
                   Our team reviews and verifies your property to ensure quality and authenticity.
                 </p>
               </div>
 
               <div className="text-center">
-                <div className="mx-auto w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">
+                <div className="mx-auto w-20 h-20 bg-[#B49162] text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
                   3
                 </div>
-                <h3 className="text-xl font-semibold mb-2">We List</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">We List</h3>
                 <p className="text-gray-600">
                   Your property goes live on our platform, visible to thousands of potential
                   tenants and buyers.
@@ -174,12 +178,12 @@ export default function ListPropertyPage() {
         </section>
 
         {/* Property Form / Management */}
-        <section className="py-16 bg-white dark:bg-primary-900">
+        <section className="py-16 bg-white dark:bg-gray-900">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="text-center">
-                  <Clock className="w-8 h-8 animate-spin text-secondary mx-auto mb-4" />
+                  <Clock className="w-8 h-8 animate-spin text-[#B49162] mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">Loading property...</p>
                 </div>
               </div>

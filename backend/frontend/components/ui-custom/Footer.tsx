@@ -114,24 +114,13 @@ export function Footer() {
             {/* Column 1: Brand */}
             <div className="space-y-6">
               {/* Logo */}
-              <Link
+              <Logo 
                 href="/"
-                className="flex items-center gap-3 group transition-opacity hover:opacity-90"
-              >
-                <div className="relative w-12 h-12 shrink-0 transition-transform group-hover:scale-105">
-                  <Image
-                    src="/icon-192x192.png"
-                    alt="Dama Home Logo"
-                    fill
-                    className="object-contain drop-shadow-sm"
-                    priority
-                    sizes="48px"
-                  />
-                </div>
-                <span className="font-bold tracking-wide text-xl text-white">
-                  Dama Home
-                </span>
-              </Link>
+                showText={true}
+                size="md"
+                textPosition="side"
+                className="[&_.brand-primary]:text-[#B49162] [&_.brand-secondary]:text-white"
+              />
 
               {/* Description */}
               <p className="text-gray-300 text-sm leading-relaxed font-light max-w-xs">

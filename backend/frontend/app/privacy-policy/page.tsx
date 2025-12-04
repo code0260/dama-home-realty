@@ -28,6 +28,7 @@ export default function PrivacyPolicyPage() {
       title="Privacy Policy"
       lastUpdated={lastUpdated}
       versions={versions}
+      description="Learn how we collect, use, and protect your personal information when you use our services."
     >
       <section id="introduction">
         <h2>1. Introduction</h2>

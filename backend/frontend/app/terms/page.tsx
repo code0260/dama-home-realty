@@ -24,7 +24,12 @@ const versions = [
 
 export default function TermsPage() {
   return (
-    <LegalPageLayout title="Terms of Service" lastUpdated={lastUpdated} versions={versions}>
+    <LegalPageLayout 
+      title="Terms of Service" 
+      lastUpdated={lastUpdated} 
+      versions={versions}
+      description="Please read these terms and conditions carefully before using our platform and services."
+    >
       <section id="acceptance">
         <h2>1. Acceptance of Terms</h2>
         <p>

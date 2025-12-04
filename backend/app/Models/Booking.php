@@ -65,18 +65,25 @@ class Booking extends Model
 
     /**
      * Check if booking dates overlap with another booking.
+     * 
+     * Uses the standard intersection formula for date range overlap:
+     * Two date ranges overlap if: (New_Start < Existing_End) AND (New_End > Existing_Start)
+     * 
+     * @param int $propertyId The property ID to check
+     * @param Carbon $checkIn The check-in date of the new booking
+     * @param Carbon $checkOut The check-out date of the new booking
+     * @param int|null $excludeBookingId Optional booking ID to exclude from the check (for updates)
+     * @return bool True if there's an overlap, false otherwise
      */
     public static function hasOverlap(int $propertyId, Carbon $checkIn, Carbon $checkOut, ?int $excludeBookingId = null): bool
     {
         $query = static::where('property_id', $propertyId)
             ->where('booking_status', '!=', 'cancelled')
             ->where(function ($q) use ($checkIn, $checkOut) {
-                $q->whereBetween('check_in', [$checkIn, $checkOut->copy()->subDay()])
-                  ->orWhereBetween('check_out', [$checkIn->copy()->addDay(), $checkOut])
-                  ->orWhere(function ($q2) use ($checkIn, $checkOut) {
-                      $q2->where('check_in', '<=', $checkIn)
-                         ->where('check_out', '>=', $checkOut);
-                  });
+                // Standard intersection formula: ranges overlap if:
+                // New_Start < Existing_End AND New_End > Existing_Start
+                $q->where('check_in', '<', $checkOut)
+                  ->where('check_out', '>', $checkIn);
             });
 
         if ($excludeBookingId) {

@@ -1,6 +1,7 @@
 # إصلاح مشكلة Node.js Version
 
 ## المشكلة:
+
 Next.js 16.0.3 يتطلب Node.js >= 20.9.0، لكن السيرفر يستخدم Node.js 18.20.8
 
 ## الحل على SSH:
@@ -64,4 +65,3 @@ echo "*/5 * * * * $HOME/domains/damahomerealty.com/public_html/restart_nextjs.sh
 pm2 status nextjs
 pm2 logs nextjs --lines 10
 ```
-

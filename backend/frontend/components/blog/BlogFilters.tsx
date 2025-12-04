@@ -172,8 +172,8 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
 
       {/* Category Filter */}
       <div>
-        <label className="text-sm font-semibold text-primary dark:text-white mb-2 flex items-center gap-2">
-          <FolderOpen className="w-4 h-4 text-secondary" />
+        <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+          <FolderOpen className="w-4 h-4 text-[#B49162]" />
           Category
         </label>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -194,8 +194,8 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
       {/* Tag Filter */}
       {tags.length > 0 && (
         <div>
-          <label className="text-sm font-semibold text-primary dark:text-white mb-2 flex items-center gap-2">
-            <Tag className="w-4 h-4 text-secondary" />
+          <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+            <Tag className="w-4 h-4 text-[#B49162]" />
             Tag
           </label>
           <Select value={selectedTag} onValueChange={setSelectedTag}>
@@ -217,8 +217,8 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
       {/* Author Filter */}
       {authors.length > 0 && (
         <div>
-          <label className="text-sm font-semibold text-primary dark:text-white mb-2 flex items-center gap-2">
-            <User className="w-4 h-4 text-secondary" />
+          <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+            <User className="w-4 h-4 text-[#B49162]" />
             Author
           </label>
           <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
@@ -239,8 +239,8 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
 
       {/* Date Filter */}
       <div>
-        <label className="text-sm font-semibold text-primary dark:text-white mb-2 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-secondary" />
+        <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-[#B49162]" />
           Date
         </label>
         <Select value={dateFilter} onValueChange={setDateFilter}>
@@ -276,11 +276,11 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
     <div className={cn('space-y-4', className)}>
       {/* Desktop Filters */}
       <div className="hidden lg:block">
-        <Card className="border-2 border-gray-200 dark:border-primary-700">
+        <Card className="border-2 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-bold text-primary dark:text-white flex items-center gap-2">
-                <Filter className="w-5 h-5 text-secondary" />
+              <CardTitle className="text-lg font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+                <Filter className="w-5 h-5 text-[#B49162]" />
                 Filters
               </CardTitle>
               {activeFiltersCount > 0 && (

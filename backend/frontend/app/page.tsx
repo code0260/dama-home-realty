@@ -119,8 +119,8 @@ export default function Home() {
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                  Ready to Find Your Perfect Home?
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+                  Ready to Find Your <span className="text-[#B49162]">Perfect Home</span>?
                 </h2>
                 <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
                   Start your journey today and discover verified properties in Damascus with the help of our expert team
@@ -140,7 +140,7 @@ export default function Home() {
                     asChild
                     variant="outline"
                     size="lg"
-                    className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg backdrop-blur-sm"
+                    className="border-2 border-white text-white bg-white/10 hover:bg-white hover:text-[#0F172A] px-8 py-6 text-lg backdrop-blur-sm font-semibold"
                   >
                     <Link href="/contact">
                       <Phone className="w-5 h-5 mr-2" />

@@ -19,6 +19,7 @@ import { AiSearchDialog } from '@/components/ai/AiSearchDialog';
 import { TrustBadges } from './TrustBadges';
 import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/lib/utils';
+import { ApiError, isApiError } from '@/types/errors';
 
 export function HeroSection() {
   const router = useRouter();
@@ -69,15 +70,17 @@ export function HeroSection() {
         setNeighborhoods(
           Array.isArray(neighborhoodsData) ? neighborhoodsData : []
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (!isMounted) return;
         
-        console.error('Error fetching neighborhoods:', error);
-        if (
-          error.isNetworkError ||
-          error.code === 'ERR_NETWORK' ||
-          error.code === 'ECONNREFUSED'
-        ) {
+        // Only log non-network errors
+        const isNetworkError = 
+          (isApiError(error) && error.isNetworkError) ||
+          (error instanceof Error && (error.message.includes('ERR_NETWORK') || error.message.includes('ECONNREFUSED')));
+        
+        if (!isNetworkError) {
+          console.error('Error fetching neighborhoods:', error);
+        } else {
           console.warn(
             'Backend server may not be running. Please start Laravel server with: php artisan serve'
           );
@@ -212,7 +215,7 @@ export function HeroSection() {
                       setLocation(value);
                     }}
                   >
-                    <SelectTrigger className="w-full bg-white border-gray-300 h-12 text-left">
+                    <SelectTrigger className="w-full h-12 bg-white border-gray-300 text-left [&>svg]:ml-auto py-3">
                       <MapPin className="w-4 h-4 mr-2 text-gray-500 shrink-0" />
                       <SelectValue placeholder="Where?" />
                     </SelectTrigger>
@@ -247,7 +250,7 @@ export function HeroSection() {
                       placeholder="Min"
                       value={minPrice}
                       onChange={(e) => setMinPrice(e.target.value)}
-                      className="w-full pl-9 h-12 bg-white border-gray-300"
+                      className="w-full h-12 pl-9 bg-white border-gray-300 py-3"
                     />
                   </div>
                 </div>
@@ -264,7 +267,7 @@ export function HeroSection() {
                       placeholder="Max"
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
-                      className="w-full pl-9 h-12 bg-white border-gray-300"
+                      className="w-full h-12 pl-9 bg-white border-gray-300 py-3"
                     />
                   </div>
                 </div>

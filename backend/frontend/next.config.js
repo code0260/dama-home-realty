@@ -29,9 +29,11 @@ const nextConfig = {
       },
     ],
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // TypeScript errors will now fail the build (default behavior)
+  // This ensures type safety and catches errors early in the development process
+  // typescript: {
+  //   ignoreBuildErrors: false, // Removed - using default (fail on errors)
+  // },
 };
 
 module.exports = nextConfig;

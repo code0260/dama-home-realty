@@ -17,7 +17,7 @@ if exist "frontend-build.zip" (
 
 REM ضغط مجلد frontend (بدون .next و node_modules)
 echo 📦 ضغط مجلد backend\frontend...
-powershell -Command "$exclude = @('.next', 'node_modules', '.pnp', '.vercel', 'coverage', 'test-results', '.playwright', 'playwright-report'); Get-ChildItem -Path 'backend\frontend' -Exclude $exclude | Compress-Archive -DestinationPath 'frontend-build.zip' -Force"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $source = Resolve-Path 'backend\frontend'; $dest = 'frontend-build.zip'; if (Test-Path $dest) { Remove-Item $dest -Force }; $excludeDirs = @('.next', 'node_modules', '.pnp', '.vercel', 'coverage', 'test-results', '.playwright', 'playwright-report', '.git'); Get-ChildItem -Path $source -Recurse -File | Where-Object { $dir = $_.DirectoryName; $skip = $false; foreach ($ex in $excludeDirs) { if ($dir -like \"*\$ex*\") { $skip = $true; break } }; -not $skip } | ForEach-Object { $relativePath = $_.FullName.Substring($source.Path.Length + 1).Replace('\', '/'); $null = New-Item -ItemType File -Path $dest -Force -ErrorAction SilentlyContinue; Compress-Archive -Path $_.FullName -DestinationPath $dest -Update -CompressionLevel Optimal }"
 
 if exist "frontend-build.zip" (
     echo.

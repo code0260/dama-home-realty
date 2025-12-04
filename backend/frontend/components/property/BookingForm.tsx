@@ -11,6 +11,7 @@ import { createBooking } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { format, differenceInDays } from 'date-fns';
+import { ApiError, isApiError, getErrorMessage } from '@/types/errors';
 
 interface BookingFormProps {
   property: Property;
@@ -76,13 +77,18 @@ export function BookingForm({ property }: BookingFormProps) {
 
       // Redirect to payment/booking confirmation
       router.push(`/bookings/${booking.id}/payment`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating booking:', err);
-      setError(
-        err.response?.data?.message ||
+      
+      if (isApiError(err)) {
+        const errorMessage = 
+          err.response?.data?.message ||
           err.response?.data?.errors?.check_in?.[0] ||
-          'Failed to create booking. Please try again.'
-      );
+          getErrorMessage(err);
+        setError(errorMessage);
+      } else {
+        setError('Failed to create booking. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

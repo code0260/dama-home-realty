@@ -30,8 +30,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import axiosInstance from '@/lib/axios';
+import { ApiError, isApiError, getErrorMessage } from '@/types/errors';
 
-interface FormData {
+interface ContactFormData {
   // Step 1: Personal Info
   name: string;
   email: string;
@@ -70,8 +71,8 @@ const steps = [
 export function MultiStepContactForm({ onSuccess, className }: MultiStepContactFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  const [formData, setFormData] = useState<FormData>({
+  const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     phone: '',
@@ -91,7 +92,7 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
   const progress = (currentStep / steps.length) * 100;
 
   const validateStep = (step: number): boolean => {
-    const newErrors: Partial<Record<keyof FormData, string>> = {};
+    const newErrors: Partial<Record<keyof ContactFormData, string>> = {};
 
     if (step === 1) {
       if (!formData.name.trim()) newErrors.name = 'Name is required';
@@ -152,7 +153,14 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
     if (!validateStep(4)) return;
 
     setLoading(true);
+    setErrors({}); // Clear previous errors
+
     try {
+      // Explicitly ensure CSRF cookie is fetched before submission
+      // Import getCsrfCookie function (we'll need to export it from axios.ts)
+      // For now, the interceptor will handle it, but we can add explicit call if needed
+      
+      // Prepare form data
       const submitData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'files') {
@@ -168,15 +176,21 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
         }
       });
 
+      // The axios interceptor will automatically:
+      // 1. Get CSRF cookie from /sanctum/csrf-cookie (with retry logic)
+      // 2. Read XSRF-TOKEN cookie (with polling verification)
+      // 3. Add X-XSRF-TOKEN header
+      // 4. Handle FormData Content-Type correctly
+      // 5. Retry once if 419 error occurs
       await axiosInstance.post('/contact', submitData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
         },
       });
 
       // Track form submission (analytics)
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'contact_form_submit', {
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'contact_form_submit', {
           event_category: 'Contact',
           event_label: formData.inquiryType,
         });
@@ -184,15 +198,37 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
 
       onSuccess?.();
       setCurrentStep(steps.length + 1); // Success step
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error submitting form:', error);
-      setErrors({ message: 'Failed to send message. Please try again.' });
+      
+      // Handle 419 CSRF error specifically
+      // The interceptor already retries once, so if we get here, it means retry also failed
+      if (isApiError(error) && (error.response?.status === 419 || error.isCsrfError)) {
+        setErrors({ 
+          message: 'Session expired. Please refresh the page and try again.' 
+        });
+      } else if (isApiError(error) && error.response?.status === 422) {
+        // Validation errors from backend
+        const validationErrors = error.response.data?.errors || {};
+        const firstError = Object.values(validationErrors)[0];
+        setErrors({ 
+          message: Array.isArray(firstError) ? firstError[0] : 'Validation error. Please check your input.' 
+        });
+      } else if (isApiError(error) && error.isNetworkError) {
+        setErrors({ 
+          message: 'Unable to connect to server. Please check your internet connection and try again.' 
+        });
+      } else {
+        setErrors({ 
+          message: getErrorMessage(error)
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const updateFormData = (field: keyof FormData, value: any) => {
+  const updateFormData = <K extends keyof ContactFormData>(field: K, value: ContactFormData[K]) => {
     setFormData({ ...formData, [field]: value });
     // Clear error for this field
     if (errors[field]) {
@@ -203,7 +239,7 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
   if (currentStep > steps.length) {
     // Success step
     return (
-      <Card className={className}>
+      <Card className={cn('border border-gray-200 shadow-lg bg-white', className)}>
         <CardContent className="p-12 text-center">
           <motion.div
             initial={{ scale: 0 }}
@@ -211,17 +247,17 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
             transition={{ duration: 0.5 }}
             className="mb-6"
           >
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-12 h-12 text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-primary dark:text-white mb-2">
+            <h3 className="text-2xl font-bold text-[#0F172A] mb-3">
               Message Sent Successfully!
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600 mb-6 text-lg">
               Thank you for contacting us. We'll get back to you within 24 hours.
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
-              A confirmation email has been sent to {formData.email}
+            <p className="text-sm text-gray-500 mb-6">
+              A confirmation email has been sent to <span className="font-semibold text-[#B49162]">{formData.email}</span>
             </p>
             <Button
               onClick={() => {
@@ -245,6 +281,7 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                 setErrors({});
               }}
               variant="outline"
+              className="border-gray-300 text-[#0F172A] hover:bg-gray-50"
             >
               Send Another Message
             </Button>
@@ -257,26 +294,26 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
   const CurrentStepIcon = steps[currentStep - 1].icon;
 
   return (
-    <Card className={cn('border-2 border-gray-200 dark:border-primary-700', className)}>
-      <CardHeader>
+    <Card className={cn('border border-gray-200 shadow-lg bg-white', className)}>
+      <CardHeader className="pb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-secondary/10 rounded-lg">
-              <CurrentStepIcon className="w-5 h-5 text-secondary" />
+            <div className="p-3 bg-[#B49162]/10 rounded-lg">
+              <CurrentStepIcon className="w-6 h-6 text-[#B49162]" />
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold text-primary dark:text-white">
+              <CardTitle className="text-2xl font-bold text-[#0F172A]">
                 {steps[currentStep - 1].title}
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-sm text-gray-600">
                 Step {currentStep} of {steps.length}
               </CardDescription>
             </div>
           </div>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={progress} className="h-2 bg-gray-200" />
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-6">
         <AnimatePresence mode="wait">
           {/* Step 1: Personal Information */}
           {currentStep === 1 && (
@@ -289,41 +326,56 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="name" className="text-sm font-semibold text-[#0F172A]">
+                  Full Name *
+                </Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => updateFormData('name', e.target.value)}
                   placeholder="John Doe"
-                  className={errors.name ? 'border-red-500' : ''}
+                  className={cn(
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    errors.name && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                  )}
                 />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+                {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="email" className="text-sm font-semibold text-[#0F172A]">
+                  Email Address *
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => updateFormData('email', e.target.value)}
                   placeholder="john@example.com"
-                  className={errors.email ? 'border-red-500' : ''}
+                  className={cn(
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    errors.email && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                  )}
                 />
-                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+                {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone" className="text-sm font-semibold text-[#0F172A]">
+                  Phone Number *
+                </Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => updateFormData('phone', e.target.value)}
                   placeholder="+963 123 456 789"
-                  className={errors.phone ? 'border-red-500' : ''}
+                  className={cn(
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    errors.phone && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                  )}
                 />
-                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+                {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
               </div>
             </motion.div>
           )}
@@ -339,12 +391,19 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="inquiryType">Inquiry Type *</Label>
+                <Label htmlFor="inquiryType" className="text-sm font-semibold text-[#0F172A]">
+                  Inquiry Type *
+                </Label>
                 <Select
                   value={formData.inquiryType}
                   onValueChange={(value) => updateFormData('inquiryType', value)}
                 >
-                  <SelectTrigger className={errors.inquiryType ? 'border-red-500' : ''}>
+                  <SelectTrigger 
+                    className={cn(
+                      'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                      errors.inquiryType && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                    )}
+                  >
                     <SelectValue placeholder="Select inquiry type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -355,28 +414,35 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.inquiryType && <p className="text-sm text-red-500">{errors.inquiryType}</p>}
+                {errors.inquiryType && <p className="text-sm text-red-500 mt-1">{errors.inquiryType}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject *</Label>
+                <Label htmlFor="subject" className="text-sm font-semibold text-[#0F172A]">
+                  Subject *
+                </Label>
                 <Input
                   id="subject"
                   value={formData.subject}
                   onChange={(e) => updateFormData('subject', e.target.value)}
                   placeholder="What is this regarding?"
-                  className={errors.subject ? 'border-red-500' : ''}
+                  className={cn(
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    errors.subject && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                  )}
                 />
-                {errors.subject && <p className="text-sm text-red-500">{errors.subject}</p>}
+                {errors.subject && <p className="text-sm text-red-500 mt-1">{errors.subject}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
+                <Label htmlFor="priority" className="text-sm font-semibold text-[#0F172A]">
+                  Priority
+                </Label>
                 <Select
                   value={formData.priority}
                   onValueChange={(value) => updateFormData('priority', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -389,16 +455,21 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message *</Label>
+                <Label htmlFor="message" className="text-sm font-semibold text-[#0F172A]">
+                  Message *
+                </Label>
                 <Textarea
                   id="message"
                   value={formData.message}
                   onChange={(e) => updateFormData('message', e.target.value)}
                   placeholder="Tell us how we can help..."
                   rows={6}
-                  className={errors.message ? 'border-red-500' : ''}
+                  className={cn(
+                    'bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 resize-none',
+                    errors.message && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                  )}
                 />
-                {errors.message && <p className="text-sm text-red-500">{errors.message}</p>}
+                {errors.message && <p className="text-sm text-red-500 mt-1">{errors.message}</p>}
                 <p className="text-xs text-gray-500">
                   {formData.message.length} / 500 characters
                 </p>
@@ -417,43 +488,54 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="propertyId">Property ID (if applicable)</Label>
+                <Label htmlFor="propertyId" className="text-sm font-semibold text-[#0F172A]">
+                  Property ID (if applicable)
+                </Label>
                 <Input
                   id="propertyId"
                   value={formData.propertyId}
                   onChange={(e) => updateFormData('propertyId', e.target.value)}
                   placeholder="PROP-12345"
+                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location of Interest</Label>
+                <Label htmlFor="location" className="text-sm font-semibold text-[#0F172A]">
+                  Location of Interest
+                </Label>
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) => updateFormData('location', e.target.value)}
                   placeholder="Damascus, Syria"
+                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget">Budget (optional)</Label>
+                <Label htmlFor="budget" className="text-sm font-semibold text-[#0F172A]">
+                  Budget (optional)
+                </Label>
                 <Input
                   id="budget"
                   type="number"
                   value={formData.budget}
                   onChange={(e) => updateFormData('budget', e.target.value)}
                   placeholder="10000"
+                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="timeline">Timeline</Label>
+                <Label htmlFor="timeline" className="text-sm font-semibold text-[#0F172A]">
+                  Timeline
+                </Label>
                 <Select
                   value={formData.timeline}
                   onValueChange={(value) => updateFormData('timeline', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20">
                     <SelectValue placeholder="Select timeline" />
                   </SelectTrigger>
                   <SelectContent>
@@ -479,11 +561,13 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label>Upload Files (optional, max 5 files)</Label>
-                <div className="border-2 border-dashed border-gray-300 dark:border-primary-700 rounded-lg p-6 text-center">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <Label className="text-sm font-semibold text-[#0F172A]">
+                  Upload Files (optional, max 5 files)
+                </Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#B49162] transition-colors bg-gray-50">
+                  <Upload className="w-10 h-10 mx-auto mb-3 text-gray-400" />
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="text-sm text-secondary font-semibold">
+                    <span className="text-sm text-[#B49162] font-semibold hover:underline">
                       Click to upload
                     </span>
                     <input
@@ -504,16 +588,16 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                     {formData.files.map((file, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-primary-800 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                        <span className="text-sm text-[#0F172A] font-medium truncate flex-1">
                           {file.name}
                         </span>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveFile(index)}
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8 p-0 text-gray-500 hover:text-red-500"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -523,11 +607,13 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Preferred Contact Method</Label>
-                <div className="space-y-2">
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-[#0F172A]">
+                  Preferred Contact Method
+                </Label>
+                <div className="space-y-3">
                   {['email', 'phone', 'whatsapp'].map((method) => (
-                    <div key={method} className="flex items-center space-x-2">
+                    <div key={method} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-[#B49162] hover:bg-[#B49162]/5 transition-all">
                       <Checkbox
                         id={method}
                         checked={formData.preferredContact.includes(method)}
@@ -544,10 +630,11 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                             );
                           }
                         }}
+                        className="border-gray-300 data-[state=checked]:bg-[#B49162] data-[state=checked]:border-[#B49162]"
                       />
                       <label
                         htmlFor={method}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize"
+                        className="text-sm font-medium text-[#0F172A] leading-none cursor-pointer capitalize flex-1"
                       >
                         {method}
                       </label>
@@ -556,15 +643,16 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-[#B49162] hover:bg-[#B49162]/5 transition-all">
                 <Checkbox
                   id="newsletter"
                   checked={formData.newsletter}
                   onCheckedChange={(checked) => updateFormData('newsletter', checked)}
+                  className="border-gray-300 data-[state=checked]:bg-[#B49162] data-[state=checked]:border-[#B49162]"
                 />
                 <label
                   htmlFor="newsletter"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium text-[#0F172A] leading-relaxed cursor-pointer flex-1"
                 >
                   Subscribe to our newsletter for updates and offers
                 </label>
@@ -574,40 +662,40 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
         </AnimatePresence>
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700">
+        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
           <Button
             variant="outline"
             onClick={handleBack}
             disabled={currentStep === 1 || loading}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 border-gray-300 text-[#0F172A] hover:bg-gray-50 min-w-[100px]"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>Back</span>
           </Button>
 
           {currentStep < steps.length ? (
             <Button
               onClick={handleNext}
-              className="bg-secondary hover:bg-secondary/90 flex items-center gap-2"
+              className="bg-[#B49162] hover:bg-[#9A7A4F] text-white flex items-center justify-center gap-2 h-12 px-8 font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
             >
-              Next
-              <ArrowRight className="w-4 h-4" />
+              <span>Next</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </Button>
           ) : (
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-secondary hover:bg-secondary/90 flex items-center gap-2"
+              className="bg-[#B49162] hover:bg-[#9A7A4F] text-white flex items-center justify-center gap-2 h-12 px-8 font-semibold shadow-lg hover:shadow-xl transition-all min-w-[160px]"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending...
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>Sending...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Send Message
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Send Message</span>
                 </>
               )}
             </Button>

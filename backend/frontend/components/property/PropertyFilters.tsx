@@ -23,6 +23,7 @@ import {
 import { X, Filter, Search } from 'lucide-react';
 import { Neighborhood } from '@/types';
 import axiosInstance from '@/lib/axios';
+import { ApiError, isApiError } from '@/types/errors';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { cn } from '@/lib/utils';
 
@@ -74,9 +75,11 @@ export function PropertyFilters({
           params: { city: 'Damascus', locale: 'en' },
         });
         setNeighborhoods(response.data?.data || []);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Silently handle network errors - backend may not be running
-        if (!error.isNetworkError && !error.isTimeoutError) {
+        if (isApiError(error) && (!error.isNetworkError && !error.isTimeoutError)) {
+          console.error('Error fetching neighborhoods:', error);
+        } else if (!isApiError(error)) {
           console.error('Error fetching neighborhoods:', error);
         }
         // Set empty array on error to prevent UI issues
@@ -257,7 +260,7 @@ export function PropertyFilters({
           value={currentNeighborhood || 'all'}
           onValueChange={(value) => onFilterChange('neighborhood_id', value === 'all' ? null : value)}
         >
-          <SelectTrigger id="neighborhood" className="bg-white">
+          <SelectTrigger id="neighborhood" className="bg-white h-9">
             <SelectValue placeholder="All Neighborhoods" />
           </SelectTrigger>
           <SelectContent>
@@ -285,7 +288,7 @@ export function PropertyFilters({
               placeholder="Min"
               value={localMinPrice}
               onChange={(e) => handleMinPriceChange(e.target.value)}
-              className="bg-white focus:border-secondary focus:ring-secondary/20"
+              className="bg-white h-9 focus:border-secondary focus:ring-secondary/20"
             />
           </div>
           <div className="space-y-1">
@@ -298,7 +301,7 @@ export function PropertyFilters({
               placeholder="Max"
               value={localMaxPrice}
               onChange={(e) => handleMaxPriceChange(e.target.value)}
-              className="bg-white focus:border-secondary focus:ring-secondary/20"
+              className="bg-white h-9 focus:border-secondary focus:ring-secondary/20"
             />
           </div>
         </div>
@@ -310,7 +313,7 @@ export function PropertyFilters({
       <div className="space-y-2">
         <Label className="text-sm font-medium text-gray-700">Bedrooms</Label>
         <Select value={currentBedrooms} onValueChange={handleBedroomsChange}>
-          <SelectTrigger className="bg-white">
+          <SelectTrigger className="bg-white h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -327,7 +330,7 @@ export function PropertyFilters({
       <div className="space-y-2">
         <Label className="text-sm font-medium text-gray-700">Bathrooms</Label>
         <Select value={currentBathrooms} onValueChange={handleBathroomsChange}>
-          <SelectTrigger className="bg-white">
+          <SelectTrigger className="bg-white h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

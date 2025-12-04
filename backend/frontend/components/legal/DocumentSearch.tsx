@@ -219,8 +219,8 @@ export function DocumentSearch({ content, onResultClick, className }: DocumentSe
                 {/* Results Header */}
                 <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-primary-700 bg-gray-50 dark:bg-primary-800">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-secondary" />
-                    <span className="text-sm font-semibold text-primary dark:text-white">
+                    <FileText className="w-4 h-4 text-[#B49162]" />
+                    <span className="text-sm font-semibold text-[#0F172A] dark:text-white">
                       {results.length} {results.length === 1 ? 'result' : 'results'} found
                     </span>
                   </div>
@@ -261,12 +261,12 @@ export function DocumentSearch({ content, onResultClick, className }: DocumentSe
                         scrollToResult(result.id);
                       }}
                       className={cn(
-                        'w-full text-left p-3 border-b border-gray-100 dark:border-primary-700 hover:bg-gray-50 dark:hover:bg-primary-800 transition-colors',
-                        index === currentIndex && 'bg-secondary/10 border-l-2 border-secondary'
+                        'w-full text-left p-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors',
+                        index === currentIndex && 'bg-[#B49162]/10 border-l-2 border-[#B49162]'
                       )}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <p className="text-xs font-semibold text-secondary">{result.section}</p>
+                        <p className="text-xs font-semibold text-[#B49162]">{result.section}</p>
                         <span className="text-xs text-gray-400 dark:text-gray-500">
                           #{index + 1}
                         </span>

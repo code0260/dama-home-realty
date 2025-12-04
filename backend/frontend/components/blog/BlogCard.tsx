@@ -66,7 +66,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
         className={cn('group cursor-pointer', className)}
       >
         <Link href={`/blog/${article.slug}`}>
-          <Card className="overflow-hidden border-2 border-secondary/30 hover:border-secondary/60 transition-all duration-300 hover:shadow-2xl h-full">
+          <Card className="overflow-hidden border-2 border-[#B49162]/30 hover:border-[#B49162]/60 transition-all duration-300 hover:shadow-2xl h-full">
             <div className="relative h-96 w-full overflow-hidden">
               {imageUrl ? (
                 <Image
@@ -89,12 +89,12 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
               
               {/* Badges */}
               <div className="absolute top-4 left-4 flex gap-2 z-10">
-                <Badge className="bg-secondary text-white border-0 shadow-lg">
+                <Badge className="bg-[#B49162] text-white border-0 shadow-lg">
                   <Star className="w-3 h-3 mr-1" />
                   Featured
                 </Badge>
                 {categories.length > 0 && (
-                  <Badge variant="outline" className="bg-white/90 text-primary border-0">
+                  <Badge variant="outline" className="bg-white/90 text-[#0F172A] border-0">
                     <FolderOpen className="w-3 h-3 mr-1" />
                     {categories[0]}
                   </Badge>
@@ -103,7 +103,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
 
               {/* Content Overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                <h2 className="text-3xl md:text-4xl font-bold mb-3 line-clamp-2 group-hover:text-secondary transition-colors">
+                <h2 className="text-3xl md:text-4xl font-bold mb-3 line-clamp-2 group-hover:text-[#B49162] transition-colors">
                   {article.title}
                 </h2>
                 <p className="text-lg text-gray-200 mb-4 line-clamp-2">
@@ -115,7 +115,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                   {article.author && (
                     <div className="flex items-center gap-2">
                       <Avatar className="w-6 h-6">
-                        <AvatarFallback className="bg-secondary/20 text-secondary text-xs">
+                        <AvatarFallback className="bg-[#B49162]/20 text-[#B49162] text-xs">
                           {getInitials(article.author.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -153,7 +153,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
       className={cn('group cursor-pointer h-full', className)}
     >
       <Link href={`/blog/${article.slug}`}>
-        <Card className="h-full overflow-hidden border border-gray-200 dark:border-primary-700 hover:border-secondary/50 transition-all duration-300 hover:shadow-xl flex flex-col">
+        <Card className="h-full overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-[#B49162]/50 transition-all duration-300 hover:shadow-xl flex flex-col">
           {/* Image */}
           <div className="relative h-48 w-full overflow-hidden bg-gray-100 dark:bg-primary-800">
             {imageUrl ? (
@@ -185,7 +185,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
 
             {/* Featured Badge */}
             {article.is_featured && (
-              <Badge className="absolute top-3 right-3 bg-secondary text-white border-0">
+              <Badge className="absolute top-3 right-3 bg-[#B49162] text-white border-0">
                 <Star className="w-3 h-3 mr-1" />
                 Featured
               </Badge>
@@ -194,7 +194,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
 
           <CardContent className="p-6 flex-1 flex flex-col">
             {/* Title */}
-            <h3 className="text-xl font-bold text-primary dark:text-white mb-3 line-clamp-2 group-hover:text-secondary transition-colors">
+            <h3 className="text-xl font-bold text-[#0F172A] dark:text-white mb-3 line-clamp-2 group-hover:text-[#B49162] transition-colors">
               {article.title}
             </h3>
 
@@ -206,7 +206,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
             {/* Tags */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
-                {tags.slice(0, 3).map((tag, index) => (
+                {tags.slice(0, 3).map((tag: string, index: number) => (
                   <Badge
                     key={index}
                     variant="outline"
@@ -230,7 +230,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                 {article.author && (
                   <div className="flex items-center gap-2">
                     <Avatar className="w-5 h-5">
-                      <AvatarFallback className="bg-secondary/10 text-secondary text-xs">
+                      <AvatarFallback className="bg-[#B49162]/10 text-[#B49162] text-xs">
                         {getInitials(article.author.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -246,7 +246,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                   {article.views || 0}
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-secondary group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-[#B49162] group-hover:translate-x-1 transition-transform" />
             </div>
           </CardContent>
         </Card>
