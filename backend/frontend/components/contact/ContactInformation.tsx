@@ -129,28 +129,28 @@ export function ContactInformation({ className }: ContactInformationProps) {
                     href={method.link}
                     target={method.link.startsWith('http') ? '_blank' : undefined}
                     rel={method.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 hover:border-[#B49162] hover:bg-[#B49162]/5 transition-all duration-300 group"
+                    className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-[#B49162] hover:bg-[#B49162]/5 transition-all duration-300 group"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#B49162]/10 flex items-center justify-center group-hover:bg-[#B49162] transition-colors duration-300 shrink-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#B49162]/10 flex items-center justify-center group-hover:bg-[#B49162] transition-colors duration-300 shrink-0">
                       <div className="text-[#B49162] group-hover:text-white transition-colors duration-300">
                         {method.icon}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-500 mb-1">{method.label}</p>
-                      <p className="text-base font-semibold text-[#0F172A] group-hover:text-[#B49162] transition-colors">
+                      <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">{method.label}</p>
+                      <p className="text-sm sm:text-base font-semibold text-[#0F172A] group-hover:text-[#B49162] transition-colors break-words">
                         {method.value}
                       </p>
                     </div>
                   </Link>
                 ) : (
-                  <div className="flex items-center gap-4 p-4 rounded-lg border border-gray-200">
-                    <div className="w-12 h-12 rounded-full bg-[#B49162]/10 flex items-center justify-center shrink-0">
+                  <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border border-gray-200">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#B49162]/10 flex items-center justify-center shrink-0">
                       <div className="text-[#B49162]">{method.icon}</div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-500 mb-1">{method.label}</p>
-                      <p className="text-base font-semibold text-[#0F172A]">{method.value}</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">{method.label}</p>
+                      <p className="text-sm sm:text-base font-semibold text-[#0F172A] break-words">{method.value}</p>
                     </div>
                   </div>
                 )}

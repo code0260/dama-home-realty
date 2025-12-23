@@ -102,7 +102,7 @@ export function Footer() {
 
   return (
     <>
-      <footer className="bg-primary text-white relative overflow-hidden">
+      <footer className="bg-primary text-white relative overflow-hidden pb-24 md:pb-16">
         {/* Decorative Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQkQ5MTYyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMEYxNzJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] repeat" />
@@ -197,27 +197,33 @@ export function Footer() {
               <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
                 Contact Us
               </h4>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
-                  <span className="text-gray-300 text-sm font-light leading-relaxed">
+              <ul className="space-y-5 sm:space-y-4">
+                <li className="flex items-center gap-3">
+                  <div className="w-6 flex items-center justify-center shrink-0">
+                    <MapPin className="w-6 h-6 text-secondary" />
+                  </div>
+                  <span className="text-gray-300 text-sm sm:text-base font-light leading-relaxed">
                     {contactInfo.address}
                   </span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-secondary shrink-0" />
+                  <div className="w-6 flex items-center justify-center shrink-0">
+                    <Phone className="w-6 h-6 text-secondary" />
+                  </div>
                   <a
                     href={`tel:${contactInfo.phone.replace(/\s/g, '')}`}
-                    className="text-gray-300 hover:text-secondary transition-colors text-lg font-medium"
+                    className="text-gray-300 hover:text-secondary transition-colors text-base sm:text-lg font-medium"
                   >
                     {contactInfo.phone}
                   </a>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-secondary shrink-0" />
+                  <div className="w-6 flex items-center justify-center shrink-0">
+                    <Mail className="w-6 h-6 text-secondary" />
+                  </div>
                   <a
                     href={`mailto:${contactInfo.email}`}
-                    className="text-gray-300 hover:text-secondary transition-colors text-sm font-light break-all"
+                    className="text-gray-300 hover:text-secondary transition-colors text-sm sm:text-base font-light break-all"
                   >
                     {contactInfo.email}
                   </a>
@@ -232,7 +238,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-4 text-center md:text-left">
             {/* Copyright */}
             <p className="text-gray-400 text-sm font-light">
               © {currentYear} Dama Home Realty. All rights reserved.
@@ -256,7 +262,7 @@ export function Footer() {
             transition={{ duration: 0.3 }}
             onClick={scrollToTop}
             className={cn(
-              'fixed bottom-8 right-8 z-50',
+              'fixed bottom-24 left-4 sm:left-8 z-60',
               'w-12 h-12 rounded-full',
               'bg-secondary hover:bg-secondary/90',
               'text-white shadow-lg hover:shadow-xl',
