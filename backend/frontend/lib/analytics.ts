@@ -184,6 +184,6 @@ export function trackPerformance(metricName: string, value: number, unit: string
 declare global {
   interface Window {
     dataLayer?: any[];
-    gtag?: (...args: any[]) => void;
+    // gtag is defined in types/window.d.ts
   }
 }

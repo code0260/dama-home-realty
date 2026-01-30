@@ -49,12 +49,14 @@ import { ScheduleLiveTourDialog } from '@/components/property/ScheduleLiveTourDi
 import { ShareModal } from '@/components/property/ShareModal';
 import { AmenityIcon } from '@/components/property/AmenityIcon';
 import { PropertyMap } from '@/components/property/PropertyMap';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface PropertyDetailsClientProps {
   slug: string;
 }
 
 export default function PropertyDetailsClient({ slug }: PropertyDetailsClientProps) {
+  const { t, locale } = useLanguage();
   const router = useRouter();
   const [property, setProperty] = useState<Property | null>(null);
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
@@ -186,7 +188,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
       : [],
     address: {
       '@type': 'PostalAddress',
-      addressLocality: property.neighborhood?.name || 'Damascus',
+      addressLocality: property.neighborhood?.name || t('common.damascus'),
       addressCountry: 'SY',
     },
     ...(property.type === 'hotel' ? {
@@ -291,7 +293,9 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                 {/* Location */}
                 <div className="flex items-center gap-2 text-gray-600 mb-4">
                   <MapPin className="w-5 h-5 text-secondary" />
-                  <span className="text-lg">{property.neighborhood?.name || 'Damascus'}</span>
+                  <span className="text-lg">
+                    {property.neighborhood?.name || t('common.damascus')}
+                  </span>
                 </div>
                 
                 {/* Price - Large, Bold, Bronze */}
@@ -378,7 +382,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
               {/* Description - Expandable */}
               <section>
                 <ExpandableSection
-                  title="Description"
+                  title={t('property.description')}
                   defaultExpanded={true}
                   className="prose max-w-none"
                 >
@@ -407,29 +411,29 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
 
               {/* Key Features */}
               <section>
-                <h2 className="text-2xl font-bold text-primary mb-4">Key Features</h2>
+                <h2 className="text-2xl font-bold text-primary mb-4">{t('property.keyFeatures')}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
                     <Bed className="w-8 h-8 text-primary mb-2" />
                     <span className="text-2xl font-bold text-primary">{property.bedrooms}</span>
-                    <span className="text-sm text-gray-600">Bedrooms</span>
+                    <span className="text-sm text-gray-600">{t('property.bedrooms')}</span>
                   </div>
                   <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
                     <Bath className="w-8 h-8 text-primary mb-2" />
                     <span className="text-2xl font-bold text-primary">{property.bathrooms}</span>
-                    <span className="text-sm text-gray-600">Bathrooms</span>
+                    <span className="text-sm text-gray-600">{t('property.bathrooms')}</span>
                   </div>
                   <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
                     <Square className="w-8 h-8 text-primary mb-2" />
                     <span className="text-2xl font-bold text-primary">{property.area_sqm}</span>
-                    <span className="text-sm text-gray-600">m²</span>
+                    <span className="text-sm text-gray-600">{t('properties.areaUnit')}</span>
                   </div>
                   <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
                     <Home className="w-8 h-8 text-primary mb-2" />
                     <span className="text-2xl font-bold text-primary">
-                      {property.type ? property.type.charAt(0).toUpperCase() + property.type.slice(1) : 'N/A'}
+                      {property.type ? t(`property.${property.type}`) : 'N/A'}
                     </span>
-                    <span className="text-sm text-gray-600">Type</span>
+                    <span className="text-sm text-gray-600">{t('property.type')}</span>
                   </div>
                 </div>
               </section>
@@ -442,7 +446,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
               {/* Amenities - Grid of Cards */}
               {property.amenities && property.amenities.length > 0 && (
                 <section>
-                  <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-white mb-6">Amenities</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-primary dark:text-white mb-6">{t('property.amenities')}</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {property.amenities.map((amenity, index) => (
                       <motion.div
@@ -469,7 +473,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
               {/* Video Tour */}
               {property.video_url && (
                 <section>
-                  <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">Video Tour</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] mb-6">{t('property.videoTour')}</h2>
                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100 shadow-xl">
                     <iframe
                       src={property.video_url}
@@ -484,7 +488,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
 
               {/* Map Section - Custom Styled Container */}
               <section>
-                <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">Location</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">{t('property.location')}</h2>
                 <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
                   <PropertyMap property={property} />
                 </div>
@@ -525,7 +529,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
                   {/* Fallback Contact Card (if no agent) */}
                   {!property.agent && (
                     <div>
-                      <h3 className="text-xl font-bold text-[#0F172A] mb-4">Contact Agent</h3>
+                      <h3 className="text-xl font-bold text-[#0F172A] mb-4">{t('property.contactAgent')}</h3>
                       <div className="space-y-4">
                         {property.owner_contact && (
                           <>
@@ -644,7 +648,7 @@ export default function PropertyDetailsClient({ slug }: PropertyDetailsClientPro
           {/* Related Properties - Fallback */}
           {relatedProperties.length > 0 && (
             <section className="mt-16">
-              <h2 className="text-3xl font-bold text-primary dark:text-white mb-8">Related Properties</h2>
+              <h2 className="text-3xl font-bold text-primary dark:text-white mb-8">{t('property.similarProperties')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {relatedProperties.map((relatedProperty) => (
                   <PropertyCard key={relatedProperty.uuid} property={relatedProperty} />

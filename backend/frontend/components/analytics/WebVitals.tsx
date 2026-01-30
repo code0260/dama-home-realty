@@ -18,9 +18,9 @@ export function WebVitals() {
     if (typeof window !== 'undefined') {
       // Use setTimeout to ensure this runs after initial render
       setTimeout(() => {
-        // Dynamic import wrapped in try-catch for runtime safety
+        // Dynamic import wrapped in try-catch for runtime safety        
         const loadWebVitals = () => {
-          // @ts-expect-error - web-vitals is optional, handled by webpack.IgnorePlugin
+          // @ts-ignore - web-vitals is optional, handled by webpack.IgnorePlugin
           return import('web-vitals').catch(() => null);
         };
 

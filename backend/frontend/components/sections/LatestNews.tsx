@@ -111,7 +111,7 @@ export function LatestNews() {
                   {/* Reading Time */}
                   <span className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
-                    {calculateReadingTime(article.content || article.excerpt)} min read
+                    {calculateReadingTime(article.content || article.excerpt || '')} min read
                   </span>
                   
                   {/* Views */}

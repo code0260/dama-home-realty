@@ -18,10 +18,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui-custom/Logo';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export function Footer() {
+  const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const currentYear = new Date().getFullYear();
   const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Show/hide Back to Top button based on scroll position
   useEffect(() => {
@@ -44,19 +51,29 @@ export function Footer() {
   };
 
   // Quick Links
-  const quickLinks = [
-    { href: '/properties?type=sale', label: 'Buy' },
-    { href: '/properties?type=rent', label: 'Rent' },
-    { href: '/list-property', label: 'Sell' },
-    { href: '/blog', label: 'Blog' },
-    { href: '/contact', label: 'Contact' },
+  const quickLinks = mounted ? [
+    { href: '/properties?type=sale', label: t('common.buy') },
+    { href: '/properties?type=rent', label: t('common.rent') },
+    { href: '/list-property', label: t('common.sell') },
+    { href: '/blog', label: t('common.blog') },
+    { href: '/contact', label: t('common.contact') },
+  ] : [
+    { href: '/properties?type=sale', label: 'شراء' },
+    { href: '/properties?type=rent', label: 'إيجار' },
+    { href: '/list-property', label: 'بيع' },
+    { href: '/blog', label: 'المدونة' },
+    { href: '/contact', label: 'اتصل بنا' },
   ];
 
   // Legal Links
-  const legalLinks = [
-    { href: '/privacy-policy', label: 'Privacy Policy' },
-    { href: '/terms', label: 'Terms of Service' },
-    { href: '/refund-policy', label: 'Refund Policy' },
+  const legalLinks = mounted ? [
+    { href: '/privacy-policy', label: t('footer.privacyPolicy') },
+    { href: '/terms', label: t('footer.termsOfService') },
+    { href: '/refund-policy', label: t('footer.refundPolicy') },
+  ] : [
+    { href: '/privacy-policy', label: 'سياسة الخصوصية' },
+    { href: '/terms', label: 'شروط الاستخدام' },
+    { href: '/refund-policy', label: 'سياسة الحجز والعربون والإلغاء' },
   ];
 
   // Social Media Links
@@ -102,10 +119,27 @@ export function Footer() {
 
   return (
     <>
-      <footer className="bg-primary text-white relative overflow-hidden pb-24 md:pb-16">
-        {/* Decorative Background Pattern */}
+      <footer className="bg-slate-900 text-white relative overflow-hidden pb-24 md:pb-16">
+        {/* Damascene Heritage Pattern - Subtle Islamic/Geometric Arabesque */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQkQ5MTYyIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMEYxNzJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] repeat" />
+          <div
+            className="absolute inset-0 w-full h-full"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='damascene' x='0' y='0' width='120' height='120' patternUnits='userSpaceOnUse'%3E%3Cpath d='M60 0L73.5 20L96 20L78 35L91.5 55L60 45L28.5 55L42 35L24 20L46.5 20Z' fill='%23B49162' opacity='0.3'/%3E%3Cpath d='M0 60L20 46.5L20 24L35 42L55 28.5L45 60L55 91.5L35 78L20 96L20 73.5Z' fill='%23B49162' opacity='0.3'/%3E%3Cpath d='M60 120L46.5 100L24 100L42 85L28.5 65L60 75L91.5 65L78 85L96 100L73.5 100Z' fill='%23B49162' opacity='0.3'/%3E%3Cpath d='M120 60L100 73.5L100 96L85 78L65 91.5L75 60L65 28.5L85 42L100 24L100 46.5Z' fill='%23B49162' opacity='0.3'/%3E%3Ccircle cx='60' cy='60' r='8' fill='%23B49162' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23damascene)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+            }}
+          />
+        </div>
+
+        {/* Additional subtle geometric overlay for depth */}
+        <div className="absolute inset-0 opacity-3">
+          <div
+            className="absolute inset-0 w-full h-full"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='hexagon' x='0' y='0' width='80' height='80' patternUnits='userSpaceOnUse'%3E%3Cpath d='M40 0L60 10L60 30L40 40L20 30L20 10Z' fill='none' stroke='%23B49162' stroke-width='0.5' opacity='0.2'/%3E%3Cpath d='M40 40L60 50L60 70L40 80L20 70L20 50Z' fill='none' stroke='%23B49162' stroke-width='0.5' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23hexagon)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+            }}
+          />
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
@@ -114,7 +148,7 @@ export function Footer() {
             {/* Column 1: Brand */}
             <div className="space-y-6">
               {/* Logo */}
-              <Logo 
+              <Logo
                 href="/"
                 showText={true}
                 size="md"
@@ -155,7 +189,7 @@ export function Footer() {
             {/* Column 2: Quick Links */}
             <div>
               <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
-                Quick Links
+                {mounted ? t('footer.quickLinks') : 'روابط سريعة'}
               </h4>
               <ul className="space-y-3">
                 {quickLinks.map((link) => (
@@ -175,7 +209,7 @@ export function Footer() {
             {/* Column 3: Legal */}
             <div>
               <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
-                Legal
+                {mounted ? t('footer.legal') : 'قانوني'}
               </h4>
               <ul className="space-y-3">
                 {legalLinks.map((link) => (
@@ -195,7 +229,7 @@ export function Footer() {
             {/* Column 4: Contact */}
             <div>
               <h4 className="text-lg font-semibold mb-6 text-white tracking-wide">
-                Contact Us
+                {mounted ? t('footer.contactUs') : 'اتصل بنا'}
               </h4>
               <ul className="space-y-5 sm:space-y-4">
                 <li className="flex items-center gap-3">
@@ -241,12 +275,12 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-4 text-center md:text-left">
             {/* Copyright */}
             <p className="text-gray-400 text-sm font-light">
-              © {currentYear} Dama Home Realty. All rights reserved.
+              © {currentYear} Dama Home Realty. {mounted ? t('footer.copyright') : 'جميع الحقوق محفوظة.'}
             </p>
 
             {/* Additional Info or Links can go here */}
             <div className="text-gray-400 text-xs font-light">
-              Made with ❤️ in Damascus
+              {mounted ? t('footer.madeWith') : 'صنع بـ'} ❤️ {mounted ? t('footer.inDamascus') : 'في دمشق'}
             </div>
           </div>
         </div>

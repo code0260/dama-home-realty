@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sparkles, X, Send, Loader2 } from 'lucide-react';
+import { Sparkles, X, Send, Loader2, Lock } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/lib/axios';
 import { cn } from '@/lib/utils';
@@ -36,13 +36,26 @@ export function DamaGenie() {
   // Initialize with welcome message
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const welcomeMessage: Message = {
-        role: 'assistant',
-        content: `Hello${user ? ` ${user.name}` : ''}! 👋 I'm Dama Genie, your AI real estate consultant. How can I help you today?`,
-        timestamp: new Date(),
-      };
-      setMessages([welcomeMessage]);
-      updateSuggestedChips();
+      // Check if premium feature is available
+      // TODO: Replace with actual subscription check
+      const isPremiumFeatureAvailable = false;
+
+      if (!isPremiumFeatureAvailable) {
+        const welcomeMessage: Message = {
+          role: 'assistant',
+          content: `مرحباً${user ? ` ${user.name}` : ''}! 👋\n\nأنا Dama Genie، مساعدك الذكي في العقارات.\n\n⚠️ هذه الخدمة غير متوفرة حالياً. ستكون متاحة قريباً.`,
+          timestamp: new Date(),
+        };
+        setMessages([welcomeMessage]);
+      } else {
+        const welcomeMessage: Message = {
+          role: 'assistant',
+          content: `Hello${user ? ` ${user.name}` : ''}! 👋 I'm Dama Genie, your AI real estate consultant. How can I help you today?`,
+          timestamp: new Date(),
+        };
+        setMessages([welcomeMessage]);
+        updateSuggestedChips();
+      }
     }
   }, [isOpen, user]);
 
@@ -72,6 +85,21 @@ export function DamaGenie() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
+
+    // Check if premium feature is available
+    // TODO: Replace with actual subscription check
+    const isPremiumFeatureAvailable = false;
+
+    if (!isPremiumFeatureAvailable) {
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: '⚠️ عذراً، هذه الخدمة غير متوفرة حالياً. ستكون متاحة قريباً.',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      setInput('');
+      return;
+    }
 
     const userMessage: Message = {
       role: 'user',
@@ -108,18 +136,43 @@ export function DamaGenie() {
       updateSuggestedChips();
     } catch (error: any) {
       console.error('Concierge Error:', error);
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: error.response?.data?.error || 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Check if error is about premium feature
+      const errorContent = error.response?.data?.error || error.response?.data?.message || 'Sorry, I encountered an error. Please try again.';
+      if (errorContent.includes('غير متوفرة') || errorContent.includes('premium') || errorContent.includes('subscription')) {
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: errorContent,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } else {
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: errorContent,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleChipClick = async (chip: string) => {
+    // Check if premium feature is available
+    // TODO: Replace with actual subscription check
+    const isPremiumFeatureAvailable = false;
+
+    if (!isPremiumFeatureAvailable) {
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: '⚠️ عذراً، هذه الخدمة غير متوفرة حالياً. ستكون متاحة قريباً.',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      return;
+    }
+
     const userMessage: Message = {
       role: 'user',
       content: chip,
@@ -153,12 +206,23 @@ export function DamaGenie() {
       updateSuggestedChips();
     } catch (error: any) {
       console.error('Concierge Error:', error);
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: error.response?.data?.error || 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Check if error is about premium feature
+      const errorContent = error.response?.data?.error || error.response?.data?.message || 'Sorry, I encountered an error. Please try again.';
+      if (errorContent.includes('غير متوفرة') || errorContent.includes('premium') || errorContent.includes('subscription')) {
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: errorContent,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } else {
+        const errorMessage: Message = {
+          role: 'assistant',
+          content: errorContent,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
     } finally {
       setLoading(false);
     }
@@ -177,7 +241,7 @@ export function DamaGenie() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-lg',
+          'fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 md:w-16 md:h-16 rounded-full shadow-lg',
           'bg-linear-to-br from-primary to-secondary text-white',
           'flex items-center justify-center',
           'hover:scale-110 transition-transform duration-200',
@@ -191,7 +255,7 @@ export function DamaGenie() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 h-[600px] flex flex-col rounded-lg shadow-2xl overflow-hidden">
+        <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm md:w-96 h-[600px] flex flex-col rounded-lg shadow-2xl overflow-hidden">
           {/* Glassmorphism Background */}
           <div className="absolute inset-0 bg-white/80 backdrop-blur-lg border border-white/20" />
           

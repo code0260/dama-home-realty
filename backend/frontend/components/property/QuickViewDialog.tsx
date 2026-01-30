@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface QuickViewDialogProps {
   property: Property | null;
@@ -17,6 +18,7 @@ interface QuickViewDialogProps {
 }
 
 export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialogProps) {
+  const { t, locale } = useLanguage();
   if (!property) return null;
 
   const formatPrice = (price: number, currency: string) => {
@@ -98,7 +100,9 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
               <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">{property.title}</h2>
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                 <MapPin className="w-4 h-4" />
-                <span>{property.neighborhood?.name || 'Damascus'}</span>
+                <span>
+                  {property.neighborhood?.name || t('common.damascus')}
+                </span>
               </div>
             </div>
 
@@ -122,7 +126,7 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
                   <Bed className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">Bedrooms</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">{t('property.bedrooms')}</div>
                   <div className="font-semibold text-lg">{property.bedrooms || 0}</div>
                 </div>
               </div>
@@ -131,7 +135,7 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
                   <Bath className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">Bathrooms</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">{t('property.bathrooms')}</div>
                   <div className="font-semibold text-lg">{property.bathrooms || 0}</div>
                 </div>
               </div>
@@ -140,8 +144,8 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
                   <Square className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">Area</div>
-                  <div className="font-semibold text-lg">{property.area_sqm || 0} m²</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">{t('property.area')}</div>
+                  <div className="font-semibold text-lg">{property.area_sqm || 0} {t('properties.areaUnit')}</div>
                 </div>
               </div>
             </div>
@@ -149,7 +153,7 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
             {/* Description */}
             {property.description && (
               <div>
-                <h3 className="font-semibold text-lg mb-2">Description</h3>
+                <h3 className="font-semibold text-lg mb-2">{t('property.description')}</h3>
                 <p className="text-gray-600 dark:text-gray-300 line-clamp-4">{property.description}</p>
               </div>
             )}
@@ -157,7 +161,7 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
               <div>
-                <h3 className="font-semibold text-lg mb-2">Amenities</h3>
+                <h3 className="font-semibold text-lg mb-2">{t('property.amenities')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.slice(0, 6).map((amenity, index) => (
                     <Badge key={index} variant="outline" className="text-sm">
@@ -166,7 +170,7 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
                   ))}
                   {property.amenities.length > 6 && (
                     <Badge variant="outline" className="text-sm">
-                      +{property.amenities.length - 6} more
+                      +{property.amenities.length - 6} {t('property.more')}
                     </Badge>
                   )}
                 </div>
@@ -177,11 +181,11 @@ export function QuickViewDialog({ property, open, onOpenChange }: QuickViewDialo
             <div className="flex gap-3 pt-4">
               <Button asChild className="flex-1 bg-secondary hover:bg-secondary/90 text-white">
                 <Link href={`/properties/${property.slug}`} onClick={() => onOpenChange(false)}>
-                  View Full Details
+                  {t('property.viewFullDetails')}
                 </Link>
               </Button>
               <Button variant="outline" onClick={() => onOpenChange(false)} className="border-gray-300">
-                Close
+                {t('common.close')}
               </Button>
             </div>
           </div>

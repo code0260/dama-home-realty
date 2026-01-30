@@ -647,7 +647,7 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                 <Checkbox
                   id="newsletter"
                   checked={formData.newsletter}
-                  onCheckedChange={(checked) => updateFormData('newsletter', checked)}
+                  onCheckedChange={(checked) => updateFormData('newsletter', checked === true)}
                   className="border-gray-300 data-[state=checked]:bg-[#B49162] data-[state=checked]:border-[#B49162]"
                 />
                 <label

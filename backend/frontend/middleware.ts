@@ -4,18 +4,29 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
+  // Skip locale handling for API routes, static files, etc.
+  if (
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon.ico') ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp)$/)
+  ) {
+    return NextResponse.next();
+  }
+  
   // Protected routes that require authentication
   const protectedRoutes = ['/portal', '/bookings'];
-  
-  // Check if the current path is a protected route
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
   // For protected routes, we let the client-side handle authentication
-  // (axios interceptor and portal page will handle redirects)
-  // This middleware just ensures the route structure is correct
+  const response = NextResponse.next();
   
-  // Allow all routes - public routes are accessible, protected routes will be handled by client-side
-  return NextResponse.next();
+  // Set default locale cookie if not set (Arabic)
+  if (!request.cookies.get('locale')) {
+    response.cookies.set('locale', 'ar', { path: '/', maxAge: 60 * 60 * 24 * 365 });
+  }
+  
+  return response;
 }
 
 // Configure which routes this middleware should run on
@@ -32,4 +43,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
-

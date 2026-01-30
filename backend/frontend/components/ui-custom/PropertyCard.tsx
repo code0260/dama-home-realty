@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { ShareProperty } from '@/components/property/ShareProperty';
 import { QuickViewDialog } from '@/components/property/QuickViewDialog';
 import { CompareButton } from '@/components/property/CompareButton';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface PropertyCardProps {
   property: Property;
@@ -34,6 +35,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps) {
+  const { t, locale } = useLanguage();
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const router = useRouter();
@@ -199,7 +201,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
                     size="lg"
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    Quick View
+                    {t('properties.quickView')}
                   </Button>
                 </div>
               )}
@@ -219,7 +221,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
               <div className="flex items-center gap-1.5 text-gray-600 mb-4">
                 <MapPin className="w-4 h-4 shrink-0" />
                 <span className="text-sm font-light truncate">
-                  {property.neighborhood?.name || 'Damascus'}
+                  {property.neighborhood?.name || t('common.damascus')}
                 </span>
               </div>
 
@@ -240,7 +242,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
                 <div className="flex items-center gap-1.5">
                   <Square className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium">
-                    {property.area_sqm || 0} m²
+                    {property.area_sqm || 0} {t('properties.areaUnit')}
                   </span>
                 </div>
               </div>
@@ -259,12 +261,12 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
                   </span>
                   {property.type === 'rent' && (
                     <span className="text-sm font-light text-gray-500">
-                      / month
+                      {t('properties.perMonth')}
                     </span>
                   )}
                   {property.type === 'hotel' && (
                     <span className="text-sm font-light text-gray-500">
-                      / night
+                      {t('properties.perNight')}
                     </span>
                   )}
                 </div>
@@ -274,7 +276,7 @@ export function PropertyCard({ property, viewMode = 'grid' }: PropertyCardProps)
                     size="sm"
                     className="bg-secondary hover:bg-secondary/90 text-white"
                   >
-                    View Details
+                    {t('properties.viewDetails')}
                   </Button>
                 )}
               </div>

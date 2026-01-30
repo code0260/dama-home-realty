@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, Sparkles, X } from 'lucide-react';
+import { Loader2, Search, Sparkles, X, Lock, Info } from 'lucide-react';
 import { Property } from '@/types';
 import { PropertyCard } from '@/components/ui-custom/PropertyCard';
 import axiosInstance from '@/lib/axios';
@@ -46,6 +46,15 @@ export function AiSearchDialog({ open, onOpenChange }: AiSearchDialogProps) {
   const handleSearch = async () => {
     if (!query.trim()) return;
 
+    // Check if premium feature is available
+    // TODO: Replace with actual subscription check
+    const isPremiumFeatureAvailable = false;
+
+    if (!isPremiumFeatureAvailable) {
+      setError('⚠️ هذه الميزة غير متوفرة حالياً. ستكون متاحة قريباً.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResults([]);
@@ -64,7 +73,12 @@ export function AiSearchDialog({ open, onOpenChange }: AiSearchDialogProps) {
       setPagination(response.data.pagination);
     } catch (err: any) {
       console.error('AI Search Error:', err);
-      setError(err.response?.data?.message || 'Failed to search. Please try again.');
+      // Check if error is about premium feature
+      if (err.response?.data?.message?.includes('غير متوفرة') || err.response?.data?.message?.includes('premium')) {
+        setError(err.response.data.message);
+      } else {
+        setError(err.response?.data?.message || 'Failed to search. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -185,6 +199,21 @@ export function AiSearchDialog({ open, onOpenChange }: AiSearchDialogProps) {
             <p className="text-sm mt-2">Try rephrasing your query or use different keywords.</p>
           </div>
         )}
+
+        {/* Premium Feature Notice */}
+        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Lock className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-900 mb-1">
+                ⚠️ ميزة غير متوفرة حالياً
+              </p>
+              <p className="text-sm text-amber-700">
+                هذه الميزة غير متوفرة حالياً. ستكون متاحة قريباً.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Initial State */}
         {!loading && results.length === 0 && !query && (

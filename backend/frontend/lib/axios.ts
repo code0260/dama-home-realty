@@ -160,8 +160,8 @@ async function getCsrfCookie(forceRefresh: boolean = false): Promise<void> {
             csrfCookiePromise = null;
             
             if (
-                error.code === "ECONNABORTED" ||
-                error.message?.includes("timeout")
+                (error instanceof Error && (error as any).code === "ECONNABORTED") ||
+                (error instanceof Error && error.message?.includes("timeout"))
             ) {
                 console.warn(
                     "CSRF cookie request timed out after retries. Request may fail CSRF validation.",
@@ -172,8 +172,8 @@ async function getCsrfCookie(forceRefresh: boolean = false): Promise<void> {
                     }
                 );
             } else if (
-                error.code === "ERR_NETWORK" ||
-                error.message === "Network Error"
+                (error instanceof Error && (error as any).code === "ERR_NETWORK") ||
+                (error instanceof Error && error.message === "Network Error")
             ) {
                 console.warn(
                     "CSRF cookie request failed due to network error after retries. Request may fail CSRF validation.",
@@ -183,7 +183,7 @@ async function getCsrfCookie(forceRefresh: boolean = false): Promise<void> {
                     }
                 );
             } else {
-                console.warn("CSRF cookie request failed after retries:", error.message);
+                console.warn("CSRF cookie request failed after retries:", error instanceof Error ? error.message : String(error));
             }
 
             throw error;

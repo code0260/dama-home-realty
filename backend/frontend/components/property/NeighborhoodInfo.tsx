@@ -3,6 +3,7 @@
 import { MapPin, Users, Home, TrendingUp, Coffee, DollarSign } from 'lucide-react';
 import { Property } from '@/types';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface NeighborhoodInfoProps {
   property: Property;
@@ -15,6 +16,7 @@ interface NeighborhoodInfoProps {
 }
 
 export function NeighborhoodInfo({ property, neighborhoodStats }: NeighborhoodInfoProps) {
+  const { t, locale } = useLanguage();
   const neighborhood = property.neighborhood;
   
   if (!neighborhood) return null;
@@ -34,8 +36,12 @@ export function NeighborhoodInfo({ property, neighborhoodStats }: NeighborhoodIn
           <MapPin className="w-6 h-6 text-secondary" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-primary dark:text-white">{neighborhood.name}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Damascus, Syria</p>
+          <h3 className="text-2xl font-bold text-primary dark:text-white">
+            {neighborhood.name}
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            {t('common.damascus')}, {t('common.syria')}
+          </p>
         </div>
       </div>
 

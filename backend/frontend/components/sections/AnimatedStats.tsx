@@ -3,41 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Home, Users, Calendar, Star } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface Stat {
   icon: React.ReactNode;
   value: number;
-  label: string;
+  labelKey: string;
   suffix?: string;
   prefix?: string;
 }
-
-const stats: Stat[] = [
-  {
-    icon: <Home className="w-8 h-8" />,
-    value: 500,
-    label: 'Properties',
-    suffix: '+',
-  },
-  {
-    icon: <Users className="w-8 h-8" />,
-    value: 1200,
-    label: 'Happy Clients',
-    suffix: '+',
-  },
-  {
-    icon: <Calendar className="w-8 h-8" />,
-    value: 10,
-    label: 'Years of Excellence',
-    suffix: '+',
-  },
-  {
-    icon: <Star className="w-8 h-8" />,
-    value: 98,
-    label: 'Satisfaction Rate',
-    suffix: '%',
-  },
-];
 
 function AnimatedCounter({ 
   value, 
@@ -88,8 +62,41 @@ function AnimatedCounter({
 }
 
 export function AnimatedStats() {
+  const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const stats: Stat[] = [
+    {
+      icon: <Home className="w-8 h-8" />,
+      value: 500,
+      labelKey: 'animatedStats.properties',
+      suffix: '+',
+    },
+    {
+      icon: <Users className="w-8 h-8" />,
+      value: 1200,
+      labelKey: 'animatedStats.happyClients',
+      suffix: '+',
+    },
+    {
+      icon: <Calendar className="w-8 h-8" />,
+      value: 10,
+      labelKey: 'animatedStats.yearsOfExcellence',
+      suffix: '+',
+    },
+    {
+      icon: <Star className="w-8 h-8" />,
+      value: 98,
+      labelKey: 'animatedStats.satisfactionRate',
+      suffix: '%',
+    },
+  ];
 
   return (
     <section className="py-12 md:py-16 bg-white border-y border-gray-100">
@@ -121,7 +128,7 @@ export function AnimatedStats() {
                 )}
               </div>
               <p className="text-sm md:text-base text-gray-600 font-medium">
-                {stat.label}
+                {mounted ? t(stat.labelKey) : (stat.labelKey === 'animatedStats.properties' ? 'عقارات' : stat.labelKey === 'animatedStats.happyClients' ? 'عملاء سعداء' : stat.labelKey === 'animatedStats.yearsOfExcellence' ? 'سنوات من التميز' : 'معدل الرضا')}
               </p>
             </motion.div>
           ))}

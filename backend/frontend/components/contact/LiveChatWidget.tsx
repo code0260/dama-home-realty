@@ -146,7 +146,7 @@ export function LiveChatWidget({ className }: LiveChatWidgetProps) {
   };
 
   return (
-    <div className={cn('fixed bottom-4 right-4 z-50', className)}>
+    <div className={cn('fixed bottom-20 right-4 md:bottom-4 md:right-4 z-50', className)}>
       {/* Chat Toggle Button */}
       {!isOpen && (
         <motion.div

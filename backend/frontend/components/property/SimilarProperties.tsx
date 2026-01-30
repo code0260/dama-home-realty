@@ -7,6 +7,7 @@ import { PropertyCard } from '@/components/ui-custom/PropertyCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface SimilarPropertiesProps {
   currentProperty: Property;
@@ -14,6 +15,7 @@ interface SimilarPropertiesProps {
 }
 
 export function SimilarProperties({ currentProperty, maxResults = 3 }: SimilarPropertiesProps) {
+  const { t } = useLanguage();
   const [similarProperties, setSimilarProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +113,7 @@ export function SimilarProperties({ currentProperty, maxResults = 3 }: SimilarPr
 
   return (
     <div className="space-y-4">
-      <h3 className="text-2xl font-bold text-primary dark:text-white">Similar Properties</h3>
+      <h3 className="text-2xl font-bold text-primary dark:text-white">{t('property.similarProperties')}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {similarProperties.map((property) => (
           <PropertyCard key={property.uuid} property={property} />

@@ -104,7 +104,7 @@ export default function ArticlePage() {
               {/* Categories */}
               {categories.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {categories.map((category, index) => (
+                  {categories.map((category: string, index: number) => (
                     <Badge
                       key={index}
                       variant="outline"
@@ -151,7 +151,7 @@ export default function ArticlePage() {
               {/* Tags */}
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {tags.map((tag, index) => (
+                  {tags.map((tag: string, index: number) => (
                     <Badge
                       key={index}
                       variant="outline"

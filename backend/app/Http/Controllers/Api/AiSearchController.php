@@ -16,6 +16,17 @@ class AiSearchController extends Controller
      */
     public function search(Request $request)
     {
+        // Check if premium feature is available
+        // TODO: Replace with actual subscription check
+        $isPremiumFeatureAvailable = false;
+
+        if (!$isPremiumFeatureAvailable) {
+            return response()->json([
+                'error' => '⚠️ هذه الميزة غير متوفرة حالياً. ستكون متاحة قريباً.',
+                'message' => 'This feature is temporarily unavailable. It will be available soon.',
+            ], 503); // 503 Service Unavailable instead of 403
+        }
+
         $request->validate([
             'query' => 'required|string|max:500',
         ]);

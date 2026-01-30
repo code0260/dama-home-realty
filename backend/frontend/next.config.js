@@ -7,10 +7,8 @@ const nextConfig = {
   // Fix workspace root detection - explicitly set to current directory
   outputFileTracingRoot: path.join(__dirname),
   // Disable Turbopack completely - use Webpack instead (more stable on shared hosting)
-  // Remove experimental.turbo to force Webpack usage
-  // experimental: {
-  //   turbo: false,
-  // },
+  // Add empty turbopack config to silence the error and force Webpack usage
+  turbopack: {},
   // Force Webpack
   webpack: (config, { isServer }) => {
     config.experiments = { ...config.experiments, topLevelAwait: true };

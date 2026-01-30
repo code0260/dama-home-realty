@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { LayoutGrid, List, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface FeaturedPropertiesClientProps {
   properties: Property[];
@@ -23,6 +24,7 @@ export function FeaturedPropertiesClient({
   loadingMore = false,
   onLoadMore 
 }: FeaturedPropertiesClientProps) {
+  const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Load view mode from localStorage
@@ -44,7 +46,7 @@ export function FeaturedPropertiesClient({
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No featured properties available at the moment.</p>
+            <p className="text-gray-500 text-lg">{t('properties.noProperties')}</p>
           </div>
         </div>
       </section>
@@ -58,10 +60,10 @@ export function FeaturedPropertiesClient({
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
             <div className="text-center md:text-left">
               <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
-                Featured <span className="text-[#B49162]">Properties</span>
+                {t('properties.featured')}
               </h2>
               <p className="text-gray-600 text-lg max-w-2xl">
-                Discover our handpicked selection of premium properties in Damascus
+                {t('properties.featuredSubtitle')}
               </p>
             </div>
             
@@ -80,7 +82,7 @@ export function FeaturedPropertiesClient({
                 aria-label="Grid view"
               >
                 <LayoutGrid className="w-4 h-4 mr-2" />
-                Grid
+                {t('properties.gridView')}
               </Button>
               <Button
                 variant="ghost"
@@ -95,7 +97,7 @@ export function FeaturedPropertiesClient({
                 aria-label="List view"
               >
                 <List className="w-4 h-4 mr-2" />
-                List
+                {t('properties.listView')}
               </Button>
             </div>
           </div>
@@ -137,10 +139,10 @@ export function FeaturedPropertiesClient({
               {loadingMore ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Loading...
+                  {t('common.loading')}
                 </>
               ) : (
-                'Load More Properties'
+                t('properties.loadMore')
               )}
             </Button>
           </div>

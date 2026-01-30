@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, Globe, User, LogOut, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 // ThemeToggle removed - Light mode only
 import { Logo } from '@/components/ui-custom/Logo';
 import { MobileDrawerNavigation } from '@/components/mobile/MobileNavigation';
@@ -32,7 +33,8 @@ import {
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState<'en' | 'ar'>('en');
+  const [mounted, setMounted] = useState(false);
+  const { locale, changeLocale, t } = useLanguage();
   const { user, isAuthenticated, logout, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -40,12 +42,24 @@ export function Navbar() {
   // Check if we're on the home page
   const isHomePage = pathname === '/';
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/properties?type=sale', label: 'Buy' },
-    { href: '/properties?type=rent', label: 'Rent' },
-    { href: '/services', label: 'Services' },
-    { href: '/blog', label: 'Blog' },
+  // Avoid hydration mismatch by using mounted state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use default Arabic labels during SSR to avoid hydration mismatch
+  const navLinks = mounted ? [
+    { href: '/', label: t('navbar.home') },
+    { href: '/properties?type=sale', label: t('navbar.buy') },
+    { href: '/properties?type=rent', label: t('navbar.rent') },
+    { href: '/services', label: t('navbar.services') },
+    { href: '/blog', label: t('navbar.blog') },
+  ] : [
+    { href: '/', label: 'الرئيسية' },
+    { href: '/properties?type=sale', label: 'شراء' },
+    { href: '/properties?type=rent', label: 'إيجار' },
+    { href: '/services', label: 'الخدمات العقارية' },
+    { href: '/blog', label: 'المدونة' },
   ];
 
   // Scroll detection
@@ -63,14 +77,12 @@ export function Navbar() {
 
   // Language switcher handler
   const handleLanguageChange = (lang: 'en' | 'ar') => {
-    setCurrentLang(lang);
-    // Here you can implement actual language switching logic
-    // For now, it's just a state change
+    changeLocale(lang);
   };
 
   // Navbar background: transparent on home page when not scrolled, solid on other pages
   const shouldBeTransparent = isHomePage && !isScrolled;
-  
+
   // Navbar classes based on page and scroll state
   const navbarClasses = cn(
     'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300',
@@ -96,7 +108,7 @@ export function Navbar() {
         <div className="flex h-20 md:h-24 items-center justify-between">
           {/* Left: Logo + Brand Text */}
           <div className="flex items-center">
-            <Logo 
+            <Logo
               href="/"
               showText={true}
               size="lg"
@@ -105,8 +117,8 @@ export function Navbar() {
               variant="navbar"
               className={cn(
                 'transition-colors duration-300',
-                shouldBeTransparent 
-                  ? '[&_.brand-primary]:text-[#B49162] [&_.brand-secondary]:text-white' 
+                shouldBeTransparent
+                  ? '[&_.brand-primary]:text-[#B49162] [&_.brand-secondary]:text-white'
                   : '[&_.brand-primary]:text-[#B49162] [&_.brand-secondary]:text-[#0F172A]'
               )}
             />
@@ -160,30 +172,30 @@ export function Navbar() {
                 >
                   <Languages className="w-4 h-4" />
                   <span className="text-sm font-medium">
-                    {currentLang.toUpperCase()}
+                    {mounted ? locale.toUpperCase() : 'AR'}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuLabel>Language</DropdownMenuLabel>
+                <DropdownMenuLabel>{mounted ? t('common.language') : 'اللغة'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleLanguageChange('en')}
                   className={cn(
                     'cursor-pointer',
-                    currentLang === 'en' && 'bg-secondary/10 text-secondary'
+                    (mounted ? locale : 'ar') === 'en' && 'bg-secondary/10 text-secondary'
                   )}
                 >
-                  English
+                  {mounted ? t('common.english') : 'English'}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleLanguageChange('ar')}
                   className={cn(
                     'cursor-pointer',
-                    currentLang === 'ar' && 'bg-secondary/10 text-secondary'
+                    (mounted ? locale : 'ar') === 'ar' && 'bg-secondary/10 text-secondary'
                   )}
                 >
-                  العربية
+                  {mounted ? t('common.arabic') : 'العربية'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -199,7 +211,7 @@ export function Navbar() {
                 'font-semibold tracking-wide'
               )}
             >
-              <Link href="/list-property">List Property</Link>
+              <Link href="/list-property">{mounted ? t('common.sell') : 'بيع'}</Link>
             </Button>
 
             {/* Auth Buttons / User Menu */}
@@ -219,17 +231,17 @@ export function Navbar() {
                       >
                         <User className="w-4 h-4" />
                         <span className="text-sm font-medium">
-                          {user.name?.split(' ')[0] || 'Account'}
+                          {user.name?.split(' ')[0] || t('navbar.account')}
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuLabel>{mounted ? t('navbar.account') : 'الحساب'}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link href="/portal" className="cursor-pointer">
                           <User className="mr-2 h-4 w-4" />
-                          My Portal
+                          {mounted ? t('navbar.dashboard') : 'لوحة التحكم'}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -240,7 +252,7 @@ export function Navbar() {
                         className="cursor-pointer text-red-600 focus:text-red-600"
                       >
                         <LogOut className="mr-2 h-4 w-4" />
-                        Logout
+                        {mounted ? t('common.logout') : 'تسجيل الخروج'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -251,25 +263,25 @@ export function Navbar() {
                       variant="ghost"
                       size="sm"
                       className={cn(
-                        'hidden sm:flex h-9',
+                        'flex h-9',
                         textColorClasses,
                         'hover:bg-gray-100'
                       )}
                     >
-                      <Link href="/login">Login</Link>
+                      <Link href="/login">{mounted ? t('common.login') : 'تسجيل الدخول'}</Link>
                     </Button>
                     <Button
                       asChild
                       size="sm"
                       className={cn(
-                        'hidden md:flex rounded-full px-5 h-9',
+                        'flex rounded-full px-5 h-9',
                         shouldBeTransparent
                           ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm'
                           : 'bg-primary hover:bg-primary/90 text-white',
                         'transition-all duration-300'
                       )}
                     >
-                      <Link href="/register">Register</Link>
+                      <Link href="/register">{mounted ? t('common.register') : 'حساب جديد'}</Link>
                     </Button>
                   </>
                 )}
@@ -339,7 +351,7 @@ export function Navbar() {
                         className="w-full rounded-full bg-secondary hover:bg-secondary/90 text-white h-11 font-semibold"
                       >
                         <Link href="/list-property" onClick={() => setIsMobileMenuOpen(false)}>
-                          List Property
+                          {mounted ? t('common.sell') : 'بيع'}
                         </Link>
                       </Button>
                     </SheetClose>
@@ -347,27 +359,27 @@ export function Navbar() {
                     {/* Language Switcher */}
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">
-                        Language
+                        {mounted ? t('common.language') : 'اللغة'}
                       </span>
                       <div className="flex gap-2">
                         <Button
-                          variant={currentLang === 'en' ? 'default' : 'outline'}
+                          variant={(mounted ? locale : 'ar') === 'en' ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => handleLanguageChange('en')}
                           className={cn(
                             'h-8 px-3',
-                            currentLang === 'en' && 'bg-secondary hover:bg-secondary/90'
+                            (mounted ? locale : 'ar') === 'en' && 'bg-secondary hover:bg-secondary/90'
                           )}
                         >
                           EN
                         </Button>
                         <Button
-                          variant={currentLang === 'ar' ? 'default' : 'outline'}
+                          variant={(mounted ? locale : 'ar') === 'ar' ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => handleLanguageChange('ar')}
                           className={cn(
                             'h-8 px-3',
-                            currentLang === 'ar' && 'bg-secondary hover:bg-secondary/90'
+                            (mounted ? locale : 'ar') === 'ar' && 'bg-secondary hover:bg-secondary/90'
                           )}
                         >
                           AR
@@ -386,7 +398,7 @@ export function Navbar() {
                                 className="block text-center text-sm font-medium text-gray-700 hover:text-secondary transition-colors py-2"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
-                                My Portal
+                                {mounted ? t('navbar.dashboard') : 'لوحة التحكم'}
                               </Link>
                             </SheetClose>
                             <Button
@@ -399,7 +411,7 @@ export function Navbar() {
                               }}
                             >
                               <LogOut className="w-4 h-4 mr-2" />
-                              Logout
+                              {mounted ? t('common.logout') : 'تسجيل الخروج'}
                             </Button>
                           </div>
                         ) : (
@@ -411,7 +423,7 @@ export function Navbar() {
                                 className="w-full h-11"
                               >
                                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                  Login
+                                  {mounted ? t('common.login') : 'تسجيل الدخول'}
                                 </Link>
                               </Button>
                             </SheetClose>
@@ -424,7 +436,7 @@ export function Navbar() {
                                   href="/register"
                                   onClick={() => setIsMobileMenuOpen(false)}
                                 >
-                                  Register
+                                  {mounted ? t('common.register') : 'حساب جديد'}
                                 </Link>
                               </Button>
                             </SheetClose>

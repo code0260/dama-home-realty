@@ -26,6 +26,7 @@ import axiosInstance from '@/lib/axios';
 import { ApiError, isApiError } from '@/types/errors';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface PropertyFiltersProps {
   searchParams: URLSearchParams;
@@ -55,6 +56,7 @@ export function PropertyFilters({
   isMobile = false,
   onClose,
 }: PropertyFiltersProps) {
+  const { t } = useLanguage();
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
   
@@ -276,16 +278,16 @@ export function PropertyFilters({
 
       {/* Price Range with Bronze Accent */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700">Price Range</Label>
+        <Label className="text-sm font-medium text-gray-700">{t('filters.priceRange')}</Label>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="min_price" className="text-xs text-gray-500">
-              Min Price
+              {t('filters.minPrice')}
             </Label>
             <Input
               id="min_price"
               type="number"
-              placeholder="Min"
+              placeholder={t('filters.minPrice')}
               value={localMinPrice}
               onChange={(e) => handleMinPriceChange(e.target.value)}
               className="bg-white h-9 focus:border-secondary focus:ring-secondary/20"
@@ -293,12 +295,12 @@ export function PropertyFilters({
           </div>
           <div className="space-y-1">
             <Label htmlFor="max_price" className="text-xs text-gray-500">
-              Max Price
+              {t('filters.maxPrice')}
             </Label>
             <Input
               id="max_price"
               type="number"
-              placeholder="Max"
+              placeholder={t('filters.maxPrice')}
               value={localMaxPrice}
               onChange={(e) => handleMaxPriceChange(e.target.value)}
               className="bg-white h-9 focus:border-secondary focus:ring-secondary/20"
@@ -311,13 +313,13 @@ export function PropertyFilters({
 
       {/* Bedrooms */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700">Bedrooms</Label>
+        <Label className="text-sm font-medium text-gray-700">{t('filters.bedrooms')}</Label>
         <Select value={currentBedrooms} onValueChange={handleBedroomsChange}>
           <SelectTrigger className="bg-white h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="all">{t('filters.all')}</SelectItem>
             <SelectItem value="1">1</SelectItem>
             <SelectItem value="2">2</SelectItem>
             <SelectItem value="3">3</SelectItem>
@@ -328,13 +330,13 @@ export function PropertyFilters({
 
       {/* Bathrooms */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700">Bathrooms</Label>
+        <Label className="text-sm font-medium text-gray-700">{t('property.bathrooms')}</Label>
         <Select value={currentBathrooms} onValueChange={handleBathroomsChange}>
           <SelectTrigger className="bg-white h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="all">{t('filters.all')}</SelectItem>
             <SelectItem value="1">1</SelectItem>
             <SelectItem value="2">2</SelectItem>
             <SelectItem value="3">3+</SelectItem>
@@ -348,7 +350,7 @@ export function PropertyFilters({
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="amenities" className="border-0">
           <AccordionTrigger className="text-sm font-medium text-gray-700 py-2 hover:no-underline">
-            Amenities
+            {t('filters.amenities')}
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2 pt-2">

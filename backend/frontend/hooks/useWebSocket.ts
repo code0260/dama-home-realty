@@ -24,7 +24,7 @@ export function useWebSocket({
     connected: false,
     error: null,
   });
-  const echoRef = useRef<Echo | null>(null);
+  const echoRef = useRef<Echo<any> | null>(null);
   const channelRef = useRef<any>(null);
 
   useEffect(() => {

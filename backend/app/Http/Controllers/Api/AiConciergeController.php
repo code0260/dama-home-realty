@@ -204,6 +204,16 @@ class AiConciergeController extends Controller
      */
     public function chat(Request $request)
     {
+        // Check if premium feature is available
+        // TODO: Replace with actual subscription check
+        $isPremiumFeatureAvailable = false;
+
+        if (!$isPremiumFeatureAvailable) {
+            return response()->json([
+                'error' => '⚠️ هذه الخدمة غير متوفرة حالياً. ستكون متاحة قريباً.',
+                'message' => 'This service is temporarily unavailable. It will be available soon.',
+            ], 503); // 503 Service Unavailable instead of 403
+
         $request->validate([
             'message' => 'required|string|max:1000',
             'conversation_history' => 'array',

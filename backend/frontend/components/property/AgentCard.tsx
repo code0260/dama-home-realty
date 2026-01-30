@@ -63,7 +63,7 @@ export function AgentCard({ agent, property }: AgentCardProps) {
       {/* WhatsApp Button - Large, Green, Pulsing */}
       {agent.phone && (
         <motion.a
-          href={getWhatsAppLink(agent.phone, agent.name, property.reference_id)}
+          href={getWhatsAppLink(agent.phone, agent.name, property.reference_id ?? undefined)}
           target="_blank"
           rel="noopener noreferrer"
           className="block"

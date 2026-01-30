@@ -1,49 +1,71 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Globe, Lock, Zap, Users, Clock } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface Feature {
   icon: LucideIcon;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
+  defaultTitle: string;
+  defaultDescription: string;
 }
 
-const features: Feature[] = [
-  {
-    icon: ShieldCheck,
-    title: 'Verified Properties',
-    description: 'Every property is thoroughly verified to ensure authenticity and quality standards.',
-  },
-  {
-    icon: Globe,
-    title: 'Global Reach',
-    description: 'Connect with Syrian expats worldwide, regardless of your location.',
-  },
-  {
-    icon: Lock,
-    title: 'Secure Transactions',
-    description: 'Your transactions and personal information are protected with industry-leading security.',
-  },
-  {
-    icon: Zap,
-    title: 'Fast Response',
-    description: 'Get instant notifications and quick responses from our dedicated team.',
-  },
-  {
-    icon: Users,
-    title: 'Expert Team',
-    description: 'Our local experts know Damascus inside and out, providing invaluable insights.',
-  },
-  {
-    icon: Clock,
-    title: '24/7 Support',
-    description: 'We\'re here for you around the clock, no matter where you are in the world.',
-  },
-];
-
 export function FeaturesSection() {
+  const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const features: Feature[] = [
+    {
+      icon: ShieldCheck,
+      titleKey: 'featuresSection.verifiedProperties',
+      descriptionKey: 'featuresSection.verifiedPropertiesDesc',
+      defaultTitle: 'عقارات موثقة',
+      defaultDescription: 'جميع العقارات على منصتنا تم التحقق منها وفحصها للتأكد من صحتها وجودتها.',
+    },
+    {
+      icon: Globe,
+      titleKey: 'featuresSection.globalReach',
+      descriptionKey: 'featuresSection.globalReachDesc',
+      defaultTitle: 'وصول عالمي',
+      defaultDescription: 'نخدم العملاء من جميع أنحاء العالم، مما يجعل العثور على منزل أحلامك أسهل من أي وقت مضى.',
+    },
+    {
+      icon: Lock,
+      titleKey: 'featuresSection.secureTransactions',
+      descriptionKey: 'featuresSection.secureTransactionsDesc',
+      defaultTitle: 'معاملات آمنة',
+      defaultDescription: 'نضمن أمان جميع معاملاتك مع حماية كاملة لبياناتك الشخصية والمالية.',
+    },
+    {
+      icon: Zap,
+      titleKey: 'featuresSection.fastResponse',
+      descriptionKey: 'featuresSection.fastResponseDesc',
+      defaultTitle: 'استجابة سريعة',
+      defaultDescription: 'فريقنا متاح دائماً للرد على استفساراتك في أسرع وقت ممكن.',
+    },
+    {
+      icon: Users,
+      titleKey: 'featuresSection.expertTeam',
+      descriptionKey: 'featuresSection.expertTeamDesc',
+      defaultTitle: 'فريق خبير',
+      defaultDescription: 'يعمل فريقنا من المحترفين ذوي الخبرة الواسعة في السوق العقاري السوري.',
+    },
+    {
+      icon: Clock,
+      titleKey: 'featuresSection.support24_7',
+      descriptionKey: 'featuresSection.support24_7Desc',
+      defaultTitle: 'دعم 24/7',
+      defaultDescription: 'نحن هنا من أجلك على مدار الساعة، بغض النظر عن مكان وجودك في العالم.',
+    },
+  ];
   return (
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Pattern */}
@@ -60,10 +82,10 @@ export function FeaturesSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
-            Why Choose <span className="text-[#B49162]">Dama Home Realty</span>
+            {mounted ? t('featuresSection.whyChoose') : 'لماذا تختار'} <span className="text-[#B49162]">Dama Home Realty</span>
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Experience the difference of working with Syria's most trusted real estate platform
+            {mounted ? t('featuresSection.experienceDifference') : 'اختبر الفرق في العمل مع منصة العقارات الأكثر ثقة في سوريا'}
           </p>
         </motion.div>
 
@@ -86,10 +108,10 @@ export function FeaturesSection() {
                     </div>
                   </div>
                   <h3 className="text-xl font-bold text-[#0F172A] mb-3 group-hover:text-[#B49162] transition-colors">
-                    {feature.title}
+                    {mounted ? t(feature.titleKey) : feature.defaultTitle}
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    {feature.description}
+                    {mounted ? t(feature.descriptionKey) : feature.defaultDescription}
                   </p>
                 </div>
               </motion.div>

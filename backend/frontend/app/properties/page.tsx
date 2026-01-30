@@ -34,8 +34,10 @@ import { SavedFilters } from '@/components/property/SavedFilters';
 import { CompareProperties, useCompareProperties } from '@/components/property/CompareProperties';
 import { Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 function PropertiesContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -241,8 +243,8 @@ function PropertiesContent() {
 
   // Get location name for results count
   const locationName = searchParams.get('neighborhood_id') 
-    ? 'Selected Area' 
-    : 'Damascus';
+    ? t('properties.selectedArea')
+    : t('common.damascus');
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -285,14 +287,14 @@ function PropertiesContent() {
                 <SheetTrigger asChild className="lg:hidden">
                   <Button variant="outline" size="sm" className="rounded-lg">
                     <Filter className="w-4 h-4 mr-2" />
-                    Filters
+                    {t('properties.filters')}
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
                   <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
+                    <SheetTitle>{t('properties.filters')}</SheetTitle>
                     <SheetDescription>
-                      Filter properties by your preferences
+                      {t('properties.filtersDescription')}
                     </SheetDescription>
                   </SheetHeader>
                   <div className="mt-6">
@@ -316,9 +318,9 @@ function PropertiesContent() {
               {/* Results Count - Elegant Typography */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div className="text-sm text-gray-600">
-                  <span className="font-light">Showing </span>
+                  <span className="font-light">{t('properties.showing')} </span>
                   <span className="font-semibold text-primary">{totalResults}</span>
-                  <span className="font-light"> {totalResults === 1 ? 'home' : 'homes'} in </span>
+                  <span className="font-light"> {totalResults === 1 ? t('properties.home') : t('properties.homes')} {t('properties.in')} </span>
                   <span className="font-semibold text-secondary">{locationName}</span>
                 </div>
                 {/* Active Filters Count */}
@@ -340,17 +342,17 @@ function PropertiesContent() {
               
               {/* Sort By Dropdown - Minimalist */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 font-light">Sort by:</span>
+                <span className="text-sm text-gray-600 font-light">{t('properties.sortBy')}:</span>
                 <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className="w-[160px] border-gray-300 rounded-lg bg-white dark:bg-primary-800">
-                    <SelectValue placeholder="Sort by" />
+                    <SelectValue placeholder={t('properties.sortBy')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="price_low">Price: Low to High</SelectItem>
-                    <SelectItem value="price_high">Price: High to Low</SelectItem>
-                    <SelectItem value="area_high">Largest First</SelectItem>
-                    <SelectItem value="area_low">Smallest First</SelectItem>
+                    <SelectItem value="newest">{t('properties.newestFirst')}</SelectItem>
+                    <SelectItem value="price_low">{t('properties.priceLowToHigh')}</SelectItem>
+                    <SelectItem value="price_high">{t('properties.priceHighToLow')}</SelectItem>
+                    <SelectItem value="area_high">{t('properties.areaHighToLow')}</SelectItem>
+                    <SelectItem value="area_low">{t('properties.areaLowToHigh')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -399,8 +401,8 @@ function PropertiesContent() {
             </div>
           ) : properties.length === 0 ? (
             <NoResults
-              title="No Properties Found"
-              description="Try adjusting your filters or search terms to find what you're looking for."
+              title={t('properties.noPropertiesFound')}
+              description={t('properties.noPropertiesDesc')}
               onReset={handleReset}
             />
           ) : (
@@ -415,7 +417,7 @@ function PropertiesContent() {
                     onClick={() => router.push('/map-search')}
                   >
                     <Filter className="w-4 h-4 mr-2" />
-                    View on Map
+                    {t('properties.viewOnMap')}
                   </Button>
                 </div>
               ) : viewMode === 'gallery' ? (
