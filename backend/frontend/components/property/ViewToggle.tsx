@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, List, Map, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export type ViewMode = 'grid' | 'list' | 'map' | 'gallery';
 
@@ -21,11 +22,21 @@ export function ViewToggle({
   showGallery = true,
   className,
 }: ViewToggleProps) {
+  const { t, locale } = useLanguage();
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
+
   const views: { mode: ViewMode; icon: React.ReactNode; label: string; show: boolean }[] = [
-    { mode: 'grid', icon: <LayoutGrid className="w-4 h-4" />, label: 'Grid', show: true },
-    { mode: 'list', icon: <List className="w-4 h-4" />, label: 'List', show: true },
-    { mode: 'map', icon: <Map className="w-4 h-4" />, label: 'Map', show: showMap },
-    { mode: 'gallery', icon: <ImageIcon className="w-4 h-4" />, label: 'Gallery', show: showGallery },
+    { mode: 'grid', icon: <LayoutGrid className="w-4 h-4" />, label: getTranslation('contact.grid', 'شبكة', 'Grid'), show: true },
+    { mode: 'list', icon: <List className="w-4 h-4" />, label: getTranslation('contact.list', 'قائمة', 'List'), show: true },
+    { mode: 'map', icon: <Map className="w-4 h-4" />, label: getTranslation('contact.map', 'خريطة', 'Map'), show: showMap },
+    { mode: 'gallery', icon: <ImageIcon className="w-4 h-4" />, label: getTranslation('contact.gallery', 'معرض', 'Gallery'), show: showGallery },
   ];
 
   return (

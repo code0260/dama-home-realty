@@ -164,7 +164,7 @@ export default function RefundPolicyPage() {
               </li>
               <li>
                 <strong>الهاتف:</strong>{' '}
-                <a href="tel:+963123456789">+963 123 456 789</a>
+                <a href="tel:+963932498092">+963 932 498 092</a>
               </li>
             </ul>
             <p className="mt-4">
@@ -190,10 +190,10 @@ export default function RefundPolicyPage() {
               </li>
               <li>
                 <strong>الهاتف:</strong>{' '}
-                <a href="tel:+963123456789">+963 123 456 789</a>
+                <a href="tel:+963932498092">+963 932 498 092</a>
               </li>
               <li>
-                <strong>العنوان:</strong> دمشق، سوريا
+                <strong>العنوان:</strong> دمشق، حي المزرعة، شارع أسامة بن زيد، دخلة العاصي.
               </li>
             </ul>
           </section>
@@ -320,7 +320,7 @@ export default function RefundPolicyPage() {
               </li>
               <li>
                 <strong>Phone:</strong>{' '}
-                <a href="tel:+963123456789">+963 123 456 789</a>
+                <a href="tel:+963932498092">+963 932 498 092</a>
               </li>
             </ul>
             <p className="mt-4">
@@ -342,14 +342,14 @@ export default function RefundPolicyPage() {
             <ul>
               <li>
                 <strong>Email:</strong>{' '}
-                <a href="mailto:support@damahomerealty.com">support@damahomerealty.com</a>
+                <a href="mailto:legal@damahomerealty.com">legal@damahomerealty.com</a>
               </li>
               <li>
                 <strong>Phone:</strong>{' '}
-                <a href="tel:+963123456789">+963 123 456 789</a>
+                <a href="tel:+963932498092">+963 932 498 092</a>
               </li>
               <li>
-                <strong>Address:</strong> Damascus, Syria
+                <strong>Address:</strong> Damascus, Al-Mazraa, Osama Bin Zaid St., Al-Assi Entrance.
               </li>
             </ul>
           </section>

@@ -21,21 +21,22 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface RegistrationData {
   // Step 1: Personal Information
   name: string;
   email: string;
   phone: string;
-  
+
   // Step 2: Password & Security
   password: string;
   passwordConfirmation: string;
-  
+
   // Step 3: Verification
   emailVerificationCode: string;
   phoneVerificationCode: string;
-  
+
   // Step 4: Terms & Referral
   acceptTerms: boolean;
   acceptPrivacy: boolean;
@@ -51,13 +52,6 @@ interface MultiStepRegistrationProps {
   className?: string;
 }
 
-const steps = [
-  { id: 1, title: 'Personal Information', icon: User },
-  { id: 2, title: 'Password & Security', icon: Lock },
-  { id: 3, title: 'Verification', icon: ShieldCheck },
-  { id: 4, title: 'Terms & Referral', icon: CheckCircle2 },
-];
-
 export function MultiStepRegistration({
   onRegister,
   onEmailVerification,
@@ -66,7 +60,23 @@ export function MultiStepRegistration({
   error,
   className,
 }: MultiStepRegistrationProps) {
+  const { t, locale } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
+
+  const steps = [
+    { id: 1, title: getTranslation('personalInformation', 'المعلومات الشخصية', 'Personal Information'), icon: User },
+    { id: 2, title: getTranslation('passwordSecurity', 'كلمة المرور والأمان', 'Password & Security'), icon: Lock },
+    { id: 3, title: getTranslation('verification', 'التحقق', 'Verification'), icon: ShieldCheck },
+    { id: 4, title: getTranslation('termsReferral', 'الشروط والكود المرجعي', 'Terms & Referral'), icon: CheckCircle2 },
+  ];
   const [formData, setFormData] = useState<RegistrationData>({
     name: '',
     email: '',
@@ -91,47 +101,47 @@ export function MultiStepRegistration({
     const newErrors: Partial<Record<keyof RegistrationData, string>> = {};
 
     if (step === 1) {
-      if (!formData.name.trim()) newErrors.name = 'Name is required';
+      if (!formData.name.trim()) newErrors.name = getTranslation('nameRequired', 'الاسم مطلوب', 'Name is required');
       if (!formData.email.trim()) {
-        newErrors.email = 'Email is required';
+        newErrors.email = getTranslation('emailRequired', 'البريد الإلكتروني مطلوب', 'Email is required');
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = 'Invalid email format';
+        newErrors.email = getTranslation('invalidEmailFormat', 'صيغة البريد الإلكتروني غير صحيحة', 'Invalid email format');
       }
       if (!formData.phone.trim()) {
-        newErrors.phone = 'Phone is required';
+        newErrors.phone = getTranslation('phoneRequired', 'رقم الهاتف مطلوب', 'Phone is required');
       } else if (!/^\+?[\d\s-()]+$/.test(formData.phone)) {
-        newErrors.phone = 'Invalid phone format';
+        newErrors.phone = getTranslation('invalidPhoneFormat', 'صيغة رقم الهاتف غير صحيحة', 'Invalid phone format');
       }
     }
 
     if (step === 2) {
       if (!formData.password) {
-        newErrors.password = 'Password is required';
+        newErrors.password = getTranslation('passwordRequired', 'كلمة المرور مطلوبة', 'Password is required');
       } else if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
+        newErrors.password = getTranslation('passwordMinLength', 'يجب أن تكون كلمة المرور 8 أحرف على الأقل', 'Password must be at least 8 characters');
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-        newErrors.password = 'Password must contain uppercase, lowercase, and number';
+        newErrors.password = getTranslation('passwordComplexity', 'يجب أن تحتوي كلمة المرور على أحرف كبيرة وصغيرة ورقم', 'Password must contain uppercase, lowercase, and number');
       }
       if (formData.password !== formData.passwordConfirmation) {
-        newErrors.passwordConfirmation = 'Passwords do not match';
+        newErrors.passwordConfirmation = getTranslation('passwordsDoNotMatch', 'كلمات المرور غير متطابقة', 'Passwords do not match');
       }
     }
 
     if (step === 3) {
       if (!formData.emailVerificationCode) {
-        newErrors.emailVerificationCode = 'Email verification code is required';
+        newErrors.emailVerificationCode = getTranslation('emailCodeRequired', 'رمز التحقق من البريد الإلكتروني مطلوب', 'Email verification code is required');
       }
       if (!formData.phoneVerificationCode) {
-        newErrors.phoneVerificationCode = 'Phone verification code is required';
+        newErrors.phoneVerificationCode = getTranslation('phoneCodeRequired', 'رمز التحقق من الهاتف مطلوب', 'Phone verification code is required');
       }
     }
 
     if (step === 4) {
       if (!formData.acceptTerms) {
-        newErrors.acceptTerms = 'You must accept the terms of service';
+        newErrors.acceptTerms = getTranslation('mustAcceptTerms', 'يجب عليك الموافقة على شروط الخدمة', 'You must accept the terms of service');
       }
       if (!formData.acceptPrivacy) {
-        newErrors.acceptPrivacy = 'You must accept the privacy policy';
+        newErrors.acceptPrivacy = getTranslation('mustAcceptPrivacy', 'يجب عليك الموافقة على سياسة الخصوصية', 'You must accept the privacy policy');
       }
     }
 
@@ -158,7 +168,7 @@ export function MultiStepRegistration({
 
   const handleSendEmailCode = async () => {
     if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setErrors({ ...errors, email: 'Please enter a valid email address' });
+      setErrors({ ...errors, email: getTranslation('pleaseEnterValidEmail', 'يرجى إدخال عنوان بريد إلكتروني صحيح', 'Please enter a valid email address') });
       return;
     }
 
@@ -175,7 +185,7 @@ export function MultiStepRegistration({
 
   const handleSendPhoneCode = async () => {
     if (!formData.phone || !/^\+?[\d\s-()]+$/.test(formData.phone)) {
-      setErrors({ ...errors, phone: 'Please enter a valid phone number' });
+      setErrors({ ...errors, phone: getTranslation('pleaseEnterValidPhone', 'يرجى إدخال رقم هاتف صحيح', 'Please enter a valid phone number') });
       return;
     }
 
@@ -214,11 +224,17 @@ export function MultiStepRegistration({
               {CurrentStepIcon && <CurrentStepIcon className="w-5 h-5 text-secondary" />}
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-primary dark:text-white">
+              <CardTitle className="text-xl font-bold text-primary dark:text-white text-start">
                 {steps[currentStep - 1].title}
               </CardTitle>
-              <CardDescription className="text-sm">
-                Step {currentStep} of {steps.length}
+              <CardDescription className="text-sm text-start">
+                {(() => {
+                  const translation = t('stepOf', { current: currentStep, total: steps.length });
+                  if (translation === 'stepOf' || translation.includes('stepOf')) {
+                    return locale === 'ar' ? `الخطوة ${currentStep} من ${steps.length}` : `Step ${currentStep} of ${steps.length}`;
+                  }
+                  return translation;
+                })()}
               </CardDescription>
             </div>
           </div>
@@ -245,48 +261,51 @@ export function MultiStepRegistration({
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="name" className="text-start">{getTranslation('fullName', 'الاسم الكامل', 'Full Name')} *</Label>
                 <Input
                   id="name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => updateFormData('name', e.target.value)}
-                  placeholder="John Doe"
-                  className={errors.name ? 'border-red-500' : ''}
+                  placeholder={locale === 'ar' ? 'أحمد محمد' : 'John Doe'}
+                  className={cn(errors.name ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+                {errors.name && <p className="text-sm text-red-500 text-start">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="email" className="text-start">{getTranslation('emailAddress', 'عنوان البريد الإلكتروني', 'Email Address')} *</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => updateFormData('email', e.target.value)}
                   placeholder="john@example.com"
-                  className={errors.email ? 'border-red-500' : ''}
+                  className={cn(errors.email ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir="ltr"
                 />
-                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+                {errors.email && <p className="text-sm text-red-500 text-start">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone" className="text-start">{getTranslation('phoneNumber', 'رقم الهاتف', 'Phone Number')} *</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => updateFormData('phone', e.target.value)}
                   placeholder="+963 123 456 789"
-                  className={errors.phone ? 'border-red-500' : ''}
+                  className={cn(errors.phone ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir="ltr"
                 />
-                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+                {errors.phone && <p className="text-sm text-red-500 text-start">{errors.phone}</p>}
               </div>
             </motion.div>
           )}
@@ -302,37 +321,39 @@ export function MultiStepRegistration({
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password" className="text-start">{getTranslation('password', 'كلمة المرور', 'Password')} *</Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => updateFormData('password', e.target.value)}
-                  placeholder="At least 8 characters"
-                  className={errors.password ? 'border-red-500' : ''}
+                  placeholder={getTranslation('atLeast8Characters', '8 أحرف على الأقل', 'At least 8 characters')}
+                  className={cn(errors.password ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
-                {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
-                <p className="text-xs text-gray-500">
-                  Must contain uppercase, lowercase, and number
+                {errors.password && <p className="text-sm text-red-500 text-start">{errors.password}</p>}
+                <p className="text-xs text-gray-500 text-start">
+                  {getTranslation('mustContainUppercaseLowercaseNumber', 'يجب أن يحتوي على أحرف كبيرة وصغيرة ورقم', 'Must contain uppercase, lowercase, and number')}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="passwordConfirmation">Confirm Password *</Label>
+                <Label htmlFor="passwordConfirmation" className="text-start">{getTranslation('confirmPassword', 'تأكيد كلمة المرور', 'Confirm Password')} *</Label>
                 <Input
                   id="passwordConfirmation"
                   type="password"
                   value={formData.passwordConfirmation}
                   onChange={(e) => updateFormData('passwordConfirmation', e.target.value)}
-                  placeholder="Confirm your password"
-                  className={errors.passwordConfirmation ? 'border-red-500' : ''}
+                  placeholder={getTranslation('confirmYourPassword', 'أكد كلمة المرور الخاصة بك', 'Confirm your password')}
+                  className={cn(errors.passwordConfirmation ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
                 {errors.passwordConfirmation && (
-                  <p className="text-sm text-red-500">{errors.passwordConfirmation}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.passwordConfirmation}</p>
                 )}
               </div>
             </motion.div>
@@ -349,8 +370,8 @@ export function MultiStepRegistration({
               className="space-y-4"
             >
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="emailCode">Email Verification Code *</Label>
+                <div className={cn("flex items-center justify-between", locale === 'ar' && 'flex-row-reverse')}>
+                  <Label htmlFor="emailCode" className="text-start">{getTranslation('emailVerificationCode', 'رمز التحقق من البريد الإلكتروني', 'Email Verification Code')} *</Label>
                   {!emailCodeSent && (
                     <Button
                       type="button"
@@ -358,8 +379,9 @@ export function MultiStepRegistration({
                       size="sm"
                       onClick={handleSendEmailCode}
                       disabled={sendingEmailCode || !formData.email}
+                      className={cn(locale === 'ar' && 'flex-row-reverse')}
                     >
-                      {sendingEmailCode ? 'Sending...' : 'Send Code'}
+                      {sendingEmailCode ? getTranslation('sending', 'جاري الإرسال...', 'Sending...') : getTranslation('sendCode', 'إرسال الرمز', 'Send Code')}
                     </Button>
                   )}
                 </div>
@@ -368,24 +390,31 @@ export function MultiStepRegistration({
                   type="text"
                   value={formData.emailVerificationCode}
                   onChange={(e) => updateFormData('emailVerificationCode', e.target.value)}
-                  placeholder="Enter 6-digit code"
-                  className={errors.emailVerificationCode ? 'border-red-500' : ''}
+                  placeholder={getTranslation('enter6DigitCode', 'أدخل رمزاً مكوناً من 6 أرقام', 'Enter 6-digit code')}
+                  className={cn(errors.emailVerificationCode ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir="ltr"
                 />
                 {errors.emailVerificationCode && (
-                  <p className="text-sm text-red-500">{errors.emailVerificationCode}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.emailVerificationCode}</p>
                 )}
                 {emailCodeSent && (
-                  <p className="text-xs text-green-600 dark:text-green-400">
-                    Code sent to {formData.email}
+                  <p className="text-xs text-green-600 dark:text-green-400 text-start">
+                    {(() => {
+                      const translation = t('codeSentTo', { email: formData.email });
+                      if (translation === 'codeSentTo' || translation.includes('codeSentTo')) {
+                        return locale === 'ar' ? `تم إرسال الرمز إلى ${formData.email}` : `Code sent to ${formData.email}`;
+                      }
+                      return translation;
+                    })()}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="phoneCode">Phone Verification Code *</Label>
+                <div className={cn("flex items-center justify-between", locale === 'ar' && 'flex-row-reverse')}>
+                  <Label htmlFor="phoneCode" className="text-start">{getTranslation('phoneVerificationCode', 'رمز التحقق من الهاتف', 'Phone Verification Code')} *</Label>
                   {!phoneCodeSent && (
                     <Button
                       type="button"
@@ -393,8 +422,9 @@ export function MultiStepRegistration({
                       size="sm"
                       onClick={handleSendPhoneCode}
                       disabled={sendingPhoneCode || !formData.phone}
+                      className={cn(locale === 'ar' && 'flex-row-reverse')}
                     >
-                      {sendingPhoneCode ? 'Sending...' : 'Send Code'}
+                      {sendingPhoneCode ? getTranslation('sending', 'جاري الإرسال...', 'Sending...') : getTranslation('sendCode', 'إرسال الرمز', 'Send Code')}
                     </Button>
                   )}
                 </div>
@@ -403,17 +433,24 @@ export function MultiStepRegistration({
                   type="text"
                   value={formData.phoneVerificationCode}
                   onChange={(e) => updateFormData('phoneVerificationCode', e.target.value)}
-                  placeholder="Enter 6-digit code"
-                  className={errors.phoneVerificationCode ? 'border-red-500' : ''}
+                  placeholder={getTranslation('enter6DigitCode', 'أدخل رمزاً مكوناً من 6 أرقام', 'Enter 6-digit code')}
+                  className={cn(errors.phoneVerificationCode ? 'border-red-500' : '', 'text-start')}
                   disabled={isLoading}
                   required
+                  dir="ltr"
                 />
                 {errors.phoneVerificationCode && (
-                  <p className="text-sm text-red-500">{errors.phoneVerificationCode}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.phoneVerificationCode}</p>
                 )}
                 {phoneCodeSent && (
-                  <p className="text-xs text-green-600 dark:text-green-400">
-                    Code sent to {formData.phone}
+                  <p className="text-xs text-green-600 dark:text-green-400 text-start">
+                    {(() => {
+                      const translation = t('codeSentToPhone', { phone: formData.phone });
+                      if (translation === 'codeSentToPhone' || translation.includes('codeSentToPhone')) {
+                        return locale === 'ar' ? `تم إرسال الرمز إلى ${formData.phone}` : `Code sent to ${formData.phone}`;
+                      }
+                      return translation;
+                    })()}
                   </p>
                 )}
               </div>
@@ -441,20 +478,20 @@ export function MultiStepRegistration({
                   />
                   <label
                     htmlFor="terms"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-start"
                   >
-                    I accept the{' '}
+                    {getTranslation('iAcceptTerms', 'أوافق على', 'I accept the')}{' '}
                     <a href="/terms" target="_blank" className="text-secondary hover:underline">
-                      Terms of Service
+                      {getTranslation('termsOfService', 'شروط الخدمة', 'Terms of Service')}
                     </a>{' '}
                     *
                   </label>
                 </div>
                 {errors.acceptTerms && (
-                  <p className="text-sm text-red-500">{errors.acceptTerms}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.acceptTerms}</p>
                 )}
 
-                <div className="flex items-start space-x-2">
+                <div className={cn("flex items-start", locale === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2')}>
                   <Checkbox
                     id="privacy"
                     checked={formData.acceptPrivacy}
@@ -464,35 +501,37 @@ export function MultiStepRegistration({
                   />
                   <label
                     htmlFor="privacy"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-start"
                   >
-                    I accept the{' '}
+                    {getTranslation('iAcceptTerms', 'أوافق على', 'I accept the')}{' '}
                     <a href="/privacy" target="_blank" className="text-secondary hover:underline">
-                      Privacy Policy
+                      {getTranslation('privacyPolicy', 'سياسة الخصوصية', 'Privacy Policy')}
                     </a>{' '}
                     *
                   </label>
                 </div>
                 {errors.acceptPrivacy && (
-                  <p className="text-sm text-red-500">{errors.acceptPrivacy}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.acceptPrivacy}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referralCode" className="flex items-center gap-2">
+                <Label htmlFor="referralCode" className={cn("flex items-center gap-2", locale === 'ar' && 'flex-row-reverse', 'text-start')}>
                   <Gift className="w-4 h-4 text-secondary" />
-                  Referral Code (optional)
+                  {getTranslation('referralCode', 'الكود المرجعي (اختياري)', 'Referral Code (optional)')}
                 </Label>
                 <Input
                   id="referralCode"
                   type="text"
                   value={formData.referralCode}
                   onChange={(e) => updateFormData('referralCode', e.target.value)}
-                  placeholder="Enter referral code"
+                  placeholder={getTranslation('enterReferralCode', 'أدخل الكود المرجعي', 'Enter referral code')}
                   disabled={isLoading}
+                  className="text-start"
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
-                <p className="text-xs text-gray-500">
-                  Have a referral code? Enter it here to get a special discount.
+                <p className="text-xs text-gray-500 text-start">
+                  {getTranslation('referralCodeDescription', 'هل لديك كود مرجعي؟ أدخله هنا للحصول على خصم خاص.', 'Have a referral code? Enter it here to get a special discount.')}
                 </p>
               </div>
             </motion.div>
@@ -500,40 +539,40 @@ export function MultiStepRegistration({
         </AnimatePresence>
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700">
+        <div className={cn("flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700", locale === 'ar' && 'flex-row-reverse')}>
           <Button
             variant="outline"
             onClick={handleBack}
             disabled={currentStep === 1 || isLoading}
-            className="flex items-center gap-2"
+            className={cn("flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className={cn("w-4 h-4", locale === 'ar' && 'rotate-180')} />
+            {getTranslation('back', 'رجوع', 'Back')}
           </Button>
 
           {currentStep < steps.length ? (
             <Button
               onClick={handleNext}
-              className="bg-secondary hover:bg-secondary/90 flex items-center gap-2"
+              className={cn("bg-secondary hover:bg-secondary/90 flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
               disabled={isLoading}
             >
-              Next
-              <ArrowRight className="w-4 h-4" />
+              {getTranslation('next', 'التالي', 'Next')}
+              <ArrowRight className={cn("w-4 h-4", locale === 'ar' && 'rotate-180')} />
             </Button>
           ) : (
             <Button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-secondary hover:bg-secondary/90 flex items-center gap-2"
+              className={cn("bg-secondary hover:bg-secondary/90 flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
             >
               {isLoading ? (
                 <>
-                  Creating Account...
+                  {getTranslation('creatingAccount', 'جاري إنشاء الحساب...', 'Creating Account...')}
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Create Account
+                  <CheckCircle2 className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                  {getTranslation('createAccount', 'إنشاء حساب', 'Create Account')}
                 </>
               )}
             </Button>

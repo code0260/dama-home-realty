@@ -9,15 +9,25 @@ import { MultiStepPropertyForm } from '@/components/property/MultiStepPropertyFo
 import { PropertyManagement } from '@/components/property/PropertyManagement';
 import { Property } from '@/types';
 import { getPropertyBySlug } from '@/lib/api';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export const dynamic = 'force-dynamic';
 
 export default function ListPropertyPage() {
   const router = useRouter();
+  const { t, locale } = useLanguage();
   const [propertySlug, setPropertySlug] = useState<string | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(false);
   const [showManagement, setShowManagement] = useState(false);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -64,7 +74,7 @@ export default function ListPropertyPage() {
   };
 
   return (
-    <Suspense fallback={<div className="py-16 text-center">Loading...</div>}>
+    <Suspense fallback={<div className="py-16 text-center">{getTranslation('loading', 'جاري التحميل...', 'Loading...')}</div>}>
         {/* Hero Section - Damascene Heritage Style */}
         <section className="text-white py-20 md:py-24 relative overflow-hidden bg-slate-900">
           {/* Subtle Islamic/Geometric Arabesque Pattern Layer */}
@@ -91,11 +101,10 @@ export default function ListPropertyPage() {
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-lg">
-              Want to Rent or Sell Your Property to <span className="text-[#B49162]">Trusted Expats</span>?
+              {getTranslation('wantToRentOrSell', 'هل تريد تأجير أو بيع عقارك ل', 'Want to Rent or Sell Your Property to')} <span className="text-[#B49162]">{getTranslation('trustedExpats', 'مغتربين موثوقين', 'Trusted Expats')}</span>?
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
-              Join our platform and connect with verified tenants and buyers from the Syrian
-              diaspora
+              {getTranslation('joinOurPlatform', 'انضم إلى منصتنا وتواصل مع مستأجرين ومشترين موثقين من الشتات السوري', 'Join our platform and connect with verified tenants and buyers from the Syrian diaspora')}
             </p>
           </div>
         </section>
@@ -104,7 +113,7 @@ export default function ListPropertyPage() {
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] text-center mb-12">
-              Why List <span className="text-[#B49162]">With Us</span>
+              {getTranslation('whyListWithUs', 'لماذا تسجل', 'Why List')} <span className="text-[#B49162]">{getTranslation('withUs', 'معنا', 'With Us')}</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className="text-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-[#B49162]/30">
@@ -112,12 +121,11 @@ export default function ListPropertyPage() {
                   <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#B49162] transition-colors duration-300">
                     <TrendingUp className="w-8 h-8 text-[#B49162] group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <CardTitle className="text-xl text-[#0F172A]">High Occupancy Rate</CardTitle>
+                  <CardTitle className="text-xl text-[#0F172A]">{getTranslation('highOccupancyRate', 'معدل إشغال عالي', 'High Occupancy Rate')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base text-gray-600">
-                    Connect with reliable tenants and buyers actively seeking properties in
-                    Damascus.
+                    {getTranslation('connectWithReliableTenants', 'تواصل مع مستأجرين ومشترين موثوقين يبحثون بنشاط عن عقارات في دمشق', 'Connect with reliable tenants and buyers actively seeking properties in Damascus')}
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -127,11 +135,11 @@ export default function ListPropertyPage() {
                   <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#B49162] transition-colors duration-300">
                     <ShieldCheck className="w-8 h-8 text-[#B49162] group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <CardTitle className="text-xl text-[#0F172A]">Verified Tenants</CardTitle>
+                  <CardTitle className="text-xl text-[#0F172A]">{getTranslation('verifiedTenants', 'مستأجرون موثقون', 'Verified Tenants')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base text-gray-600">
-                    We verify all potential tenants and buyers to ensure trustworthy transactions.
+                    {getTranslation('weVerifyAllTenants', 'نتحقق من جميع المستأجرين والمشترين المحتملين لضمان معاملات موثوقة', 'We verify all potential tenants and buyers to ensure trustworthy transactions')}
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -141,12 +149,11 @@ export default function ListPropertyPage() {
                   <div className="mx-auto w-16 h-16 bg-[#B49162]/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#B49162] transition-colors duration-300">
                     <Clock className="w-8 h-8 text-[#B49162] group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <CardTitle className="text-xl text-[#0F172A]">Hassle-Free Management</CardTitle>
+                  <CardTitle className="text-xl text-[#0F172A]">{getTranslation('hassleFreeManagement', 'إدارة خالية من المتاعب', 'Hassle-Free Management')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base text-gray-600">
-                    We handle the listing, verification, and communication so you can focus on what
-                    matters.
+                    {getTranslation('weHandleListing', 'نحن نتعامل مع الإدراج والتحقق والتواصل حتى تتمكن من التركيز على ما يهم', 'We handle the listing, verification, and communication so you can focus on what matters')}
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -158,16 +165,16 @@ export default function ListPropertyPage() {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] text-center mb-12">
-              How It <span className="text-[#B49162]">Works</span>
+              {getTranslation('howItWorks', 'كيف يعمل', 'How It Works')} <span className="text-[#B49162]">{locale === 'ar' ? '' : 'Works'}</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <div className="text-center">
                 <div className="mx-auto w-20 h-20 bg-[#B49162] text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
                   1
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">Submit Details</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">{getTranslation('submitDetails', 'إرسال التفاصيل', 'Submit Details')}</h3>
                 <p className="text-gray-600">
-                  Fill out our simple form with your property details and contact information.
+                  {getTranslation('fillOutSimpleForm', 'املأ نموذجنا البسيط بتفاصيل عقارك ومعلومات الاتصال', 'Fill out our simple form with your property details and contact information')}
                 </p>
               </div>
 
@@ -175,9 +182,9 @@ export default function ListPropertyPage() {
                 <div className="mx-auto w-20 h-20 bg-[#B49162] text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
                   2
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">We Verify</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">{getTranslation('weVerify', 'نحن نتحقق', 'We Verify')}</h3>
                 <p className="text-gray-600">
-                  Our team reviews and verifies your property to ensure quality and authenticity.
+                  {getTranslation('ourTeamReviews', 'يراجع فريقنا ويتحقق من عقارك لضمان الجودة والأصالة', 'Our team reviews and verifies your property to ensure quality and authenticity')}
                 </p>
               </div>
 
@@ -185,10 +192,9 @@ export default function ListPropertyPage() {
                 <div className="mx-auto w-20 h-20 bg-[#B49162] text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
                   3
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">We List</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#0F172A]">{getTranslation('weList', 'نحن ندرج', 'We List')}</h3>
                 <p className="text-gray-600">
-                  Your property goes live on our platform, visible to thousands of potential
-                  tenants and buyers.
+                  {getTranslation('propertyGoesLive', 'يتم نشر عقارك على منصتنا، مرئي لآلاف المستأجرين والمشترين المحتملين', 'Your property goes live on our platform, visible to thousands of potential tenants and buyers')}
                 </p>
               </div>
             </div>
@@ -202,7 +208,7 @@ export default function ListPropertyPage() {
               <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="text-center">
                   <Clock className="w-8 h-8 animate-spin text-[#B49162] mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">Loading property...</p>
+                  <p className="text-gray-600 dark:text-gray-400">{getTranslation('loadingProperty', 'جاري تحميل العقار...', 'Loading property...')}</p>
                 </div>
               </div>
             ) : showManagement && property ? (

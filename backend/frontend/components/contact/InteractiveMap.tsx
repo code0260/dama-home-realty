@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Mail, Clock, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface Location {
   id: number;
@@ -28,48 +29,98 @@ interface InteractiveMapProps {
   className?: string;
 }
 
-const defaultLocations: Location[] = [
-  {
-    id: 1,
-    name: 'Main Office - Damascus',
-    address: 'Damascus, Syria',
-    phone: '+963 123 456 789',
-    email: 'info@damahome.com',
-    lat: 33.5138,
-    lng: 36.2765,
-    hours: {
-      weekdays: '9:00 AM - 6:00 PM',
-      saturday: '9:00 AM - 4:00 PM',
-      sunday: 'Closed',
+export function InteractiveMap({ locations, className }: InteractiveMapProps) {
+  const { t, locale } = useLanguage();
+  
+  const defaultLocations: Location[] = [
+    {
+      id: 1,
+      name: (() => {
+        const translation = t('contact.mainOfficeDamascus');
+        if (translation === 'contact.mainOfficeDamascus') {
+          return locale === 'ar' ? 'المكتب الرئيسي - دمشق' : 'Main Office - Damascus';
+        }
+        return translation;
+      })(),
+      address: (() => {
+        const translation = t('contact.damascusSyria');
+        if (translation === 'contact.damascusSyria') {
+          return locale === 'ar' ? 'دمشق، سوريا' : 'Damascus, Syria';
+        }
+        return translation;
+      })(),
+      phone: '+963 932 498 092',
+      email: 'info@damahomerealty.com',
+      lat: 33.5138,
+      lng: 36.2765,
+      hours: {
+        weekdays: locale === 'ar' ? '9:00 صباحاً - 12:00 مساءً' : '9:00 AM - 12:00 PM',
+        saturday: locale === 'ar' ? '9:00 صباحاً - 12:00 مساءً' : '9:00 AM - 12:00 PM',
+        sunday: (() => {
+          const translation = t('contact.closed');
+          if (translation === 'contact.closed') {
+            return locale === 'ar' ? 'مغلق' : 'Closed';
+          }
+          return translation;
+        })(),
+      },
     },
-  },
-  {
-    id: 2,
-    name: 'Branch Office - Aleppo',
-    address: 'Aleppo, Syria',
-    phone: '+963 987 654 321',
-    email: 'aleppo@damahome.com',
-    lat: 36.2021,
-    lng: 37.1343,
-    hours: {
-      weekdays: '9:00 AM - 6:00 PM',
-      saturday: '9:00 AM - 4:00 PM',
-      sunday: 'Closed',
+    {
+      id: 2,
+      name: (() => {
+        const translation = t('contact.branchOfficeAleppo');
+        if (translation === 'contact.branchOfficeAleppo') {
+          return locale === 'ar' ? 'فرع حلب' : 'Branch Office - Aleppo';
+        }
+        return translation;
+      })(),
+      address: (() => {
+        const translation = t('contact.aleppoSyria');
+        if (translation === 'contact.aleppoSyria') {
+          return locale === 'ar' ? 'حلب، سوريا' : 'Aleppo, Syria';
+        }
+        return translation;
+      })(),
+      phone: '+963 957 360 390',
+      email: 'sales@damahomerealty.com',
+      lat: 36.2021,
+      lng: 37.1343,
+      hours: {
+        weekdays: locale === 'ar' ? '9:00 صباحاً - 12:00 مساءً' : '9:00 AM - 12:00 PM',
+        saturday: locale === 'ar' ? '9:00 صباحاً - 12:00 مساءً' : '9:00 AM - 12:00 PM',
+        sunday: (() => {
+          const translation = t('contact.closed');
+          if (translation === 'contact.closed') {
+            return locale === 'ar' ? 'مغلق' : 'Closed';
+          }
+          return translation;
+        })(),
+      },
     },
-  },
-];
+  ];
 
-export function InteractiveMap({ locations = defaultLocations, className }: InteractiveMapProps) {
-  const [selectedLocation, setSelectedLocation] = useState<Location>(locations[0]);
+  const finalLocations = locations || defaultLocations;
+  const [selectedLocation, setSelectedLocation] = useState<Location>(finalLocations[0]);
 
   const mapUrl = useMemo(() => {
+    // Use the correct Google Maps link for the company location
+    // Convert short URL to embed format
+    if (selectedLocation.id === 1) {
+      // Main Office - Use the provided Google Maps link
+      return 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3329.5!2d36.2765!3d33.5138!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzPCsDMwJzQ5LjciTiAzNsKwMTYnMzUuNCJF!5e0!3m2!1sen!2s!4v1234567890';
+    }
     const { lat, lng } = selectedLocation;
     return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3329.5!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzPCsDMwJzQ5LjciTiAzNsKwMTYnMzUuNCJF!5e0!3m2!1sen!2s!4v1234567890`;
   }, [selectedLocation]);
 
   const handleGetDirections = () => {
-    const { lat, lng } = selectedLocation;
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+    if (selectedLocation.id === 1) {
+      // Main Office - Use the provided Google Maps link
+      window.open('https://maps.app.goo.gl/aoGU9caGwDFDCqPMA', '_blank');
+    } else {
+      const { lat, lng } = selectedLocation;
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+    }
   };
 
   return (
@@ -96,7 +147,13 @@ export function InteractiveMap({ locations = defaultLocations, className }: Inte
                 className="bg-white hover:bg-gray-50 text-[#0F172A] shadow-lg border border-gray-200 flex items-center gap-2"
               >
                 <Navigation className="w-4 h-4" />
-                Get Directions
+                {(() => {
+                  const translation = t('contact.getDirections');
+                  if (translation === 'contact.getDirections') {
+                    return locale === 'ar' ? 'احصل على الاتجاهات' : 'Get Directions';
+                  }
+                  return translation;
+                })()}
               </Button>
             </div>
           </div>
@@ -105,7 +162,7 @@ export function InteractiveMap({ locations = defaultLocations, className }: Inte
 
       {/* Location Selector */}
       <div className="space-y-3">
-        {locations.map((location) => (
+        {finalLocations.map((location) => (
           <motion.div
             key={location.id}
             initial={{ opacity: 0, y: 10 }}
@@ -152,7 +209,13 @@ export function InteractiveMap({ locations = defaultLocations, className }: Inte
                   </div>
                   {selectedLocation.id === location.id && (
                     <Badge className="bg-[#B49162] text-white border-0">
-                      Selected
+                      {(() => {
+                        const translation = t('contact.selected');
+                        if (translation === 'contact.selected') {
+                          return locale === 'ar' ? 'محدد' : 'Selected';
+                        }
+                        return translation;
+                      })()}
                     </Badge>
                   )}
                 </div>

@@ -37,7 +37,15 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 
 function PropertiesContent() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
   const searchParams = useSearchParams();
   const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -317,10 +325,10 @@ function PropertiesContent() {
 
               {/* Results Count - Elegant Typography */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                <div className="text-sm text-gray-600">
-                  <span className="font-light">{t('properties.showing')} </span>
+                <div className="text-sm text-gray-600 text-start">
+                  <span className="font-light">{getTranslation('properties.showing', 'عرض', 'Showing')} </span>
                   <span className="font-semibold text-primary">{totalResults}</span>
-                  <span className="font-light"> {totalResults === 1 ? t('properties.home') : t('properties.homes')} {t('properties.in')} </span>
+                  <span className="font-light"> {totalResults === 1 ? getTranslation('properties.home', 'عقار', 'home') : getTranslation('properties.homes', 'عقارات', 'homes')} {getTranslation('properties.in', 'في', 'in')} </span>
                   <span className="font-semibold text-secondary">{locationName}</span>
                 </div>
                 {/* Active Filters Count */}
@@ -342,17 +350,17 @@ function PropertiesContent() {
               
               {/* Sort By Dropdown - Minimalist */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 font-light">{t('properties.sortBy')}:</span>
+                <span className="text-sm text-gray-600 font-light text-start">{getTranslation('properties.sortBy', 'ترتيب حسب', 'Sort by')}:</span>
                 <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger className="w-[160px] border-gray-300 rounded-lg bg-white dark:bg-primary-800">
-                    <SelectValue placeholder={t('properties.sortBy')} />
+                  <SelectTrigger className="w-[160px] border-gray-300 rounded-lg bg-white dark:bg-primary-800 text-start">
+                    <SelectValue placeholder={getTranslation('properties.sortBy', 'ترتيب حسب', 'Sort by')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">{t('properties.newestFirst')}</SelectItem>
-                    <SelectItem value="price_low">{t('properties.priceLowToHigh')}</SelectItem>
-                    <SelectItem value="price_high">{t('properties.priceHighToLow')}</SelectItem>
-                    <SelectItem value="area_high">{t('properties.areaHighToLow')}</SelectItem>
-                    <SelectItem value="area_low">{t('properties.areaLowToHigh')}</SelectItem>
+                    <SelectItem value="newest">{getTranslation('properties.newestFirst', 'الأحدث أولاً', 'Newest First')}</SelectItem>
+                    <SelectItem value="price_low">{getTranslation('properties.priceLowToHigh', 'السعر: من الأقل للأعلى', 'Price: Low to High')}</SelectItem>
+                    <SelectItem value="price_high">{getTranslation('properties.priceHighToLow', 'السعر: من الأعلى للأقل', 'Price: High to Low')}</SelectItem>
+                    <SelectItem value="area_high">{getTranslation('properties.areaHighToLow', 'المساحة: من الأكبر للأصغر', 'Area: High to Low')}</SelectItem>
+                    <SelectItem value="area_low">{getTranslation('properties.areaLowToHigh', 'المساحة: من الأصغر للأكبر', 'Area: Low to High')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

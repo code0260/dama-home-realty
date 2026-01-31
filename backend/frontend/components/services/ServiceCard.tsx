@@ -24,6 +24,7 @@ import {
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface ServiceCardProps {
   service: Service;
@@ -50,21 +51,30 @@ const formatPrice = (price: number | null | undefined, currency: 'USD' | 'SYP' |
   return currency === 'USD' ? `$${formattedPrice}` : `${formattedPrice} ${currency}`;
 };
 
-const getAvailabilityBadge = (availability: Service['availability']) => {
-  switch (availability) {
-    case 'available':
-      return { icon: CheckCircle2, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', text: 'Available' };
-    case 'limited':
-      return { icon: AlertCircle, color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', text: 'Limited' };
-    case 'unavailable':
-      return { icon: XCircle, color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', text: 'Unavailable' };
-    default:
-      return null;
-  }
-};
-
 export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCardProps) {
+  const { t, locale } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
+
+  const getAvailabilityBadge = (availability: Service['availability']) => {
+    switch (availability) {
+      case 'available':
+        return { icon: CheckCircle2, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', text: getTranslation('contact.available', 'متاح', 'Available') };
+      case 'limited':
+        return { icon: AlertCircle, color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', text: getTranslation('contact.limited', 'محدود', 'Limited') };
+      case 'unavailable':
+        return { icon: XCircle, color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', text: getTranslation('contact.unavailable', 'غير متاح', 'Unavailable') };
+      default:
+        return null;
+    }
+  };
 
   const IconComponent =
     service.icon && iconMap[service.icon] ? iconMap[service.icon] : Briefcase;
@@ -143,7 +153,7 @@ export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCa
               {service.locations && service.locations.length > 0 && (
                 <div className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  <span>{service.locations.length} locations</span>
+                  <span>{service.locations.length} {getTranslation('contact.locations', 'مواقع', 'locations')}</span>
                 </div>
               )}
             </div>
@@ -154,7 +164,7 @@ export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCa
             {service.slug && (
               <Button variant="outline" asChild size="sm">
                 <Link href={`/services/${service.slug}`}>
-                  View Details
+                  {getTranslation('contact.viewDetails', 'عرض التفاصيل', 'View Details')}
                 </Link>
               </Button>
             )}
@@ -163,11 +173,11 @@ export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCa
                 e.stopPropagation();
                 onRequest(service);
               }}
-              className="bg-secondary hover:bg-secondary/90"
+              className={cn("bg-secondary hover:bg-secondary/90", locale === 'ar' && 'flex-row-reverse')}
               size="sm"
             >
-              Request
-              <ArrowRight className="w-4 h-4 ml-1" />
+              {getTranslation('contact.request', 'طلب', 'Request')}
+              <ArrowRight className={cn("w-4 h-4", locale === 'ar' ? 'mr-1 rotate-180' : 'ml-1')} />
             </Button>
           </div>
         </div>
@@ -303,7 +313,7 @@ export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCa
                   {service.locations && service.locations.length > 0 && (
                     <div className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
-                      {service.locations.length}
+                      <span>{service.locations.length} {getTranslation('contact.locations', 'مواقع', 'locations')}</span>
                     </div>
                   )}
                 </div>
@@ -326,12 +336,13 @@ export function ServiceCard({ service, onRequest, viewMode = 'grid' }: ServiceCa
                     'shadow-md hover:shadow-lg',
                     'transition-all duration-200',
                     'font-semibold',
-                    'flex items-center justify-center gap-2'
+                    'flex items-center justify-center gap-2',
+                    locale === 'ar' && 'flex-row-reverse'
                   )}
                   size="lg"
                 >
-                  Request Service
-                  <ArrowRight className="w-4 h-4" />
+                  {getTranslation('contact.requestService', 'طلب خدمة', 'Request Service')}
+                  <ArrowRight className={cn("w-4 h-4", locale === 'ar' && 'rotate-180')} />
                 </Button>
               </motion.div>
             </motion.div>

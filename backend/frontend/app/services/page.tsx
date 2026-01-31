@@ -27,8 +27,10 @@ import { MultiStepServiceForm } from '@/components/services/MultiStepServiceForm
 import { ServiceComparison } from '@/components/services/ServiceComparison';
 import { FAQSection } from '@/components/services/FAQSection';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export default function ServicesPage() {
+  const { t, locale } = useLanguage();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -39,6 +41,14 @@ export default function ServicesPage() {
   const [success, setSuccess] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -83,8 +93,8 @@ export default function ServicesPage() {
         setFormData({ name: '', phone: '', message: '' });
       }, 2000);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error 
-        ? err.message 
+      const errorMessage = err instanceof Error
+        ? err.message
         : 'Failed to submit request. Please try again.';
       setError(errorMessage);
     } finally {
@@ -96,9 +106,9 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <PageHero
-        title="Premium Real Estate Services"
-        subtitle="Comprehensive solutions for all your real estate needs in Damascus"
-        breadcrumbs={[{ label: 'Services' }]}
+        title={getTranslation('contact.premiumRealEstateServices', 'خدمات عقارية متميزة', 'Premium Real Estate Services')}
+        subtitle={getTranslation('contact.premiumServicesSubtitle', 'حلول شاملة لجميع احتياجاتك العقارية في دمشق', 'Comprehensive solutions for all your real estate needs in Damascus')}
+        breadcrumbs={[{ label: locale === 'ar' ? 'الخدمات' : 'Services' }]}
       />
 
       {/* Services Grid Section */}
@@ -113,8 +123,8 @@ export default function ServicesPage() {
           ) : services.length === 0 ? (
             <EmptyState
               icon={Settings}
-              title="No Services Available"
-              description="Services will be available soon. Please check back later."
+              title={getTranslation('contact.noServicesAvailable', 'لا توجد خدمات متاحة', 'No Services Available')}
+              description={getTranslation('contact.servicesAvailableSoon', 'ستكون الخدمات متاحة قريباً. يرجى التحقق لاحقاً.', 'Services will be available soon. Please check back later.')}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

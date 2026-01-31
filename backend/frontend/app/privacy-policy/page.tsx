@@ -268,11 +268,11 @@ export default function PrivacyPolicyPage() {
             <ul>
               <li>
                 <strong>البريد الإلكتروني:</strong>{' '}
-                <a href="mailto:privacy@damahomerealty.com">privacy@damahomerealty.com</a>
+                <a href="mailto:legal@damahomerealty.com">legal@damahomerealty.com</a>
               </li>
               <li>
                 <strong>الهاتف:</strong>{' '}
-                <a href="tel:+963123456789">+963 123 456 789</a>
+                <a href="tel:+963932498092">+963 932 498 092</a>
               </li>
               <li>
                 <strong>العنوان:</strong> دمشق، سوريا
@@ -508,14 +508,14 @@ export default function PrivacyPolicyPage() {
             <ul>
               <li>
                 <strong>Email:</strong>{' '}
-                <a href="mailto:privacy@damahomerealty.com">privacy@damahomerealty.com</a>
+                <a href="mailto:legal@damahomerealty.com">legal@damahomerealty.com</a>
               </li>
               <li>
                 <strong>Phone:</strong>{' '}
-                <a href="tel:+963123456789">+963 123 456 789</a>
+                <a href="tel:+963932498092">+963 932 498 092</a>
               </li>
               <li>
-                <strong>Address:</strong> Damascus, Syria
+                <strong>Address:</strong> Damascus, Al-Mazraa, Osama Bin Zaid St., Al-Assi Entrance.
               </li>
             </ul>
           </section>

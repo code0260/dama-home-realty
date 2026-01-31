@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import axiosInstance from '@/lib/axios';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface ForgotPasswordProps {
   children?: React.ReactNode;
@@ -24,11 +25,20 @@ interface ForgotPasswordProps {
 }
 
 export function ForgotPassword({ children, className }: ForgotPasswordProps) {
+  const { t, locale } = useLanguage();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +53,7 @@ export function ForgotPassword({ children, className }: ForgotPasswordProps) {
       setError(
         err.response?.data?.message ||
         err.response?.data?.errors?.email?.[0] ||
-        'Failed to send reset link. Please try again.'
+        getTranslation('failedToSendResetLink', 'فشل إرسال رابط إعادة التعيين. يرجى المحاولة مرة أخرى.', 'Failed to send reset link. Please try again.')
       );
     } finally {
       setLoading(false);
@@ -65,15 +75,15 @@ export function ForgotPassword({ children, className }: ForgotPasswordProps) {
             type="button"
             className={cn('text-sm text-secondary hover:underline', className)}
           >
-            Forgot password?
+            {getTranslation('forgotPassword', 'نسيت كلمة المرور؟', 'Forgot password?')}
           </button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Reset Password</DialogTitle>
-          <DialogDescription>
-            Enter your email address and we'll send you a link to reset your password.
+          <DialogTitle className="text-start">{getTranslation('resetPassword', 'إعادة تعيين كلمة المرور', 'Reset Password')}</DialogTitle>
+          <DialogDescription className="text-start">
+            {getTranslation('enterEmailReset', 'أدخل عنوان بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.', 'Enter your email address and we\'ll send you a link to reset your password.')}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,17 +101,17 @@ export function ForgotPassword({ children, className }: ForgotPasswordProps) {
               </div>
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-semibold text-primary dark:text-white">
-                  Check Your Email
+                  {getTranslation('checkYourEmail', 'تحقق من بريدك الإلكتروني', 'Check Your Email')}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  We've sent a password reset link to your email address.
+                  {getTranslation('passwordResetLinkSent', 'لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى عنوان بريدك الإلكتروني.', 'We\'ve sent a password reset link to your email address.')}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500">
-                  Please check your inbox and click the link to reset your password.
+                  {getTranslation('checkInboxClickLink', 'يرجى التحقق من صندوق الوارد والنقر على الرابط لإعادة تعيين كلمة المرور.', 'Please check your inbox and click the link to reset your password.')}
                 </p>
               </div>
               <Button onClick={resetDialog} className="w-full" variant="outline">
-                Close
+                {getTranslation('close', 'إغلاق', 'Close')}
               </Button>
             </motion.div>
           ) : (
@@ -121,9 +131,9 @@ export function ForgotPassword({ children, className }: ForgotPasswordProps) {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="reset-email">Email Address</Label>
+                <Label htmlFor="reset-email" className="text-start">{getTranslation('emailAddress', 'عنوان البريد الإلكتروني', 'Email Address')}</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className={cn("absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400", locale === 'ar' ? 'right-3' : 'left-3')} />
                   <Input
                     id="reset-email"
                     type="email"
@@ -132,25 +142,26 @@ export function ForgotPassword({ children, className }: ForgotPasswordProps) {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
-                    className="pl-10"
+                    className={cn(locale === 'ar' ? 'pr-10' : 'pl-10', 'text-start')}
+                    dir="ltr"
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-secondary hover:bg-secondary/90"
+                className={cn("w-full bg-secondary hover:bg-secondary/90", locale === 'ar' && 'flex-row-reverse')}
                 disabled={loading || !email.trim()}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
+                    <Loader2 className={cn("w-4 h-4 animate-spin", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                    {getTranslation('auth.sending', 'جاري الإرسال...', 'Sending...')}
                   </>
                 ) : (
                   <>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Reset Link
+                    <Mail className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                    {getTranslation('sendResetLink', 'إرسال رابط إعادة التعيين', 'Send Reset Link')}
                   </>
                 )}
               </Button>

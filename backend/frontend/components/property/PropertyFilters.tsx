@@ -56,9 +56,17 @@ export function PropertyFilters({
   isMobile = false,
   onClose,
 }: PropertyFiltersProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
   
   // Local state for debounced inputs (price and search)
   const [localMinPrice, setLocalMinPrice] = useState(searchParams.get('min_price') || '');
@@ -193,7 +201,7 @@ export function PropertyFilters({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-primary">Filters</h3>
+        <h3 className="text-lg font-semibold text-primary text-start">{getTranslation('contact.filters', 'الفلاتر', 'Filters')}</h3>
         {isMobile && onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
             <X className="w-5 h-5" />
@@ -205,8 +213,8 @@ export function PropertyFilters({
 
       {/* Search Keyword with Autocomplete */}
       <div className="space-y-2">
-        <Label htmlFor="search" className="text-sm font-medium text-gray-700">
-          Search
+        <Label htmlFor="search" className="text-sm font-medium text-gray-700 text-start">
+          {getTranslation('contact.search', 'بحث', 'Search')}
         </Label>
         <SearchAutocomplete
           value={localSearch}
@@ -215,37 +223,37 @@ export function PropertyFilters({
             handleSearchChange(value);
             onFilterChange('search', value || null);
           }}
-          placeholder="Search properties..."
+          placeholder={getTranslation('contact.searchProperties', 'بحث في العقارات...', 'Search properties...')}
           className="w-full"
         />
       </div>
 
       {/* Property Type */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700">Property Type</Label>
+        <Label className="text-sm font-medium text-gray-700 text-start">{getTranslation('contact.propertyType', 'نوع العقار', 'Property Type')}</Label>
         <RadioGroup value={currentType} onValueChange={handleTypeChange}>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="all" id="type-all" />
-            <Label htmlFor="type-all" className="font-normal cursor-pointer text-sm">
-              All Types
+            <Label htmlFor="type-all" className="font-normal cursor-pointer text-sm text-start">
+              {getTranslation('contact.allTypes', 'جميع الأنواع', 'All Types')}
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="sale" id="type-sale" />
-            <Label htmlFor="type-sale" className="font-normal cursor-pointer text-sm">
-              Buy
+            <Label htmlFor="type-sale" className="font-normal cursor-pointer text-sm text-start">
+              {getTranslation('contact.buy', 'شراء', 'Buy')}
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="rent" id="type-rent" />
-            <Label htmlFor="type-rent" className="font-normal cursor-pointer text-sm">
-              Rent
+            <Label htmlFor="type-rent" className="font-normal cursor-pointer text-sm text-start">
+              {getTranslation('contact.rent', 'إيجار', 'Rent')}
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="hotel" id="type-hotel" />
-            <Label htmlFor="type-hotel" className="font-normal cursor-pointer text-sm">
-              Hotel
+            <Label htmlFor="type-hotel" className="font-normal cursor-pointer text-sm text-start">
+              {getTranslation('contact.hotel', 'فندق', 'Hotel')}
             </Label>
           </div>
         </RadioGroup>
@@ -255,18 +263,18 @@ export function PropertyFilters({
 
       {/* Neighborhood */}
       <div className="space-y-2">
-        <Label htmlFor="neighborhood" className="text-sm font-medium text-gray-700">
-          Neighborhood
+        <Label htmlFor="neighborhood" className="text-sm font-medium text-gray-700 text-start">
+          {getTranslation('contact.neighborhood', 'الحي', 'Neighborhood')}
         </Label>
         <Select
           value={currentNeighborhood || 'all'}
           onValueChange={(value) => onFilterChange('neighborhood_id', value === 'all' ? null : value)}
         >
-          <SelectTrigger id="neighborhood" className="bg-white h-9">
-            <SelectValue placeholder="All Neighborhoods" />
+          <SelectTrigger id="neighborhood" className="bg-white h-9 text-start">
+            <SelectValue placeholder={getTranslation('contact.allNeighborhoods', 'جميع الأحياء', 'All Neighborhoods')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Neighborhoods</SelectItem>
+            <SelectItem value="all">{getTranslation('contact.allNeighborhoods', 'جميع الأحياء', 'All Neighborhoods')}</SelectItem>
             {neighborhoods.map((neighborhood) => (
               <SelectItem key={neighborhood.id} value={neighborhood.id.toString()}>
                 {neighborhood.name}
@@ -383,10 +391,10 @@ export function PropertyFilters({
           // Apply all current filters
           // Filters are already applied via onFilterChange, but this provides visual feedback
         }}
-        className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold text-base h-11 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+        className={cn("w-full bg-secondary hover:bg-secondary/90 text-white font-bold text-base h-11 rounded-lg shadow-md hover:shadow-lg transition-all duration-200", locale === 'ar' && 'flex-row-reverse')}
       >
-        <Search className="w-4 h-4 mr-2" />
-        Apply Filters
+        <Search className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+        {getTranslation('contact.applyFilters', 'تطبيق الفلاتر', 'Apply Filters')}
       </Button>
 
       {/* Reset Button */}
@@ -395,7 +403,7 @@ export function PropertyFilters({
         className="w-full border-gray-300 hover:bg-gray-50"
         onClick={onReset}
       >
-        Reset Filters
+        {getTranslation('contact.resetFilters', 'إعادة تعيين الفلاتر', 'Reset Filters')}
       </Button>
     </div>
   );

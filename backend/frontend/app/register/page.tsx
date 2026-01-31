@@ -9,6 +9,7 @@ import { Logo } from '@/components/ui-custom/Logo';
 import { SocialLogin } from '@/components/auth/SocialLogin';
 import { MultiStepRegistration } from '@/components/auth/MultiStepRegistration';
 import axiosInstance from '@/lib/axios';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface RegistrationData {
   name: string;
@@ -26,10 +27,19 @@ interface RegistrationData {
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isAuthenticated, loading: authLoading } = useAuth();
+  const { t, locale } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoginLoading, setSocialLoginLoading] = useState<string | null>(null);
   const hasRedirectedRef = useRef(false);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   // Redirect if already authenticated (only once) - but only if not currently registering
   useEffect(() => {
@@ -58,7 +68,7 @@ export default function RegisterPage() {
         err.response?.data?.message ||
         err.response?.data?.errors?.email?.[0] ||
         err.response?.data?.errors?.password?.[0] ||
-        'Registration failed. Please try again.';
+        getTranslation('registrationFailed', 'فشل التسجيل. يرجى المحاولة مرة أخرى.', 'Registration failed. Please try again.');
       setError(errorMessage);
       throw err; // Re-throw to let MultiStepRegistration handle it
     } finally {
@@ -71,7 +81,7 @@ export default function RegisterPage() {
       await axiosInstance.post('/auth/verify-email/send', { email });
     } catch (err: any) {
       throw new Error(
-        err.response?.data?.message || 'Failed to send email verification code'
+        err.response?.data?.message || getTranslation('failedToSendEmailCode', 'فشل إرسال رمز التحقق من البريد الإلكتروني', 'Failed to send email verification code')
       );
     }
   };
@@ -81,7 +91,7 @@ export default function RegisterPage() {
       await axiosInstance.post('/auth/verify-phone/send', { phone });
     } catch (err: any) {
       throw new Error(
-        err.response?.data?.message || 'Failed to send phone verification code'
+        err.response?.data?.message || getTranslation('failedToSendPhoneCode', 'فشل إرسال رمز التحقق من الهاتف', 'Failed to send phone verification code')
       );
     }
   };
@@ -92,7 +102,7 @@ export default function RegisterPage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
       window.location.href = `${baseUrl}/auth/${provider}/redirect`;
     } catch (err: any) {
-      setError('Failed to initiate social login. Please try again.');
+      setError(getTranslation('failedToInitiateSocialLogin', 'فشل بدء تسجيل الدخول الاجتماعي. يرجى المحاولة مرة أخرى.', 'Failed to initiate social login. Please try again.'));
       setSocialLoginLoading(null);
     }
   };
@@ -100,7 +110,7 @@ export default function RegisterPage() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">{getTranslation('loading', 'جاري التحميل...', 'Loading...')}</div>
       </div>
     );
   }
@@ -120,10 +130,10 @@ export default function RegisterPage() {
               <Logo size="lg" showText={false} />
             </div>
             <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">
-              Create Account
+              {getTranslation('createAccount', 'إنشاء حساب', 'Create Account')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Sign up to get started with Dama Home Realty
+              {getTranslation('signUpToGetStarted', 'سجل للبدء مع Dama Home Realty', 'Sign up to get started with Dama Home Realty')}
             </p>
           </div>
 
@@ -146,13 +156,13 @@ export default function RegisterPage() {
 
           {/* Login Link */}
           <div className="text-center mt-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{' '}
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-start">
+              {getTranslation('alreadyHaveAccount', 'لديك حساب بالفعل؟', 'Already have an account?')}{' '}
               <Link
                 href="/login"
                 className="text-secondary hover:underline font-medium"
               >
-                Sign in
+                {getTranslation('signIn', 'تسجيل الدخول', 'Sign in')}
               </Link>
             </p>
           </div>

@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface BlogCardProps {
   article: Article;
@@ -43,6 +44,7 @@ const getInitials = (name: string) => {
 };
 
 export function BlogCard({ article, featured = false, className }: BlogCardProps) {
+  const { t, locale } = useLanguage();
   const imageUrl = article.image
     ? article.image.startsWith('http')
       ? article.image
@@ -56,6 +58,14 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
   // Extract categories and tags from content or use defaults
   const categories = (article as any).categories || ['Real Estate'];
   const tags = (article as any).tags || [];
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   if (featured) {
     return (
@@ -80,18 +90,18 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                 />
               ) : (
                 <div className="w-full h-full bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <span className="text-gray-400">No Image</span>
+                  <span className="text-gray-400">{getTranslation('contact.noImage', 'لا توجد صورة', 'No Image')}</span>
                 </div>
               )}
-              
+
               {/* Overlay Gradient */}
               <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
-              
+
               {/* Badges */}
-              <div className="absolute top-4 left-4 flex gap-2 z-10">
+              <div className={cn("absolute top-4 z-10 flex gap-2", locale === 'ar' ? 'right-4' : 'left-4')}>
                 <Badge className="bg-[#B49162] text-white border-0 shadow-lg">
-                  <Star className="w-3 h-3 mr-1" />
-                  Featured
+                  <Star className={cn("w-3 h-3", locale === 'ar' ? 'ml-1' : 'mr-1')} />
+                  {getTranslation('contact.featured', 'مميز', 'Featured')}
                 </Badge>
                 {categories.length > 0 && (
                   <Badge variant="outline" className="bg-white/90 text-[#0F172A] border-0">
@@ -109,7 +119,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                 <p className="text-lg text-gray-200 mb-4 line-clamp-2">
                   {article.excerpt}
                 </p>
-                
+
                 {/* Meta Info */}
                 <div className="flex items-center gap-6 text-sm text-gray-300">
                   {article.author && (
@@ -130,7 +140,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                   )}
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {readingTime} min read
+                    {readingTime} {getTranslation('contact.minRead', 'دقيقة قراءة', 'min read')}
                   </div>
                   <div className="flex items-center gap-1">
                     <Eye className="w-4 h-4" />
@@ -171,7 +181,7 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                 <FileText className="w-16 h-16 text-primary/30" />
               </div>
             )}
-            
+
             {/* Category Badge */}
             {categories.length > 0 && (
               <Badge
@@ -185,9 +195,9 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
 
             {/* Featured Badge */}
             {article.is_featured && (
-              <Badge className="absolute top-3 right-3 bg-[#B49162] text-white border-0">
-                <Star className="w-3 h-3 mr-1" />
-                Featured
+              <Badge className={cn("absolute top-3 bg-[#B49162] text-white border-0", locale === 'ar' ? 'left-3' : 'right-3')}>
+                <Star className={cn("w-3 h-3", locale === 'ar' ? 'ml-1' : 'mr-1')} />
+                {getTranslation('contact.featured', 'مميز', 'Featured')}
               </Badge>
             )}
           </div>
@@ -239,14 +249,14 @@ export function BlogCard({ article, featured = false, className }: BlogCardProps
                 )}
                 <div className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  {readingTime}m
+                  {readingTime}{getTranslation('contact.minRead', 'د', 'm')}
                 </div>
                 <div className="flex items-center gap-1">
                   <Eye className="w-3 h-3" />
                   {article.views || 0}
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-[#B49162] group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className={cn("w-4 h-4 text-[#B49162] transition-transform", locale === 'ar' ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1')} />
             </div>
           </CardContent>
         </Card>

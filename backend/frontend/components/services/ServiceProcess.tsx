@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Search, MessageCircle, CheckCircle2, Home } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface Step {
   icon: LucideIcon;
@@ -10,30 +11,40 @@ interface Step {
   description: string;
 }
 
-const steps: Step[] = [
-  {
-    icon: Search,
-    title: 'Browse Services',
-    description: 'Explore our comprehensive range of real estate services tailored for expats',
-  },
-  {
-    icon: MessageCircle,
-    title: 'Request Service',
-    description: 'Fill out a simple form with your requirements and contact information',
-  },
-  {
-    icon: CheckCircle2,
-    title: 'We Get Back to You',
-    description: 'Our expert team will contact you within 24 hours to discuss your needs',
-  },
-  {
-    icon: Home,
-    title: 'Service Delivered',
-    description: 'We provide the service with professionalism, transparency, and care',
-  },
-];
-
 export function ServiceProcess() {
+  const { t, locale } = useLanguage();
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
+
+  const steps: Step[] = [
+    {
+      icon: Search,
+      title: getTranslation('contact.browseServices', 'تصفح الخدمات', 'Browse Services'),
+      description: getTranslation('contact.browseServicesDesc', 'استكشف مجموعة شاملة من خدماتنا العقارية المصممة خصيصاً للمغتربين', 'Explore our comprehensive range of real estate services tailored for expats'),
+    },
+    {
+      icon: MessageCircle,
+      title: getTranslation('contact.requestService', 'طلب خدمة', 'Request Service'),
+      description: getTranslation('contact.requestServiceDesc', 'املأ نموذجاً بسيطاً بمتطلباتك ومعلومات الاتصال', 'Fill out a simple form with your requirements and contact information'),
+    },
+    {
+      icon: CheckCircle2,
+      title: getTranslation('contact.weGetBackToYou', 'نعود إليك', 'We Get Back to You'),
+      description: getTranslation('contact.weGetBackToYouDesc', 'سيتصل بك فريقنا الخبير خلال 24 ساعة لمناقشة احتياجاتك', 'Our expert team will contact you within 24 hours to discuss your needs'),
+    },
+    {
+      icon: Home,
+      title: getTranslation('contact.serviceDelivered', 'تقديم الخدمة', 'Service Delivered'),
+      description: getTranslation('contact.serviceDeliveredDesc', 'نقدم الخدمة باحترافية وشفافية ورعاية', 'We provide the service with professionalism, transparency, and care'),
+    },
+  ];
+
   return (
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Pattern */}
@@ -50,10 +61,10 @@ export function ServiceProcess() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
-            How It <span className="text-[#B49162]">Works</span>
+            {getTranslation('contact.howItWorks', 'كيف يعمل', 'How It Works')}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            A simple, straightforward process to get the services you need
+            {getTranslation('contact.simpleProcess', 'عملية بسيطة ومباشرة للحصول على الخدمات التي تحتاجها', 'A simple, straightforward process to get the services you need')}
           </p>
         </motion.div>
 

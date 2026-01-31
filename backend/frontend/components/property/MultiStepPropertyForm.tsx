@@ -40,6 +40,7 @@ import { LocationPicker } from './LocationPicker';
 import { PriceSuggestion } from './PriceSuggestion';
 import axiosInstance from '@/lib/axios';
 import { Property } from '@/types';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface PropertyFormData {
   // Step 1: Basic Information
@@ -79,14 +80,6 @@ interface MultiStepPropertyFormProps {
   className?: string;
 }
 
-const steps = [
-  { id: 1, title: 'Basic Information', icon: Home },
-  { id: 2, title: 'Location', icon: MapPin },
-  { id: 3, title: 'Property Details', icon: FileText },
-  { id: 4, title: 'Media', icon: ImageIcon },
-  { id: 5, title: 'Contact & Status', icon: CheckCircle2 },
-];
-
 const availableAmenities = [
   'Parking',
   'Elevator',
@@ -108,7 +101,37 @@ export function MultiStepPropertyForm({
   className,
 }: MultiStepPropertyFormProps) {
   const router = useRouter();
+  const { t, locale } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
+
+  const steps = [
+    { id: 1, title: getTranslation('basicInformation', 'المعلومات الأساسية', 'Basic Information'), icon: Home },
+    { id: 2, title: getTranslation('location', 'الموقع', 'Location'), icon: MapPin },
+    { id: 3, title: getTranslation('propertyDetails', 'تفاصيل العقار', 'Property Details'), icon: FileText },
+    { id: 4, title: getTranslation('media', 'الوسائط', 'Media'), icon: ImageIcon },
+    { id: 5, title: getTranslation('contactStatus', 'الاتصال والحالة', 'Contact & Status'), icon: CheckCircle2 },
+  ];
+
+  const amenityTranslations: Record<string, string> = {
+    'Parking': getTranslation('parking', 'موقف سيارات', 'Parking'),
+    'Elevator': getTranslation('elevator', 'مصعد', 'Elevator'),
+    'Balcony': getTranslation('balcony', 'شرفة', 'Balcony'),
+    'Garden': getTranslation('garden', 'حديقة', 'Garden'),
+    'Swimming Pool': getTranslation('swimmingPool', 'مسبح', 'Swimming Pool'),
+    'Security': getTranslation('security', 'أمن', 'Security'),
+    'Air Conditioning': getTranslation('airConditioning', 'تكييف', 'Air Conditioning'),
+    'Heating': getTranslation('heating', 'تدفئة', 'Heating'),
+    'Furnished': getTranslation('furnished', 'مفروش', 'Furnished'),
+    'Internet': getTranslation('internet', 'إنترنت', 'Internet'),
+  };
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof PropertyFormData, string>>>({});
@@ -234,56 +257,56 @@ export function MultiStepPropertyForm({
     const newErrors: Partial<Record<keyof PropertyFormData, string>> = {};
 
     if (step === 1) {
-      if (!formData.title.trim()) newErrors.title = 'Title is required';
-      if (!formData.type) newErrors.type = 'Property type is required';
+      if (!formData.title.trim()) newErrors.title = getTranslation('titleRequired', 'العنوان مطلوب', 'Title is required');
+      if (!formData.type) newErrors.type = getTranslation('propertyTypeRequired', 'نوع العقار مطلوب', 'Property type is required');
       if (!formData.description.trim()) {
-        newErrors.description = 'Description is required';
+        newErrors.description = getTranslation('descriptionRequired', 'الوصف مطلوب', 'Description is required');
       } else if (formData.description.length < 50) {
-        newErrors.description = 'Description must be at least 50 characters';
+        newErrors.description = getTranslation('descriptionMinLength', 'يجب أن يكون الوصف 50 حرفاً على الأقل', 'Description must be at least 50 characters');
       }
     }
 
     if (step === 2) {
       if (!formData.neighborhood_id) {
-        newErrors.neighborhood_id = 'Location is required';
+        newErrors.neighborhood_id = getTranslation('locationRequired', 'الموقع مطلوب', 'Location is required');
       }
       if (!formData.address.trim()) {
-        newErrors.address = 'Address is required';
+        newErrors.address = getTranslation('addressRequired', 'العنوان مطلوب', 'Address is required');
       }
     }
 
     if (step === 3) {
       if (!formData.bedrooms || formData.bedrooms < 0) {
-        newErrors.bedrooms = 'Number of bedrooms is required';
+        newErrors.bedrooms = getTranslation('bedroomsRequired', 'عدد غرف النوم مطلوب', 'Number of bedrooms is required');
       }
       if (!formData.bathrooms || formData.bathrooms < 0) {
-        newErrors.bathrooms = 'Number of bathrooms is required';
+        newErrors.bathrooms = getTranslation('bathroomsRequired', 'عدد الحمامات مطلوب', 'Number of bathrooms is required');
       }
       if (!formData.area_sqm || formData.area_sqm <= 0) {
-        newErrors.area_sqm = 'Area is required';
+        newErrors.area_sqm = getTranslation('areaRequired', 'المساحة مطلوبة', 'Area is required');
       }
       if (!formData.price || formData.price <= 0) {
-        newErrors.price = 'Price is required';
+        newErrors.price = getTranslation('priceRequired', 'السعر مطلوب', 'Price is required');
       }
     }
 
     if (step === 4) {
       if (formData.images.length === 0) {
-        newErrors.images = 'At least one image is required';
+        newErrors.images = getTranslation('atLeastOneImage', 'صورة واحدة على الأقل مطلوبة', 'At least one image is required');
       }
     }
 
     if (step === 5) {
       if (!formData.owner_contact.trim()) {
-        newErrors.owner_contact = 'Contact information is required';
+        newErrors.owner_contact = getTranslation('contactInfoRequired', 'معلومات الاتصال مطلوبة', 'Contact information is required');
       }
       if (!formData.owner_name.trim()) {
-        newErrors.owner_name = 'Owner name is required';
+        newErrors.owner_name = getTranslation('ownerNameRequired', 'اسم المالك مطلوب', 'Owner name is required');
       }
       if (!formData.owner_email.trim()) {
-        newErrors.owner_email = 'Owner email is required';
+        newErrors.owner_email = getTranslation('ownerEmailRequired', 'بريد المالك الإلكتروني مطلوب', 'Owner email is required');
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.owner_email)) {
-        newErrors.owner_email = 'Invalid email format';
+        newErrors.owner_email = getTranslation('invalidEmailFormat', 'صيغة البريد الإلكتروني غير صحيحة', 'Invalid email format');
       }
     }
 
@@ -336,8 +359,8 @@ export function MultiStepPropertyForm({
 
       // Success message
       const successMessage = property?.id 
-        ? 'تم تحديث العقار بنجاح! سيتم مراجعته من قبل الإدارة قريباً.'
-        : 'تم إرسال طلب إضافة العقار بنجاح! سيتم مراجعته من قبل الإدارة قريباً.';
+        ? getTranslation('propertyUpdatedSuccess', 'تم تحديث العقار بنجاح! سيتم مراجعته من قبل الإدارة قريباً.', 'Property updated successfully! It will be reviewed by the administration soon.')
+        : getTranslation('propertySubmittedSuccess', 'تم إرسال طلب إضافة العقار بنجاح! سيتم مراجعته من قبل الإدارة قريباً.', 'Property listing request submitted successfully! It will be reviewed by the administration soon.');
       
       setSubmitSuccess(successMessage);
       setSuccess(true);
@@ -351,7 +374,7 @@ export function MultiStepPropertyForm({
       }, 3000);
     } catch (error: any) {
       // Extract error message from response
-      let errorMessage = 'فشل إرسال طلب إضافة العقار. يرجى المحاولة مرة أخرى.';
+      let errorMessage = getTranslation('propertySubmitFailed', 'فشل إرسال طلب إضافة العقار. يرجى المحاولة مرة أخرى.', 'Failed to submit property listing request. Please try again.');
       
       if (error.response) {
         // Backend validation errors
@@ -364,18 +387,18 @@ export function MultiStepPropertyForm({
         } else if (error.response.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.status === 422) {
-          errorMessage = 'البيانات المدخلة غير صحيحة. يرجى التحقق من جميع الحقول وإعادة المحاولة.';
+          errorMessage = getTranslation('invalidData', 'البيانات المدخلة غير صحيحة. يرجى التحقق من جميع الحقول وإعادة المحاولة.', 'Invalid input data. Please check all fields and try again.');
         } else if (error.response.status === 401) {
-          errorMessage = 'يجب تسجيل الدخول أولاً لإضافة عقار.';
+          errorMessage = getTranslation('mustLoginFirst', 'يجب تسجيل الدخول أولاً لإضافة عقار.', 'You must log in first to add a property.');
         } else if (error.response.status === 403) {
-          errorMessage = 'ليس لديك صلاحية لإضافة عقار.';
+          errorMessage = getTranslation('noPermission', 'ليس لديك صلاحية لإضافة عقار.', 'You do not have permission to add a property.');
         } else if (error.response.status === 500) {
-          errorMessage = 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.';
+          errorMessage = getTranslation('serverError', 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.', 'A server error occurred. Please try again later.');
         }
       } else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-        errorMessage = 'فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+        errorMessage = getTranslation('connectionFailed', 'فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.', 'Failed to connect to server. Please check your internet connection and try again.');
       } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-        errorMessage = 'انتهت مهلة الاتصال. يرجى المحاولة مرة أخرى.';
+        errorMessage = getTranslation('connectionTimeout', 'انتهت مهلة الاتصال. يرجى المحاولة مرة أخرى.', 'Connection timeout. Please try again.');
       }
 
       setSubmitError(errorMessage);
@@ -412,13 +435,13 @@ export function MultiStepPropertyForm({
               <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
             </div>
             <h3 className="text-2xl font-bold text-primary dark:text-white mb-2">
-              Property Listed Successfully!
+              {getTranslation('propertySubmittedSuccess', 'تم إرسال طلب إضافة العقار بنجاح!', 'Property Listed Successfully!')}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Your property has been submitted and is now under review.
+              {getTranslation('propertyUnderReview', 'تم إرسال عقارك وهو الآن قيد المراجعة.', 'Your property has been submitted and is now under review.')}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
-              Redirecting to your property page...
+              {getTranslation('redirectingToProperty', 'جاري إعادة التوجيه إلى صفحة عقارك...', 'Redirecting to your property page...')}
             </p>
           </motion.div>
         </CardContent>
@@ -468,42 +491,48 @@ export function MultiStepPropertyForm({
               <CurrentStepIcon className="w-5 h-5 text-secondary" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-primary dark:text-white">
+              <CardTitle className="text-xl font-bold text-primary dark:text-white text-start">
                 {steps[currentStep - 1].title}
               </CardTitle>
-              <CardDescription className="text-sm">
-                Step {currentStep} of {steps.length}
+              <CardDescription className="text-sm text-start">
+                {(() => {
+                  const translation = t('stepOf', { current: currentStep, total: steps.length });
+                  if (translation === 'stepOf' || translation.includes('stepOf')) {
+                    return locale === 'ar' ? `الخطوة ${currentStep} من ${steps.length}` : `Step ${currentStep} of ${steps.length}`;
+                  }
+                  return translation;
+                })()}
               </CardDescription>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
-              {formData.status === 'draft' ? 'Draft' : 'Active'}
+              {formData.status === 'draft' ? getTranslation('draft', 'مسودة', 'Draft') : getTranslation('active', 'نشط', 'Active')}
             </Badge>
             <Button
               variant="outline"
               size="sm"
               onClick={handleManualSave}
               disabled={saving}
-              className="flex items-center gap-2"
+              className={cn("flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
             >
               {saving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
+                  <Loader2 className={cn("w-4 h-4 animate-spin", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                  {getTranslation('saving', 'جاري الحفظ...', 'Saving...')}
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
-                  Save Draft
+                  <Save className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                  {getTranslation('saveDraft', 'حفظ كمسودة', 'Save Draft')}
                 </>
               )}
             </Button>
           </div>
         </div>
         <Progress value={progress} className="h-2" />
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          Your progress is automatically saved as a draft
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-start">
+          {getTranslation('progressAutoSaved', 'يتم حفظ تقدمك تلقائياً كمسودة', 'Your progress is automatically saved as a draft')}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -519,56 +548,58 @@ export function MultiStepPropertyForm({
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="type">Property Type *</Label>
+                <Label htmlFor="type" className="text-start">{getTranslation('propertyType', 'نوع العقار', 'Property Type')} *</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value: 'rent' | 'sale' | 'hotel') =>
                     updateFormData('type', value)
                   }
                 >
-                  <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select property type" />
+                  <SelectTrigger className={cn(errors.type ? 'border-red-500' : '', 'text-start')}>
+                    <SelectValue placeholder={getTranslation('selectPropertyType', 'اختر نوع العقار', 'Select property type')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rent">For Rent</SelectItem>
-                    <SelectItem value="sale">For Sale</SelectItem>
-                    <SelectItem value="hotel">Hotel/Apartment</SelectItem>
+                    <SelectItem value="rent">{getTranslation('rent', 'إيجار', 'For Rent')}</SelectItem>
+                    <SelectItem value="sale">{getTranslation('buy', 'شراء', 'For Sale')}</SelectItem>
+                    <SelectItem value="hotel">{getTranslation('hotel', 'فندق', 'Hotel/Apartment')}</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
+                {errors.type && <p className="text-sm text-red-500 text-start">{errors.type}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Property Title *</Label>
+                <Label htmlFor="title" className="text-start">{getTranslation('title', 'العنوان', 'Property Title')} *</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => updateFormData('title', e.target.value)}
-                  placeholder="e.g., Spacious 3-bedroom apartment in Damascus"
-                  className={errors.title ? 'border-red-500' : ''}
+                  placeholder={locale === 'ar' ? 'مثال: شقة واسعة 3 غرف نوم في دمشق' : 'e.g., Spacious 3-bedroom apartment in Damascus'}
+                  className={cn(errors.title ? 'border-red-500' : '', 'text-start')}
                   disabled={loading}
                   required
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
-                {errors.title && <p className="text-sm text-red-500">{errors.title}</p>}
+                {errors.title && <p className="text-sm text-red-500 text-start">{errors.title}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description" className="text-start">{getTranslation('description', 'الوصف', 'Description')} *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => updateFormData('description', e.target.value)}
-                  placeholder="Describe your property in detail..."
+                  placeholder={locale === 'ar' ? 'وصف عقارك بالتفصيل...' : 'Describe your property in detail...'}
                   rows={6}
-                  className={errors.description ? 'border-red-500' : ''}
+                  className={cn(errors.description ? 'border-red-500' : '', 'text-start')}
                   disabled={loading}
                   required
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
                 {errors.description && (
-                  <p className="text-sm text-red-500">{errors.description}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.description}</p>
                 )}
-                <p className="text-xs text-gray-500">
-                  {formData.description.length} / 500 characters (min. 50)
+                <p className="text-xs text-gray-500 text-start">
+                  {formData.description.length} / 500 {getTranslation('characters', 'حرف', 'characters')} ({getTranslation('min', 'الحد الأدنى', 'min.')} 50)
                 </p>
               </div>
             </motion.div>
@@ -612,42 +643,44 @@ export function MultiStepPropertyForm({
             >
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bedrooms">Bedrooms *</Label>
+                  <Label htmlFor="bedrooms" className="text-start">{getTranslation('bedrooms', 'غرف النوم', 'Bedrooms')} *</Label>
                   <Input
                     id="bedrooms"
                     type="number"
                     min="0"
                     value={formData.bedrooms}
                     onChange={(e) => updateFormData('bedrooms', parseInt(e.target.value) || 0)}
-                    className={errors.bedrooms ? 'border-red-500' : ''}
+                    className={cn(errors.bedrooms ? 'border-red-500' : '', 'text-start')}
                     disabled={loading}
                     required
+                    dir="ltr"
                   />
                   {errors.bedrooms && (
-                    <p className="text-sm text-red-500">{errors.bedrooms}</p>
+                    <p className="text-sm text-red-500 text-start">{errors.bedrooms}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bathrooms">Bathrooms *</Label>
+                  <Label htmlFor="bathrooms" className="text-start">{getTranslation('bathrooms', 'الحمامات', 'Bathrooms')} *</Label>
                   <Input
                     id="bathrooms"
                     type="number"
                     min="0"
                     value={formData.bathrooms}
                     onChange={(e) => updateFormData('bathrooms', parseInt(e.target.value) || 0)}
-                    className={errors.bathrooms ? 'border-red-500' : ''}
+                    className={cn(errors.bathrooms ? 'border-red-500' : '', 'text-start')}
                     disabled={loading}
                     required
+                    dir="ltr"
                   />
                   {errors.bathrooms && (
-                    <p className="text-sm text-red-500">{errors.bathrooms}</p>
+                    <p className="text-sm text-red-500 text-start">{errors.bathrooms}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="area_sqm">Area (Square Meters) *</Label>
+                <Label htmlFor="area_sqm" className="text-start">{getTranslation('area', 'المساحة (متر مربع)', 'Area (Square Meters)')} *</Label>
                 <Input
                   id="area_sqm"
                   type="number"
@@ -656,11 +689,12 @@ export function MultiStepPropertyForm({
                   value={formData.area_sqm}
                   onChange={(e) => updateFormData('area_sqm', parseFloat(e.target.value) || 0)}
                   placeholder="e.g., 120"
-                  className={errors.area_sqm ? 'border-red-500' : ''}
+                  className={cn(errors.area_sqm ? 'border-red-500' : '', 'text-start')}
                   disabled={loading}
                   required
+                  dir="ltr"
                 />
-                {errors.area_sqm && <p className="text-sm text-red-500">{errors.area_sqm}</p>}
+                {errors.area_sqm && <p className="text-sm text-red-500 text-start">{errors.area_sqm}</p>}
               </div>
 
               {/* Price Suggestion */}
@@ -674,22 +708,22 @@ export function MultiStepPropertyForm({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="price" className="flex items-center gap-2">
+                <Label htmlFor="price" className={cn("flex items-center gap-2", locale === 'ar' && 'flex-row-reverse', 'text-start')}>
                   <DollarSign className="w-4 h-4 text-secondary" />
-                  Price *
+                  {getTranslation('price', 'السعر', 'Price')} *
                   {priceSuggestion && (
                     <Badge variant="outline" className="text-xs">
-                      <Lightbulb className="w-3 h-3 mr-1" />
-                      Suggested: {priceSuggestion.toLocaleString()} {formData.currency}
+                      <Lightbulb className={cn("w-3 h-3", locale === 'ar' ? 'ml-1' : 'mr-1')} />
+                      {getTranslation('suggested', 'مقترح', 'Suggested')}: {priceSuggestion.toLocaleString()} {formData.currency}
                     </Badge>
                   )}
                 </Label>
-                <div className="flex gap-2">
+                <div className={cn("flex gap-2", locale === 'ar' && 'flex-row-reverse')}>
                   <Select
                     value={formData.currency}
                     onValueChange={(value: 'USD' | 'SYP') => updateFormData('currency', value)}
                   >
-                    <SelectTrigger className="w-24">
+                    <SelectTrigger className="w-24 text-start">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -704,10 +738,11 @@ export function MultiStepPropertyForm({
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => updateFormData('price', parseFloat(e.target.value) || 0)}
-                    placeholder={priceSuggestion ? priceSuggestion.toString() : 'Enter price'}
-                    className={cn('flex-1', errors.price && 'border-red-500')}
+                    placeholder={priceSuggestion ? priceSuggestion.toString() : getTranslation('enterPrice', 'أدخل السعر', 'Enter price')}
+                    className={cn('flex-1 text-start', errors.price && 'border-red-500')}
                     disabled={loading}
                     required
+                    dir="ltr"
                   />
                   {priceSuggestion && (
                     <Button
@@ -717,18 +752,18 @@ export function MultiStepPropertyForm({
                       onClick={() => updateFormData('price', priceSuggestion)}
                       className="whitespace-nowrap"
                     >
-                      Use Suggested
+                      {getTranslation('useSuggested', 'استخدم المقترح', 'Use Suggested')}
                     </Button>
                   )}
                 </div>
-                {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
+                {errors.price && <p className="text-sm text-red-500 text-start">{errors.price}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label>Amenities *</Label>
+                <Label className="text-start">{getTranslation('amenities', 'الميزات', 'Amenities')} *</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {availableAmenities.map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2">
+                    <div key={amenity} className={cn("flex items-center", locale === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2')}>
                       <Checkbox
                         id={`amenity-${amenity}`}
                         checked={formData.amenities.includes(amenity)}
@@ -746,9 +781,9 @@ export function MultiStepPropertyForm({
                       />
                       <label
                         htmlFor={`amenity-${amenity}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-start"
                       >
-                        {amenity}
+                        {amenityTranslations[amenity] || amenity}
                       </label>
                     </div>
                   ))}
@@ -768,7 +803,7 @@ export function MultiStepPropertyForm({
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label>Property Images *</Label>
+                <Label className="text-start">{getTranslation('propertyImages', 'صور العقار', 'Property Images')} *</Label>
                 <ImageUpload
                   images={formData.images}
                   onImagesChange={(images) => updateFormData('images', images)}
@@ -778,7 +813,7 @@ export function MultiStepPropertyForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="video_url">Video URL (optional)</Label>
+                <Label htmlFor="video_url" className="text-start">{getTranslation('videoUrl', 'رابط الفيديو (اختياري)', 'Video URL (optional)')}</Label>
                 <Input
                   id="video_url"
                   type="url"
@@ -786,9 +821,11 @@ export function MultiStepPropertyForm({
                   onChange={(e) => updateFormData('video_url', e.target.value)}
                   placeholder="https://youtube.com/watch?v=..."
                   disabled={loading}
+                  className="text-start"
+                  dir="ltr"
                 />
-                <p className="text-xs text-gray-500">
-                  Add a YouTube or Vimeo link for a property tour video
+                <p className="text-xs text-gray-500 text-start">
+                  {getTranslation('addVideoLink', 'أضف رابط YouTube أو Vimeo لجولة فيديو للعقار', 'Add a YouTube or Vimeo link for a property tour video')}
                 </p>
               </div>
             </motion.div>
@@ -825,82 +862,87 @@ export function MultiStepPropertyForm({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="owner_name">Owner Name *</Label>
+                <Label htmlFor="owner_name" className="text-start">{getTranslation('ownerName', 'اسم المالك', 'Owner Name')} *</Label>
                 <Input
                   id="owner_name"
                   value={formData.owner_name}
                   onChange={(e) => updateFormData('owner_name', e.target.value)}
-                  placeholder="John Doe"
-                  className={errors.owner_name ? 'border-red-500' : ''}
+                  placeholder={locale === 'ar' ? 'أحمد محمد' : 'John Doe'}
+                  className={cn(errors.owner_name ? 'border-red-500' : '', 'text-start')}
                   disabled={loading}
                   required
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
                 {errors.owner_name && (
-                  <p className="text-sm text-red-500">{errors.owner_name}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.owner_name}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="owner_email">Owner Email *</Label>
+                <Label htmlFor="owner_email" className="text-start">{getTranslation('ownerEmail', 'بريد المالك الإلكتروني', 'Owner Email')} *</Label>
                 <Input
                   id="owner_email"
                   type="email"
                   value={formData.owner_email}
                   onChange={(e) => updateFormData('owner_email', e.target.value)}
                   placeholder="owner@example.com"
-                  className={errors.owner_email ? 'border-red-500' : ''}
+                  className={cn(errors.owner_email ? 'border-red-500' : '', 'text-start')}
                   disabled={loading}
                   required
+                  dir="ltr"
                 />
                 {errors.owner_email && (
-                  <p className="text-sm text-red-500">{errors.owner_email}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.owner_email}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="owner_contact">Contact Phone *</Label>
+                <Label htmlFor="owner_contact" className="text-start">{getTranslation('contactPhone', 'هاتف الاتصال', 'Contact Phone')} *</Label>
                 <Input
                   id="owner_contact"
                   type="tel"
                   value={formData.owner_contact}
                   onChange={(e) => updateFormData('owner_contact', e.target.value)}
                   placeholder="+963 123 456 789"
-                  className={errors.owner_contact ? 'border-red-500' : ''}
+                  className={cn(errors.owner_contact ? 'border-red-500' : '', 'text-start')}
                   disabled={loading}
                   required
+                  dir="ltr"
                 />
                 {errors.owner_contact && (
-                  <p className="text-sm text-red-500">{errors.owner_contact}</p>
+                  <p className="text-sm text-red-500 text-start">{errors.owner_contact}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reference_id">Reference ID (optional)</Label>
+                <Label htmlFor="reference_id" className="text-start">{getTranslation('referenceId', 'رقم المرجع (اختياري)', 'Reference ID (optional)')}</Label>
                 <Input
                   id="reference_id"
                   value={formData.reference_id}
                   onChange={(e) => updateFormData('reference_id', e.target.value)}
                   placeholder="PROP-2024-001"
                   disabled={loading}
+                  className="text-start"
+                  dir="ltr"
                 />
               </div>
 
               {property && (
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="text-start">{getTranslation('status', 'الحالة', 'Status')}</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value: 'active' | 'draft' | 'pending') =>
                       updateFormData('status', value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-start">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="pending">Pending Review</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="draft">{getTranslation('draft', 'مسودة', 'Draft')}</SelectItem>
+                      <SelectItem value="pending">{getTranslation('pendingReview', 'قيد المراجعة', 'Pending Review')}</SelectItem>
+                      <SelectItem value="active">{getTranslation('active', 'نشط', 'Active')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -910,41 +952,41 @@ export function MultiStepPropertyForm({
         </AnimatePresence>
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700">
+        <div className={cn("flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700", locale === 'ar' && 'flex-row-reverse')}>
           <Button
             variant="outline"
             onClick={handleBack}
             disabled={currentStep === 1 || loading}
-            className="flex items-center gap-2"
+            className={cn("flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className={cn("w-4 h-4", locale === 'ar' && 'rotate-180')} />
+            {getTranslation('back', 'رجوع', 'Back')}
           </Button>
 
           {currentStep < steps.length ? (
             <Button
               onClick={handleNext}
-              className="bg-secondary hover:bg-secondary/90 flex items-center gap-2"
+              className={cn("bg-secondary hover:bg-secondary/90 flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
               disabled={loading}
             >
-              Next
-              <ArrowRight className="w-4 h-4" />
+              {getTranslation('next', 'التالي', 'Next')}
+              <ArrowRight className={cn("w-4 h-4", locale === 'ar' && 'rotate-180')} />
             </Button>
           ) : (
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-secondary hover:bg-secondary/90 flex items-center gap-2"
+              className={cn("bg-secondary hover:bg-secondary/90 flex items-center gap-2", locale === 'ar' && 'flex-row-reverse')}
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting...
+                  <Loader2 className={cn("w-4 h-4 animate-spin", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                  {getTranslation('submitting', 'جاري الإرسال...', 'Submitting...')}
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  {property ? 'Update Property' : 'Submit Property'}
+                  <CheckCircle2 className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+                  {property ? getTranslation('updateProperty', 'تحديث العقار', 'Update Property') : getTranslation('submitProperty', 'إرسال العقار', 'Submit Property')}
                 </>
               )}
             </Button>

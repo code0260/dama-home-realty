@@ -2,16 +2,27 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, Shield, Users, Zap, Award } from 'lucide-react';
-
-const benefits = [
-  { icon: Clock, text: 'Fast Response Time' },
-  { icon: Shield, text: 'Secure & Reliable' },
-  { icon: Users, text: 'Expert Team' },
-  { icon: Zap, text: '24/7 Support' },
-  { icon: Award, text: 'Verified Services' },
-];
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export function ServiceBenefits() {
+  const { t, locale } = useLanguage();
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
+
+  const benefits = [
+    { icon: Clock, text: getTranslation('contact.fastResponseTime', 'استجابة سريعة', 'Fast Response Time') },
+    { icon: Shield, text: getTranslation('contact.secureReliable', 'آمن وموثوق', 'Secure & Reliable') },
+    { icon: Users, text: getTranslation('contact.expertTeam', 'فريق خبير', 'Expert Team') },
+    { icon: Zap, text: getTranslation('contact.support247', 'دعم على مدار الساعة', '24/7 Support') },
+    { icon: Award, text: getTranslation('contact.verifiedServices', 'خدمات موثقة', 'Verified Services') },
+  ];
+
   return (
     <section className="py-20 bg-linear-to-br from-gray-50 to-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,10 +34,10 @@ export function ServiceBenefits() {
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
-            Why Choose <span className="text-[#B49162]">Our Services</span>
+            {getTranslation('contact.whyChooseOurServices', 'لماذا تختار خدماتنا', 'Why Choose Our Services')}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Experience the difference of working with Damascus's most trusted real estate service provider
+            {getTranslation('contact.experienceDifference', 'اختبر الفرق في العمل مع مزود خدمات عقارية موثوق في دمشق', 'Experience the difference of working with Damascus\'s most trusted real estate service provider')}
           </p>
         </motion.div>
 

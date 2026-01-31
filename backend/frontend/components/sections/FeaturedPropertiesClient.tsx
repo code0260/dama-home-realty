@@ -24,8 +24,16 @@ export function FeaturedPropertiesClient({
   loadingMore = false,
   onLoadMore 
 }: FeaturedPropertiesClientProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   // Load view mode from localStorage
   useEffect(() => {
@@ -46,7 +54,7 @@ export function FeaturedPropertiesClient({
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">{t('properties.noProperties')}</p>
+            <p className="text-gray-500 text-lg">{getTranslation('properties.noProperties', 'لا توجد عقارات متاحة حالياً', 'No properties available at the moment')}</p>
           </div>
         </div>
       </section>

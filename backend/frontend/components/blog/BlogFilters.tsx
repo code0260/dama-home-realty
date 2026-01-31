@@ -33,6 +33,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface BlogFiltersProps {
   articles: Article[];
@@ -41,12 +42,21 @@ interface BlogFiltersProps {
 }
 
 export function BlogFilters({ articles, onFilterChange, className }: BlogFiltersProps) {
+  const { t, locale } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   // Extract unique values from articles
   const categories = useMemo(() => {
@@ -119,7 +129,7 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
       filtered = filtered.filter((article) => {
         if (!article.published_at) return false;
         const publishDate = new Date(article.published_at);
-        
+
         switch (dateFilter) {
           case 'today':
             return publishDate.toDateString() === now.toDateString();
@@ -161,27 +171,28 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
     <div className="space-y-4">
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className={cn("absolute top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400", locale === 'ar' ? 'right-3' : 'left-3')} />
         <Input
-          placeholder="Search articles..."
+          placeholder={getTranslation('contact.searchArticles', 'بحث في المقالات...', 'Search articles...')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className={cn(locale === 'ar' ? 'pr-10' : 'pl-10', 'text-start')}
+          dir={locale === 'ar' ? 'rtl' : 'ltr'}
         />
       </div>
 
       {/* Category Filter */}
       <div>
-        <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+        <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2 text-start">
           <FolderOpen className="w-4 h-4 text-[#B49162]" />
-          Category
+          {getTranslation('contact.category', 'الفئة', 'Category')}
         </label>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Categories" />
+          <SelectTrigger className="w-full text-start">
+            <SelectValue placeholder={getTranslation('contact.allCategories', 'جميع الفئات', 'All Categories')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{getTranslation('contact.allCategories', 'جميع الفئات', 'All Categories')}</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
@@ -194,16 +205,16 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
       {/* Tag Filter */}
       {tags.length > 0 && (
         <div>
-          <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+          <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2 text-start">
             <Tag className="w-4 h-4 text-[#B49162]" />
-            Tag
+            {getTranslation('contact.tag', 'الوسم', 'Tag')}
           </label>
           <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All Tags" />
+            <SelectTrigger className="w-full text-start">
+              <SelectValue placeholder={getTranslation('contact.allTags', 'جميع الأوسمة', 'All Tags')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Tags</SelectItem>
+              <SelectItem value="all">{getTranslation('contact.allTags', 'جميع الأوسمة', 'All Tags')}</SelectItem>
               {tags.map((tag) => (
                 <SelectItem key={tag} value={tag}>
                   {tag}
@@ -217,16 +228,16 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
       {/* Author Filter */}
       {authors.length > 0 && (
         <div>
-          <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+          <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2 text-start">
             <User className="w-4 h-4 text-[#B49162]" />
-            Author
+            {getTranslation('contact.author', 'المؤلف', 'Author')}
           </label>
           <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All Authors" />
+            <SelectTrigger className="w-full text-start">
+              <SelectValue placeholder={getTranslation('contact.allAuthors', 'جميع المؤلفين', 'All Authors')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Authors</SelectItem>
+              <SelectItem value="all">{getTranslation('contact.allAuthors', 'جميع المؤلفين', 'All Authors')}</SelectItem>
               {authors.map((author) => (
                 <SelectItem key={author} value={author}>
                   {author}
@@ -239,20 +250,20 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
 
       {/* Date Filter */}
       <div>
-        <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2">
+        <label className="text-sm font-semibold text-[#0F172A] dark:text-white mb-2 flex items-center gap-2 text-start">
           <Calendar className="w-4 h-4 text-[#B49162]" />
-          Date
+          {getTranslation('contact.date', 'التاريخ', 'Date')}
         </label>
         <Select value={dateFilter} onValueChange={setDateFilter}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Time" />
+          <SelectTrigger className="w-full text-start">
+            <SelectValue placeholder={getTranslation('contact.allTime', 'جميع الأوقات', 'All Time')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Time</SelectItem>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
+            <SelectItem value="all">{getTranslation('contact.allTime', 'جميع الأوقات', 'All Time')}</SelectItem>
+            <SelectItem value="today">{getTranslation('contact.today', 'اليوم', 'Today')}</SelectItem>
+            <SelectItem value="week">{getTranslation('contact.thisWeek', 'هذا الأسبوع', 'This Week')}</SelectItem>
+            <SelectItem value="month">{getTranslation('contact.thisMonth', 'هذا الشهر', 'This Month')}</SelectItem>
+            <SelectItem value="year">{getTranslation('contact.thisYear', 'هذا العام', 'This Year')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -262,11 +273,11 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
         <Button
           variant="outline"
           onClick={handleClearAll}
-          className="w-full"
+          className={cn("w-full", locale === 'ar' && 'flex-row-reverse')}
           size="sm"
         >
-          <X className="w-4 h-4 mr-2" />
-          Clear All ({activeFiltersCount})
+          <X className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+          {getTranslation('contact.clearAll', 'مسح الكل', 'Clear All')} ({activeFiltersCount})
         </Button>
       )}
     </div>
@@ -279,13 +290,13 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
         <Card className="border-2 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-[#0F172A] dark:text-white flex items-center gap-2 text-start">
                 <Filter className="w-5 h-5 text-[#B49162]" />
-                Filters
+                {getTranslation('contact.filters', 'الفلاتر', 'Filters')}
               </CardTitle>
               {activeFiltersCount > 0 && (
                 <Badge variant="outline" className="text-xs">
-                  {activeFiltersCount} active
+                  {activeFiltersCount} {getTranslation('contact.active', 'نشط', 'active')}
                 </Badge>
               )}
             </div>
@@ -300,21 +311,21 @@ export function BlogFilters({ articles, onFilterChange, className }: BlogFilters
       <div className="lg:hidden">
         <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" className="w-full justify-start">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
+            <Button variant="outline" className={cn("w-full", locale === 'ar' ? 'justify-end flex-row-reverse' : 'justify-start')}>
+              <Filter className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+              {getTranslation('contact.filters', 'الفلاتر', 'Filters')}
               {activeFiltersCount > 0 && (
-                <Badge variant="outline" className="ml-2">
+                <Badge variant="outline" className={locale === 'ar' ? 'mr-2' : 'ml-2'}>
                   {activeFiltersCount}
                 </Badge>
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetContent side={locale === 'ar' ? 'right' : 'left'} className="w-full sm:max-w-md overflow-y-auto">
             <SheetHeader>
-              <SheetTitle>Filter Articles</SheetTitle>
-              <SheetDescription>
-                Filter articles by category, tag, author, or date
+              <SheetTitle className="text-start">{getTranslation('contact.filterArticles', 'تصفية المقالات', 'Filter Articles')}</SheetTitle>
+              <SheetDescription className="text-start">
+                {getTranslation('contact.filterArticlesDescription', 'تصفية المقالات حسب الفئة أو الوسم أو المؤلف أو التاريخ', 'Filter articles by category, tag, author, or date')}
               </SheetDescription>
             </SheetHeader>
             <div className="mt-6">

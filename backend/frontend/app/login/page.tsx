@@ -16,11 +16,14 @@ import { Logo } from '@/components/ui-custom/Logo';
 import { SocialLogin } from '@/components/auth/SocialLogin';
 import { ForgotPassword } from '@/components/auth/ForgotPassword';
 import { TwoFactorAuth } from '@/components/auth/TwoFactorAuth';
+import { useLanguage } from '@/components/providers/LanguageProvider';
+import { cn } from '@/lib/utils';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const { t, locale } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -28,6 +31,14 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [socialLoginLoading, setSocialLoginLoading] = useState<string | null>(null);
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   // Redirect if already authenticated (only once) - but only if not currently logging in
   const hasRedirectedRef = useRef(false);
@@ -70,7 +81,7 @@ function LoginContent() {
         setError(
           err.response?.data?.message ||
           err.response?.data?.errors?.email?.[0] ||
-          'Invalid email or password. Please try again.'
+          getTranslation('invalidEmailOrPassword', 'البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.', 'Invalid email or password. Please try again.')
         );
       }
     } finally {
@@ -101,7 +112,7 @@ function LoginContent() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
       window.location.href = `${baseUrl}/auth/${provider}/redirect`;
     } catch (err: any) {
-      setError('Failed to initiate social login. Please try again.');
+      setError(getTranslation('failedToInitiateSocialLogin', 'فشل بدء تسجيل الدخول الاجتماعي. يرجى المحاولة مرة أخرى.', 'Failed to initiate social login. Please try again.'));
       setSocialLoginLoading(null);
     }
   };
@@ -109,7 +120,7 @@ function LoginContent() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">{getTranslation('loading', 'جاري التحميل...', 'Loading...')}</div>
       </div>
     );
   }
@@ -150,10 +161,10 @@ function LoginContent() {
                 </div>
                 <div className="space-y-1 text-center">
                   <CardTitle className="text-3xl font-bold text-primary dark:text-white">
-                    Welcome Back
+                    {getTranslation('welcomeBack', 'مرحباً بعودتك', 'Welcome Back')}
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Sign in to your account to continue
+                    {getTranslation('signInToAccount', 'قم بتسجيل الدخول إلى حسابك للمتابعة', 'Sign in to your account to continue')}
                   </CardDescription>
                 </div>
               </CardHeader>
@@ -173,7 +184,7 @@ function LoginContent() {
                   />
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-start">{getTranslation('email', 'البريد الإلكتروني', 'Email')}</Label>
                     <Input
                       id="email"
                       type="email"
@@ -182,26 +193,28 @@ function LoginContent() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       disabled={isLoading}
-                      className="h-11"
+                      className="h-11 text-start"
+                      dir="ltr"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-start">{getTranslation('password', 'كلمة المرور', 'Password')}</Label>
                     <Input
                       id="password"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder={getTranslation('enterYourPassword', 'أدخل كلمة المرور', 'Enter your password')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={isLoading}
-                      className="h-11"
+                      className="h-11 text-start"
+                      dir={locale === 'ar' ? 'rtl' : 'ltr'}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
+                  <div className={cn("flex items-center justify-between", locale === 'ar' && 'flex-row-reverse')}>
+                    <div className={cn("flex items-center", locale === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2')}>
                       <Checkbox
                         id="remember"
                         checked={remember}
@@ -210,9 +223,9 @@ function LoginContent() {
                       />
                       <Label
                         htmlFor="remember"
-                        className="text-sm font-normal cursor-pointer"
+                        className="text-sm font-normal cursor-pointer text-start"
                       >
-                        Remember me
+                        {getTranslation('rememberMe', 'تذكرني', 'Remember me')}
                       </Label>
                     </div>
                     <ForgotPassword />
@@ -224,15 +237,15 @@ function LoginContent() {
                     className="w-full bg-secondary hover:bg-secondary/90 text-white h-11"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Signing in...' : 'Sign In'}
+                    {isLoading ? getTranslation('signingIn', 'جاري تسجيل الدخول...', 'Signing in...') : getTranslation('signIn', 'تسجيل الدخول', 'Sign In')}
                   </Button>
-                  <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-                    Don't have an account?{' '}
+                  <p className="text-sm text-gray-600 dark:text-gray-400 text-start">
+                    {getTranslation('dontHaveAccount', 'ليس لديك حساب؟', 'Don\'t have an account?')}{' '}
                     <Link
                       href="/register"
                       className="text-secondary hover:underline font-medium"
                     >
-                      Sign up
+                      {getTranslation('signUp', 'سجل الآن', 'Sign up')}
                     </Link>
                   </p>
                 </CardFooter>

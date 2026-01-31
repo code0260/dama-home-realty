@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ import {
 import { cn } from '@/lib/utils';
 import axiosInstance from '@/lib/axios';
 import { ApiError, isApiError, getErrorMessage } from '@/types/errors';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface ContactFormData {
   // Step 1: Personal Info
@@ -61,17 +62,23 @@ interface MultiStepContactFormProps {
   className?: string;
 }
 
-const steps = [
-  { id: 1, title: 'Personal Information', icon: User },
-  { id: 2, title: 'Inquiry Details', icon: MessageSquare },
-  { id: 3, title: 'Additional Information', icon: FileText },
-  { id: 4, title: 'Files & Preferences', icon: Upload },
-];
-
 export function MultiStepContactForm({ onSuccess, className }: MultiStepContactFormProps) {
+  const { t, locale } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const steps = [
+    { id: 1, titleKey: 'contact.personalInfo', icon: User },
+    { id: 2, titleKey: 'contact.inquiryDetails', icon: MessageSquare },
+    { id: 3, titleKey: 'contact.additionalInfo', icon: FileText },
+    { id: 4, titleKey: 'contact.filesPreferences', icon: Upload },
+  ];
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -250,14 +257,14 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-12 h-12 text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-[#0F172A] mb-3">
-              Message Sent Successfully!
+            <h3 className="text-2xl font-bold text-[#0F172A] mb-3 text-start">
+              {mounted ? t('contact.messageSentSuccess') : 'تم إرسال الرسالة بنجاح!'}
             </h3>
-            <p className="text-gray-600 mb-6 text-lg">
-              Thank you for contacting us. We'll get back to you within 24 hours.
+            <p className="text-gray-600 mb-6 text-lg text-start">
+              {mounted ? t('contact.thankYouMessage') : 'شكراً لتواصلك معنا. سنعود إليك خلال 24 ساعة.'}
             </p>
-            <p className="text-sm text-gray-500 mb-6">
-              A confirmation email has been sent to <span className="font-semibold text-[#B49162]">{formData.email}</span>
+            <p className="text-sm text-gray-500 mb-6 text-start">
+              {mounted ? t('contact.confirmationEmail') : 'تم إرسال بريد تأكيد إلى'} <span className="font-semibold text-[#B49162]">{formData.email}</span>
             </p>
             <Button
               onClick={() => {
@@ -283,7 +290,7 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               variant="outline"
               className="border-gray-300 text-[#0F172A] hover:bg-gray-50"
             >
-              Send Another Message
+              {mounted ? t('contact.sendAnotherMessage') : 'إرسال رسالة أخرى'}
             </Button>
           </motion.div>
         </CardContent>
@@ -302,11 +309,29 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               <CurrentStepIcon className="w-6 h-6 text-[#B49162]" />
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold text-[#0F172A]">
-                {steps[currentStep - 1].title}
+              <CardTitle className="text-2xl font-bold text-[#0F172A] text-start">
+                {(() => {
+                  const translation = t(steps[currentStep - 1].titleKey);
+                  if (translation === steps[currentStep - 1].titleKey) {
+                    const fallbacks: Record<string, { ar: string; en: string }> = {
+                      'contact.personalInfo': { ar: 'المعلومات الشخصية', en: 'Personal Information' },
+                      'contact.inquiryDetails': { ar: 'تفاصيل الاستفسار', en: 'Inquiry Details' },
+                      'contact.additionalInfo': { ar: 'معلومات إضافية', en: 'Additional Information' },
+                      'contact.filesPreferences': { ar: 'الملفات والتفضيلات', en: 'Files & Preferences' },
+                    };
+                    return fallbacks[steps[currentStep - 1].titleKey]?.[locale] || translation;
+                  }
+                  return translation;
+                })()}
               </CardTitle>
-              <CardDescription className="text-sm text-gray-600">
-                Step {currentStep} of {steps.length}
+              <CardDescription className="text-sm text-gray-600 text-start">
+                {(() => {
+                  const stepTranslation = t('contact.step', { current: currentStep, total: steps.length });
+                  if (stepTranslation === 'contact.step' || stepTranslation.includes('contact.step')) {
+                    return locale === 'ar' ? `الخطوة ${currentStep} من ${steps.length}` : `Step ${currentStep} of ${steps.length}`;
+                  }
+                  return stepTranslation;
+                })()}
               </CardDescription>
             </div>
           </div>
@@ -326,56 +351,77 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold text-[#0F172A]">
-                  Full Name *
+                <Label htmlFor="name" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.fullName');
+                    if (translation === 'contact.fullName') {
+                      return locale === 'ar' ? 'الاسم الكامل' : 'Full Name';
+                    }
+                    return translation;
+                  })()} *
                 </Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => updateFormData('name', e.target.value)}
-                  placeholder="John Doe"
+                  placeholder={mounted && locale === 'en' ? "John Doe" : "أحمد محمد"}
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                   className={cn(
-                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start',
                     errors.name && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                   )}
                 />
-                {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+                {errors.name && <p className="text-sm text-red-500 mt-1 text-start">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-[#0F172A]">
-                  Email Address *
+                <Label htmlFor="email" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.emailAddress');
+                    if (translation === 'contact.emailAddress') {
+                      return locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address';
+                    }
+                    return translation;
+                  })()} *
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => updateFormData('email', e.target.value)}
-                  placeholder="john@example.com"
+                  placeholder={mounted && locale === 'en' ? "john@example.com" : "ahmed@example.com"}
+                  dir="ltr"
                   className={cn(
-                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start',
                     errors.email && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                   )}
                 />
-                {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+                {errors.email && <p className="text-sm text-red-500 mt-1 text-start">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-semibold text-[#0F172A]">
-                  Phone Number *
+                <Label htmlFor="phone" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.phoneNumber');
+                    if (translation === 'contact.phoneNumber') {
+                      return locale === 'ar' ? 'رقم الهاتف' : 'Phone Number';
+                    }
+                    return translation;
+                  })()} *
                 </Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => updateFormData('phone', e.target.value)}
-                  placeholder="+963 123 456 789"
+                  placeholder="+963 932 498 092"
+                  dir="ltr"
                   className={cn(
-                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start',
                     errors.phone && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                   )}
                 />
-                {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
+                {errors.phone && <p className="text-sm text-red-500 mt-1 text-start">{errors.phone}</p>}
               </div>
             </motion.div>
           )}
@@ -391,8 +437,14 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="inquiryType" className="text-sm font-semibold text-[#0F172A]">
-                  Inquiry Type *
+                <Label htmlFor="inquiryType" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.inquiryType');
+                    if (translation === 'contact.inquiryType') {
+                      return locale === 'ar' ? 'نوع الاستفسار' : 'Inquiry Type';
+                    }
+                    return translation;
+                  })()} *
                 </Label>
                 <Select
                   value={formData.inquiryType}
@@ -400,78 +452,176 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                 >
                   <SelectTrigger 
                     className={cn(
-                      'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                      'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start',
                       errors.inquiryType && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                     )}
                   >
-                    <SelectValue placeholder="Select inquiry type" />
+                    <SelectValue placeholder={(() => {
+                      const translation = t('contact.selectInquiryType');
+                      if (translation === 'contact.selectInquiryType') {
+                        return locale === 'ar' ? 'اختر نوع الاستفسار' : 'Select inquiry type';
+                      }
+                      return translation;
+                    })()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="property">Property Inquiry</SelectItem>
-                    <SelectItem value="general">General Question</SelectItem>
-                    <SelectItem value="support">Support Request</SelectItem>
-                    <SelectItem value="partnership">Partnership</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="property">{(() => {
+                      const translation = t('contact.propertyInquiry');
+                      if (translation === 'contact.propertyInquiry') {
+                        return locale === 'ar' ? 'استفسار عن عقار' : 'Property Inquiry';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="general">{(() => {
+                      const translation = t('contact.generalQuestion');
+                      if (translation === 'contact.generalQuestion') {
+                        return locale === 'ar' ? 'سؤال عام' : 'General Question';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="support">{(() => {
+                      const translation = t('contact.supportRequest');
+                      if (translation === 'contact.supportRequest') {
+                        return locale === 'ar' ? 'طلب دعم' : 'Support Request';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="partnership">{(() => {
+                      const translation = t('contact.partnership');
+                      if (translation === 'contact.partnership') {
+                        return locale === 'ar' ? 'شراكة' : 'Partnership';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="other">{(() => {
+                      const translation = t('contact.other');
+                      if (translation === 'contact.other') {
+                        return locale === 'ar' ? 'أخرى' : 'Other';
+                      }
+                      return translation;
+                    })()}</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.inquiryType && <p className="text-sm text-red-500 mt-1">{errors.inquiryType}</p>}
+                {errors.inquiryType && <p className="text-sm text-red-500 mt-1 text-start">{errors.inquiryType}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subject" className="text-sm font-semibold text-[#0F172A]">
-                  Subject *
+                <Label htmlFor="subject" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.subject');
+                    if (translation === 'contact.subject') {
+                      return locale === 'ar' ? 'الموضوع' : 'Subject';
+                    }
+                    return translation;
+                  })()} *
                 </Label>
                 <Input
                   id="subject"
                   value={formData.subject}
                   onChange={(e) => updateFormData('subject', e.target.value)}
-                  placeholder="What is this regarding?"
+                  placeholder={(() => {
+                    const translation = t('contact.whatIsThisRegarding');
+                    if (translation === 'contact.whatIsThisRegarding') {
+                      return locale === 'ar' ? 'بم يتعلق هذا؟' : 'What is this regarding?';
+                    }
+                    return translation;
+                  })()}
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                   className={cn(
-                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20',
+                    'h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start',
                     errors.subject && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                   )}
                 />
-                {errors.subject && <p className="text-sm text-red-500 mt-1">{errors.subject}</p>}
+                {errors.subject && <p className="text-sm text-red-500 mt-1 text-start">{errors.subject}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="priority" className="text-sm font-semibold text-[#0F172A]">
-                  Priority
+                <Label htmlFor="priority" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.priority');
+                    if (translation === 'contact.priority') {
+                      return locale === 'ar' ? 'الأولوية' : 'Priority';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <Select
                   value={formData.priority}
                   onValueChange={(value) => updateFormData('priority', value)}
                 >
-                  <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20">
+                  <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="low">{(() => {
+                      const translation = t('contact.low');
+                      if (translation === 'contact.low') {
+                        return locale === 'ar' ? 'منخفضة' : 'Low';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="normal">{(() => {
+                      const translation = t('contact.normal');
+                      if (translation === 'contact.normal') {
+                        return locale === 'ar' ? 'عادية' : 'Normal';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="high">{(() => {
+                      const translation = t('contact.high');
+                      if (translation === 'contact.high') {
+                        return locale === 'ar' ? 'عالية' : 'High';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="urgent">{(() => {
+                      const translation = t('contact.urgent');
+                      if (translation === 'contact.urgent') {
+                        return locale === 'ar' ? 'عاجلة' : 'Urgent';
+                      }
+                      return translation;
+                    })()}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message" className="text-sm font-semibold text-[#0F172A]">
-                  Message *
+                <Label htmlFor="message" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.message');
+                    if (translation === 'contact.message') {
+                      return locale === 'ar' ? 'الرسالة' : 'Message';
+                    }
+                    return translation;
+                  })()} *
                 </Label>
                 <Textarea
                   id="message"
                   value={formData.message}
                   onChange={(e) => updateFormData('message', e.target.value)}
-                  placeholder="Tell us how we can help..."
+                  placeholder={(() => {
+                    const translation = t('contact.tellUsHowWeCanHelp');
+                    if (translation === 'contact.tellUsHowWeCanHelp') {
+                      return locale === 'ar' ? 'أخبرنا كيف يمكننا مساعدتك...' : 'Tell us how we can help...';
+                    }
+                    return translation;
+                  })()}
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                   rows={6}
                   className={cn(
-                    'bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 resize-none',
+                    'bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 resize-none text-start',
                     errors.message && 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                   )}
                 />
-                {errors.message && <p className="text-sm text-red-500 mt-1">{errors.message}</p>}
-                <p className="text-xs text-gray-500">
-                  {formData.message.length} / 500 characters
+                {errors.message && <p className="text-sm text-red-500 mt-1 text-start">{errors.message}</p>}
+                <p className="text-xs text-gray-500 text-start">
+                  {formData.message.length} / 500 {(() => {
+                    const translation = t('contact.characters');
+                    if (translation === 'contact.characters') {
+                      return locale === 'ar' ? 'حرف' : 'characters';
+                    }
+                    return translation;
+                  })()}
                 </p>
               </div>
             </motion.div>
@@ -488,34 +638,54 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="propertyId" className="text-sm font-semibold text-[#0F172A]">
-                  Property ID (if applicable)
+                <Label htmlFor="propertyId" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.propertyId');
+                    if (translation === 'contact.propertyId') {
+                      return locale === 'ar' ? 'رقم العقار (إن وجد)' : 'Property ID (if applicable)';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <Input
                   id="propertyId"
                   value={formData.propertyId}
                   onChange={(e) => updateFormData('propertyId', e.target.value)}
                   placeholder="PROP-12345"
-                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20"
+                  dir="ltr"
+                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-sm font-semibold text-[#0F172A]">
-                  Location of Interest
+                <Label htmlFor="location" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.locationOfInterest');
+                    if (translation === 'contact.locationOfInterest') {
+                      return locale === 'ar' ? 'الموقع المطلوب' : 'Location of Interest';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) => updateFormData('location', e.target.value)}
-                  placeholder="Damascus, Syria"
-                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20"
+                  placeholder={locale === 'ar' ? 'دمشق، سوريا' : 'Damascus, Syria'}
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget" className="text-sm font-semibold text-[#0F172A]">
-                  Budget (optional)
+                <Label htmlFor="budget" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.budget');
+                    if (translation === 'contact.budget') {
+                      return locale === 'ar' ? 'الميزانية (اختياري)' : 'Budget (optional)';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <Input
                   id="budget"
@@ -523,27 +693,70 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                   value={formData.budget}
                   onChange={(e) => updateFormData('budget', e.target.value)}
                   placeholder="10000"
-                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20"
+                  dir="ltr"
+                  className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="timeline" className="text-sm font-semibold text-[#0F172A]">
-                  Timeline
+                <Label htmlFor="timeline" className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.timeline');
+                    if (translation === 'contact.timeline') {
+                      return locale === 'ar' ? 'الجدول الزمني' : 'Timeline';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <Select
                   value={formData.timeline}
                   onValueChange={(value) => updateFormData('timeline', value)}
                 >
-                  <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20">
-                    <SelectValue placeholder="Select timeline" />
+                  <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-[#B49162] focus:ring-[#B49162]/20 text-start">
+                    <SelectValue placeholder={(() => {
+                      const translation = t('contact.selectTimeline');
+                      if (translation === 'contact.selectTimeline') {
+                        return locale === 'ar' ? 'اختر الجدول الزمني' : 'Select timeline';
+                      }
+                      return translation;
+                    })()} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="immediate">Immediate</SelectItem>
-                    <SelectItem value="1month">Within 1 Month</SelectItem>
-                    <SelectItem value="3months">Within 3 Months</SelectItem>
-                    <SelectItem value="6months">Within 6 Months</SelectItem>
-                    <SelectItem value="flexible">Flexible</SelectItem>
+                    <SelectItem value="immediate">{(() => {
+                      const translation = t('contact.immediate');
+                      if (translation === 'contact.immediate') {
+                        return locale === 'ar' ? 'فوري' : 'Immediate';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="1month">{(() => {
+                      const translation = t('contact.within1Month');
+                      if (translation === 'contact.within1Month') {
+                        return locale === 'ar' ? 'خلال شهر' : 'Within 1 Month';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="3months">{(() => {
+                      const translation = t('contact.within3Months');
+                      if (translation === 'contact.within3Months') {
+                        return locale === 'ar' ? 'خلال 3 أشهر' : 'Within 3 Months';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="6months">{(() => {
+                      const translation = t('contact.within6Months');
+                      if (translation === 'contact.within6Months') {
+                        return locale === 'ar' ? 'خلال 6 أشهر' : 'Within 6 Months';
+                      }
+                      return translation;
+                    })()}</SelectItem>
+                    <SelectItem value="flexible">{(() => {
+                      const translation = t('contact.flexible');
+                      if (translation === 'contact.flexible') {
+                        return locale === 'ar' ? 'مرن' : 'Flexible';
+                      }
+                      return translation;
+                    })()}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -561,14 +774,26 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-[#0F172A]">
-                  Upload Files (optional, max 5 files)
+                <Label className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.uploadFiles');
+                    if (translation === 'contact.uploadFiles') {
+                      return locale === 'ar' ? 'رفع الملفات (اختياري، حد أقصى 5 ملفات)' : 'Upload Files (optional, max 5 files)';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#B49162] transition-colors bg-gray-50">
                   <Upload className="w-10 h-10 mx-auto mb-3 text-gray-400" />
                   <label htmlFor="file-upload" className="cursor-pointer">
                     <span className="text-sm text-[#B49162] font-semibold hover:underline">
-                      Click to upload
+                      {(() => {
+                        const translation = t('contact.clickToUpload');
+                        if (translation === 'contact.clickToUpload') {
+                          return locale === 'ar' ? 'انقر للرفع' : 'Click to upload';
+                        }
+                        return translation;
+                      })()}
                     </span>
                     <input
                       id="file-upload"
@@ -608,12 +833,21 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
               </div>
 
               <div className="space-y-3">
-                <Label className="text-sm font-semibold text-[#0F172A]">
-                  Preferred Contact Method
+                <Label className="text-sm font-semibold text-[#0F172A] text-start">
+                  {(() => {
+                    const translation = t('contact.preferredContactMethod');
+                    if (translation === 'contact.preferredContactMethod') {
+                      return locale === 'ar' ? 'طريقة التواصل المفضلة' : 'Preferred Contact Method';
+                    }
+                    return translation;
+                  })()}
                 </Label>
                 <div className="space-y-3">
                   {['email', 'phone', 'whatsapp'].map((method) => (
-                    <div key={method} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-[#B49162] hover:bg-[#B49162]/5 transition-all">
+                    <div key={method} className={cn(
+                      "flex items-center p-3 border border-gray-200 rounded-lg hover:border-[#B49162] hover:bg-[#B49162]/5 transition-all",
+                      locale === 'ar' ? 'flex-row-reverse space-x-reverse' : 'space-x-3'
+                    )}>
                       <Checkbox
                         id={method}
                         checked={formData.preferredContact.includes(method)}
@@ -634,9 +868,15 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                       />
                       <label
                         htmlFor={method}
-                        className="text-sm font-medium text-[#0F172A] leading-none cursor-pointer capitalize flex-1"
+                        className="text-sm font-medium text-[#0F172A] leading-none cursor-pointer flex-1 text-start"
                       >
-                        {method}
+                        {(() => {
+                          const translation = t(`contact.${method}`);
+                          if (translation === `contact.${method}`) {
+                            return method.charAt(0).toUpperCase() + method.slice(1);
+                          }
+                          return translation;
+                        })()}
                       </label>
                     </div>
                   ))}
@@ -652,9 +892,9 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
                 />
                 <label
                   htmlFor="newsletter"
-                  className="text-sm font-medium text-[#0F172A] leading-relaxed cursor-pointer flex-1"
+                  className="text-sm font-medium text-[#0F172A] leading-relaxed cursor-pointer flex-1 text-start"
                 >
-                  Subscribe to our newsletter for updates and offers
+                  {mounted ? t('contact.subscribeNewsletter') : 'اشترك في نشرتنا الإخبارية للحصول على التحديثات والعروض'}
                 </label>
               </div>
             </motion.div>
@@ -667,35 +907,44 @@ export function MultiStepContactForm({ onSuccess, className }: MultiStepContactF
             variant="outline"
             onClick={handleBack}
             disabled={currentStep === 1 || loading}
-            className="flex items-center justify-center gap-2 border-gray-300 text-[#0F172A] hover:bg-gray-50 min-w-[100px]"
+            className={cn(
+              "flex items-center justify-center gap-2 border-gray-300 text-[#0F172A] hover:bg-gray-50 min-w-[100px]",
+              locale === 'ar' ? 'flex-row-reverse' : ''
+            )}
           >
-            <ArrowLeft className="w-4 h-4 shrink-0" />
-            <span>Back</span>
+            <ArrowLeft className={cn("w-4 h-4 shrink-0", locale === 'ar' && 'rotate-180')} />
+            <span>{mounted ? t('common.back') : 'رجوع'}</span>
           </Button>
 
           {currentStep < steps.length ? (
             <Button
               onClick={handleNext}
-              className="bg-[#B49162] hover:bg-[#9A7A4F] text-white flex items-center justify-center gap-2 h-12 px-8 font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]"
+              className={cn(
+                "bg-[#B49162] hover:bg-[#9A7A4F] text-white flex items-center justify-center gap-2 h-12 px-8 font-semibold shadow-lg hover:shadow-xl transition-all min-w-[120px]",
+                locale === 'ar' ? 'flex-row-reverse' : ''
+              )}
             >
-              <span>Next</span>
-              <ArrowRight className="w-4 h-4 shrink-0" />
+              <span>{mounted ? t('common.next') : 'التالي'}</span>
+              <ArrowRight className={cn("w-4 h-4 shrink-0", locale === 'ar' && 'rotate-180')} />
             </Button>
           ) : (
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-[#B49162] hover:bg-[#9A7A4F] text-white flex items-center justify-center gap-2 h-12 px-8 font-semibold shadow-lg hover:shadow-xl transition-all min-w-[160px]"
+              className={cn(
+                "bg-[#B49162] hover:bg-[#9A7A4F] text-white flex items-center justify-center gap-2 h-12 px-8 font-semibold shadow-lg hover:shadow-xl transition-all min-w-[160px]",
+                locale === 'ar' ? 'flex-row-reverse' : ''
+              )}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                  <span>Sending...</span>
+                  <span>{mounted ? t('contact.sending') : 'جاري الإرسال...'}</span>
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Send Message</span>
+                  <span>{mounted ? t('contact.sendMessage') : 'إرسال الرسالة'}</span>
                 </>
               )}
             </Button>

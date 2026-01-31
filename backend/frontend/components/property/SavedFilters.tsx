@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Save, X, Trash2, Filter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/providers/LanguageProvider';
+import { cn } from '@/lib/utils';
 
 export interface SavedFilter {
   id: string;
@@ -29,10 +31,19 @@ interface SavedFiltersProps {
 }
 
 export function SavedFilters({ searchParams, onLoadFilter, className }: SavedFiltersProps) {
+  const { t, locale } = useLanguage();
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [filterName, setFilterName] = useState('');
   const router = useRouter();
+
+  const getTranslation = (key: string, fallbackAr: string, fallbackEn: string) => {
+    const translation = t(key);
+    if (translation === key) {
+      return locale === 'ar' ? fallbackAr : fallbackEn;
+    }
+    return translation;
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem('savedFilters');
@@ -92,27 +103,29 @@ export function SavedFilters({ searchParams, onLoadFilter, className }: SavedFil
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className={className}>
-          <Save className="w-4 h-4 mr-2" />
-          Saved Filters
+        <Button variant="outline" size="sm" className={cn(className, locale === 'ar' && 'flex-row-reverse')}>
+          <Save className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
+          {getTranslation('contact.savedFilters', 'الفلاتر المحفوظة', 'Saved Filters')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Saved Filters</DialogTitle>
+          <DialogTitle className="text-start">{getTranslation('contact.savedFilters', 'الفلاتر المحفوظة', 'Saved Filters')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {/* Save Current Filter */}
           {hasFilters && (
             <div className="space-y-2 p-4 bg-gray-50 dark:bg-primary-900 rounded-lg">
-              <Label htmlFor="filter-name">Save Current Filter</Label>
-              <div className="flex gap-2">
+              <Label htmlFor="filter-name" className="text-start">{getTranslation('contact.saveCurrentFilter', 'حفظ الفلتر الحالي', 'Save Current Filter')}</Label>
+              <div className={cn("flex gap-2", locale === 'ar' && 'flex-row-reverse')}>
                 <Input
                   id="filter-name"
-                  placeholder="Filter name..."
+                  placeholder={getTranslation('contact.filterName', 'اسم الفلتر...', 'Filter name...')}
                   value={filterName}
                   onChange={(e) => setFilterName(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && saveCurrentFilter()}
+                  className="text-start"
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 />
                 <Button onClick={saveCurrentFilter} size="sm" disabled={!filterName.trim()}>
                   <Save className="w-4 h-4" />
@@ -126,7 +139,7 @@ export function SavedFilters({ searchParams, onLoadFilter, className }: SavedFil
             {savedFilters.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Filter className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No saved filters yet</p>
+                <p>{getTranslation('contact.noSavedFiltersYet', 'لا توجد فلاتر محفوظة بعد', 'No saved filters yet')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -138,9 +151,9 @@ export function SavedFilters({ searchParams, onLoadFilter, className }: SavedFil
                     <Button
                       variant="ghost"
                       onClick={() => loadFilter(filter)}
-                      className="flex-1 justify-start"
+                      className={cn("flex-1", locale === 'ar' ? 'justify-end flex-row-reverse' : 'justify-start')}
                     >
-                      <Filter className="w-4 h-4 mr-2" />
+                      <Filter className={cn("w-4 h-4", locale === 'ar' ? 'ml-2' : 'mr-2')} />
                       {filter.name}
                     </Button>
                     <Button

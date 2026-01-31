@@ -8,8 +8,10 @@ import { MultiStepContactForm } from '@/components/contact/MultiStepContactForm'
 import { InteractiveMap } from '@/components/contact/InteractiveMap';
 import { ContactFAQ } from '@/components/contact/ContactFAQ';
 import { LiveChatWidget } from '@/components/contact/LiveChatWidget';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export default function ContactPage() {
+  const { t, locale } = useLanguage();
   const [formSuccess, setFormSuccess] = useState(false);
 
   const handleFormSuccess = () => {
@@ -21,9 +23,21 @@ export default function ContactPage() {
     <>
         {/* Hero Section */}
       <PageHero
-        title="Get in Touch"
-        subtitle="We're here to help you find your perfect home in Damascus. Reach out to our expert team."
-        breadcrumbs={[{ label: 'Contact' }]}
+        title={(() => {
+          const translation = t('contact.getInTouch');
+          if (translation === 'contact.getInTouch') {
+            return locale === 'ar' ? 'تواصل معنا' : 'Get in Touch';
+          }
+          return translation;
+        })()}
+        subtitle={(() => {
+          const translation = t('contact.getInTouchSubtitle');
+          if (translation === 'contact.getInTouchSubtitle') {
+            return locale === 'ar' ? 'نحن هنا لمساعدتك في العثور على منزلك المثالي في دمشق. تواصل مع فريقنا الخبير.' : 'We\'re here to help you find your perfect home in Damascus. Reach out to our expert team.';
+          }
+          return translation;
+        })()}
+        breadcrumbs={[{ label: locale === 'ar' ? 'اتصل بنا' : 'Contact' }]}
       />
 
       {/* Main Content - Split Layout */}
@@ -79,10 +93,22 @@ export default function ContactPage() {
           >
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4">
-                Frequently Asked <span className="text-[#B49162]">Questions</span>
+                {(() => {
+                  const translation = t('contact.frequentlyAskedQuestions');
+                  if (translation === 'contact.frequentlyAskedQuestions') {
+                    return locale === 'ar' ? 'الأسئلة الشائعة' : 'Frequently Asked Questions';
+                  }
+                  return translation;
+                })()}
               </h2>
               <p className="text-lg text-gray-600">
-                Find answers to common questions about our services
+                {(() => {
+                  const translation = t('contact.findAnswers');
+                  if (translation === 'contact.findAnswers') {
+                    return locale === 'ar' ? 'ابحث عن إجابات للأسئلة الشائعة حول خدماتنا' : 'Find answers to common questions about our services';
+                  }
+                  return translation;
+                })()}
               </p>
             </div>
             <ContactFAQ />
