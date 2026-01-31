@@ -63,6 +63,7 @@ backend/frontend/.env.production.local
 # Server-specific files (Hostinger)
 # index.php - Now tracked in Git for deployment
 frontend-build.zip
+frontend-build-new.zip
 frontend-build-ready.tar.gz
 *.tar.gz
 *.sh
